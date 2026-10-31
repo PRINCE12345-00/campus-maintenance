@@ -5,6 +5,7 @@ import StatCard from '../../components/StatCard'
 import StatusBadge from '../../components/StatusBadge'
 import { useAppContext } from '../../context/AppContext'
 import { getStudentComplaints, getStudentNotifications, getStudentPermissions } from '../../utils/studentRecords'
+import { getPermissionChain } from '../../utils/approvalWorkflow'
 
 const COLORS = ['#2563eb', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6']
 
@@ -24,7 +25,7 @@ export default function StudentDashboard() {
   const permissionCounts = {
     total: studentPermissions.length,
     approved: studentPermissions.filter((p) => p.status === 'Approved').length,
-    underReview: studentPermissions.filter((p) => p.status === 'Under Review').length,
+    underReview: studentPermissions.filter((p) => ['Under Review', 'Pending Approval', 'Changes Requested'].includes(p.status)).length,
   }
 
   const chartData = [
@@ -146,6 +147,46 @@ export default function StudentDashboard() {
           </div>
         </div>
       </div>
+      <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-soft">
+        <div className="mb-5 flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-slate-900">Permission approval tracking</h2>
+            <p className="mt-1 text-sm text-slate-500">Follow each request through the approval offices.</p>
+          </div>
+          <Link to="/student/permissions" className="text-sm font-semibold text-blue-600">All requests</Link>
+        </div>
+        <div className="space-y-4">
+          {studentPermissions.length === 0 && <p className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-500">Permission requests you submit will appear here.</p>}
+          {studentPermissions.slice(0, 3).map((permission) => (
+            <div key={permission.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="font-semibold text-slate-800">{permission.title}</p>
+                  <p className="mt-1 text-sm text-slate-500">{permission.type} · {permission.status === 'Approved' ? 'Complete' : permission.status === 'Rejected' ? 'Rejected' : `Awaiting ${permission.currentStage || 'Department Head'}`}</p>
+                </div>
+                <Link to={`/student/permission/${permission.id}`} className="text-sm font-semibold text-blue-600">Track request</Link>
+              </div>
+                {permission.status === 'Changes Requested' && (
+                  <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                    <p className="text-sm font-semibold text-amber-900">Changes requested by the reviewer</p>
+                    {permission.approvalChain?.filter((stage) => stage.status === 'Returned').map((stage) => (
+                      <p key={stage.stage} className="mt-1 text-sm text-amber-800"><strong>{stage.stage}:</strong> {stage.comment || 'Please review the request and contact the department.'}</p>
+                    ))}
+                    <Link to="/student/permissions" className="mt-2 inline-flex text-sm font-semibold text-blue-700">Open request and respond</Link>
+                  </div>
+                )}
+              <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+                {getPermissionChain(permission).map((stage) => (
+                  <div key={stage.stage} className={`rounded-xl px-3 py-2 text-xs ${stage.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' : stage.status === 'Pending' ? 'bg-blue-100 text-blue-800' : stage.status === 'Rejected' ? 'bg-rose-100 text-rose-800' : 'bg-white text-slate-500'}`}>
+                    <p className="font-semibold">{stage.stage}</p>
+                    <p className="mt-1">{stage.status}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   )
 }

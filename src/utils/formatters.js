@@ -5,6 +5,8 @@ export const statusColors = {
   Resolved: 'bg-emerald-100 text-emerald-700',
   Closed: 'bg-slate-800 text-white',
   'Under Review': 'bg-amber-100 text-amber-700',
+  'Pending Approval': 'bg-blue-100 text-blue-700',
+  'Changes Requested': 'bg-amber-100 text-amber-700',
   Approved: 'bg-emerald-100 text-emerald-700',
   Rejected: 'bg-rose-100 text-rose-700',
 }

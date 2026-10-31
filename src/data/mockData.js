@@ -17,6 +17,19 @@ export const demoUsers = {
     department: 'Administrative Office',
     phone: '',
   },
+  departmentHead: {
+    id: 'HOD-CSE-01',
+    name: 'CSE Department Head',
+    email: 'hod.cse@dcrust.in',
+    role: 'department_head',
+    department: 'Computer Science & Engineering',
+    phone: '',
+  },
+  culturalCoordinator: { id: 'COORD-CULT-01', name: 'Cultural Coordinator', email: 'cultural.coordinator@dcrust.in', role: 'cultural_coordinator', department: 'Student Affairs', phone: '' },
+  technicalCoordinator: { id: 'COORD-TECH-01', name: 'Technical Coordinator', email: 'technical.coordinator@dcrust.in', role: 'technical_coordinator', department: 'Student Affairs', phone: '' },
+  dsw: { id: 'DSW-01', name: 'Dean of Student Welfare', email: 'dsw@dcrust.in', role: 'dsw', department: 'Student Welfare', phone: '' },
+  registrar: { id: 'REG-01', name: 'Registrar', email: 'registrar@dcrust.in', role: 'registrar', department: 'Registrar Office', phone: '' },
+  viceChancellor: { id: 'VC-01', name: 'Vice Chancellor', email: 'vc@dcrust.in', role: 'vice_chancellor', department: 'Vice Chancellor Office', phone: '' },
 }
 
 export const initialComplaints = [

@@ -16,6 +16,8 @@ import AdminAnalyticsPage from '../pages/admin/AdminAnalyticsPage'
 import AdminProfilePage from '../pages/admin/AdminProfilePage'
 import ComplaintDetailPage from '../pages/ComplaintDetailPage'
 import PermissionReviewPage from '../pages/PermissionReviewPage'
+import DepartmentHeadDashboard from '../pages/department/DepartmentHeadDashboard'
+import AuthorityDashboard from '../pages/department/AuthorityDashboard'
 
 export const router = createBrowserRouter([
   { path: '/', element: <LandingPage /> },
@@ -29,9 +31,59 @@ export const router = createBrowserRouter([
       { index: true, element: <StudentDashboard /> },
       { path: 'complaints', element: <StudentComplaintsPage /> },
       { path: 'permissions', element: <StudentPermissionsPage /> },
+      { path: 'permission/:id', element: <PermissionReviewPage /> },
       { path: 'notifications', element: <StudentNotificationsPage /> },
       { path: 'profile', element: <StudentProfilePage /> },
       { path: 'complaint/:id', element: <ComplaintDetailPage /> },
+    ],
+  },
+  {
+    path: '/department-head',
+    element: <AppLayout role="department_head" />,
+    children: [
+      { index: true, element: <DepartmentHeadDashboard /> },
+      { path: 'complaint/:id', element: <ComplaintDetailPage /> },
+      { path: 'permission/:id', element: <PermissionReviewPage /> },
+    ],
+  },
+  {
+    path: '/cultural-coordinator',
+    element: <AppLayout role="cultural_coordinator" />,
+    children: [
+      { index: true, element: <AuthorityDashboard role="cultural_coordinator" /> },
+      { path: 'permission/:id', element: <PermissionReviewPage /> },
+    ],
+  },
+  {
+    path: '/technical-coordinator',
+    element: <AppLayout role="technical_coordinator" />,
+    children: [
+      { index: true, element: <AuthorityDashboard role="technical_coordinator" /> },
+      { path: 'permission/:id', element: <PermissionReviewPage /> },
+    ],
+  },
+  {
+    path: '/dsw',
+    element: <AppLayout role="dsw" />,
+    children: [
+      { index: true, element: <AuthorityDashboard role="dsw" /> },
+      { path: 'permission/:id', element: <PermissionReviewPage /> },
+    ],
+  },
+  {
+    path: '/registrar',
+    element: <AppLayout role="registrar" />,
+    children: [
+      { index: true, element: <AuthorityDashboard role="registrar" /> },
+      { path: 'permission/:id', element: <PermissionReviewPage /> },
+    ],
+  },
+  {
+    path: '/vice-chancellor',
+    element: <AppLayout role="vice_chancellor" />,
+    children: [
+      { index: true, element: <AuthorityDashboard role="vice_chancellor" /> },
+      { path: 'permission/:id', element: <PermissionReviewPage /> },
     ],
   },
   {

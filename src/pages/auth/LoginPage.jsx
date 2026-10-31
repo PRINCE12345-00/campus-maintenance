@@ -3,6 +3,7 @@ import { ArrowLeft, Eye, EyeOff, LockKeyhole, Mail, UserRound } from 'lucide-rea
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { demoUsers } from '../../data/mockData'
 import { useAppContext } from '../../context/AppContext'
+import { authApi } from '../../services/api'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -25,50 +26,54 @@ export default function LoginPage() {
     return nextErrors
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     const nextErrors = validate()
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length) return
 
-    const normalizedEmail = form.email.trim().toLowerCase()
-    const registeredUsers = (() => {
-      try {
-        return JSON.parse(localStorage.getItem('scms-registered-users') || '[]')
-      } catch {
-        return []
+    try {
+      const { data } = await authApi.login({
+        email: form.email,
+        password: form.password,
+      })
+
+      const user = data.user
+      setUser(user)
+      if (user.role === 'student') {
+        setProfile(user)
       }
-    })()
-    const registeredUser = registeredUsers.find((account) => account.email.toLowerCase() === normalizedEmail)
-
-    if (normalizedEmail === demoUsers.admin.email && form.password === 'prince@123') {
-      setUser(demoUsers.admin)
-      navigate('/admin')
-      return
+      const routeByRole = {
+        admin: '/admin',
+        department_head: '/department-head',
+        cultural_coordinator: '/cultural-coordinator',
+        technical_coordinator: '/technical-coordinator',
+        dsw: '/dsw',
+        registrar: '/registrar',
+        vice_chancellor: '/vice-chancellor',
+        student: '/student',
+      }
+      navigate(routeByRole[user.role] || '/student')
+    } catch (error) {
+      const message = error?.response?.data?.message || 'Email or password is incorrect. Use your registered student account or the demo credentials.'
+      setErrors({ form: message })
     }
-
-    if (normalizedEmail === demoUsers.student.email && form.password === 'student123') {
-      setUser(demoUsers.student)
-      setProfile(demoUsers.student)
-      navigate('/student')
-      return
-    }
-
-    if (registeredUser && registeredUser.password === form.password) {
-      const { password, ...studentUser } = registeredUser
-      setUser(studentUser)
-      setProfile(studentUser)
-      navigate('/student')
-      return
-    }
-
-    setErrors({ form: 'Email or password is incorrect. Use your registered student account or the demo credentials.' })
   }
 
   const demoLogin = (role) => {
-    const selectedUser = role === 'student' ? demoUsers.student : demoUsers.admin
+    const userByRole = {
+      student: demoUsers.student,
+      admin: demoUsers.admin,
+      department_head: demoUsers.departmentHead,
+      cultural_coordinator: demoUsers.culturalCoordinator,
+      technical_coordinator: demoUsers.technicalCoordinator,
+      dsw: demoUsers.dsw,
+      registrar: demoUsers.registrar,
+      vice_chancellor: demoUsers.viceChancellor,
+    }
+    const selectedUser = userByRole[role]
     setUser(selectedUser)
-    navigate(role === 'student' ? '/student' : '/admin')
+    navigate(role === 'student' ? '/student' : role === 'admin' ? '/admin' : role === 'department_head' ? '/department-head' : `/${role === 'vice_chancellor' ? 'vice-chancellor' : role.replaceAll('_', '-')}`)
   }
 
   return (
@@ -107,6 +112,27 @@ export default function LoginPage() {
                   <LockKeyhole size={18} className="text-blue-300" />
                 </div>
               </button>
+              <button onClick={() => demoLogin('department_head')} className="w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-left transition hover:bg-slate-800">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-white">Demo Department Head</p>
+                    <p className="text-xs text-slate-400">hod.cse@dcrust.in</p>
+                  </div>
+                  <LockKeyhole size={18} className="text-blue-300" />
+                </div>
+              </button>
+              {[
+                ['cultural_coordinator', 'Cultural Coordinator', 'cultural.coordinator@dcrust.in'],
+                ['technical_coordinator', 'Technical Coordinator', 'technical.coordinator@dcrust.in'],
+                ['dsw', 'Dean of Student Welfare', 'dsw@dcrust.in'],
+                ['registrar', 'Registrar', 'registrar@dcrust.in'],
+                ['vice_chancellor', 'Vice Chancellor', 'vc@dcrust.in'],
+              ].map(([role, label, email]) => (
+                <button key={role} onClick={() => demoLogin(role)} className="w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-left transition hover:bg-slate-800">
+                  <p className="text-sm font-semibold text-white">Demo {label}</p>
+                  <p className="text-xs text-slate-400">{email}</p>
+                </button>
+              ))}
             </div>
           </div>
 

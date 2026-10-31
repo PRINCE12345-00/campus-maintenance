@@ -29,11 +29,19 @@ A responsive frontend demo for the final-year B.Tech CSE project titled Smart Ca
 1. Install dependencies:
    npm install
 
-2. Run the app locally:
+2. Copy `.env.example` to `.env`. SMTP is configured to send from the admin Gmail address `chahalprince0481@gmail.com`; set `SMTP_PASS` to an App Password generated for that account. For Gmail, 2-Step Verification must be enabled to create an App Password. Use the App Password, not the regular Gmail password. The example uses Gmail SMTP on port 465. Student notifications are addressed to the email on the submitting student's account.
+
+   Keep `.env` private; it is excluded from Git. Do not paste SMTP credentials into chat or commit them.
+
+   To run without email for now, leave the SMTP values unset; email notifications will be logged as dry runs and will not be delivered.
+
+3. Run the app locally:
    npm run dev
 
-3. Build for production:
+4. Build for production:
    npm run build
+
+After changing SMTP settings, restart the backend so it reloads the environment variables. Complaint emails are sent to the submitting student's email address.
 
 ## Demo credentials
 

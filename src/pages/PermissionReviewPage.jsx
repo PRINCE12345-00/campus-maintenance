@@ -45,6 +45,34 @@ export default function PermissionReviewPage() {
           <p className="text-sm font-semibold text-slate-800">Purpose</p>
           <p className="mt-2 text-sm leading-7 text-slate-600">{permission.purpose}</p>
         </div>
+
+        <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">Approval tracking</h2>
+              <p className="mt-1 text-sm text-slate-500">{permission.currentStage ? `Currently awaiting: ${permission.currentStage}` : `Workflow ${permission.status.toLowerCase()}`}</p>
+            </div>
+            <StatusBadge status={permission.status} />
+          </div>
+          <div className="mt-5 space-y-3">
+            {(permission.approvalChain || []).map((stage, index) => (
+              <div key={stage.stage} className="flex items-center gap-3 rounded-xl bg-slate-50 p-3">
+                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${stage.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' : stage.status === 'Pending' ? 'bg-blue-100 text-blue-700' : stage.status === 'Rejected' ? 'bg-rose-100 text-rose-700' : 'bg-slate-200 text-slate-500'}`}>{index + 1}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-slate-800">{stage.stage}</p>
+                  {stage.comment && <p className="text-sm text-slate-500">{stage.comment}</p>}
+                </div>
+                <span className="text-sm font-medium text-slate-600">{stage.status}</span>
+              </div>
+            ))}
+          </div>
+          {permission.approvalHistory?.length > 0 && (
+            <div className="mt-5 border-t border-slate-200 pt-4">
+              <h3 className="text-sm font-semibold text-slate-800">History</h3>
+              {permission.approvalHistory.map((event, index) => <div key={`${event.stage}-${index}`} className="mt-3 rounded-xl bg-slate-50 p-3"><p className="text-sm font-semibold text-slate-700">{event.stage}: {event.status} · {new Date(event.date).toLocaleString()}</p>{event.note && <p className="mt-1 text-sm text-slate-600">{event.note}</p>}</div>)}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

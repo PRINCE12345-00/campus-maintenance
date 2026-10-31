@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import FileUpload from '../../components/FileUpload'
 import StatusBadge from '../../components/StatusBadge'
 import { useAppContext } from '../../context/AppContext'
+import { complaintsApi } from '../../services/api'
 import { campusLocations, categoryOptions, formatDate } from '../../utils/formatters'
 import { getStudentComplaints } from '../../utils/studentRecords'
 import { compressImageForStorage } from '../../utils/evidence'
@@ -21,6 +22,7 @@ export default function StudentComplaintsPage() {
   const [form, setForm] = useState({
     category: 'Electrical',
     location: 'Academic Block A',
+    destination: 'Department',
     title: '',
     description: '',
   })
@@ -80,6 +82,7 @@ export default function StudentComplaintsPage() {
         id: `CMP-${Date.now()}`,
         category: form.category,
         location: form.location,
+        destination: form.destination === 'Department' ? `${user?.department || 'Department'} Department` : form.destination,
         title: form.title,
         description: form.description,
         status: 'Submitted',
@@ -87,6 +90,7 @@ export default function StudentComplaintsPage() {
         submittedBy: user?.name || 'Student',
         submittedById: user?.id,
         submittedByEmail: user?.email,
+        department: user?.department || '',
         assignedTo: 'Maintenance Cell',
         submissionDate: today,
         lastUpdated: today,
@@ -96,13 +100,21 @@ export default function StudentComplaintsPage() {
         feedback: '',
       }
 
-      setComplaints((prev) => [newComplaint, ...prev])
+      const { data } = await complaintsApi.create(newComplaint)
+      setComplaints((prev) => [data.complaint, ...prev])
       setForm({ category: 'Electrical', location: 'Academic Block A', title: '', description: '' })
       setEvidenceFiles([])
       setUploadResetKey((key) => key + 1)
-      setSuccessMessage('Complaint submitted successfully!')
+      const emailResult = data.notifications?.email
+      if (emailResult?.sent) {
+        setSuccessMessage('Complaint submitted and confirmation email sent.')
+      } else if (emailResult?.mode === 'dry-run') {
+        setSuccessMessage('Complaint submitted, but email is not configured. Check the backend SMTP settings.')
+      } else {
+        setSuccessMessage(`Complaint submitted, but email was not sent${emailResult?.reason ? `: ${emailResult.reason}` : '.'}`)
+      }
     } catch (error) {
-      setErrors({ submit: error.message || 'Could not attach the selected evidence. Please try again.' })
+      setErrors({ submit: error?.response?.data?.message || error.message || 'Could not attach the selected evidence. Please try again.' })
     } finally {
       setIsSubmitting(false)
     }
@@ -138,6 +150,13 @@ export default function StudentComplaintsPage() {
                 {campusLocations.map((location) => <option key={location} value={location}>{location}</option>)}
               </select>
               {errors.location && <p className="mt-2 text-sm text-red-600">{errors.location}</p>}
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Route complaint to</label>
+              <select name="destination" value={form.destination} onChange={handleFormChange} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 outline-none focus:border-blue-500">
+                {[`${user?.department || 'Department'} Department`, 'DSW', 'Registrar', 'Vice Chancellor'].map((office) => <option key={office} value={office.endsWith(' Department') ? 'Department' : office}>{office}</option>)}
+              </select>
             </div>
 
             <div>

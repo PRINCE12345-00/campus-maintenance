@@ -18,10 +18,16 @@ const adminLinks = [
   { to: '/admin/profile', label: 'Profile', icon: UserRound },
 ]
 
+const departmentHeadLinks = [
+  { to: '/department-head', label: 'Department overview', icon: Gauge },
+]
+
+const authorityLinks = [{ to: '/', label: 'Authority dashboard', icon: Gauge }]
+
 export default function Sidebar({ role = 'student' }) {
   const navigate = useNavigate()
   const { setUser } = useAppContext()
-  const links = role === 'admin' ? adminLinks : studentLinks
+  const links = role === 'admin' ? adminLinks : role === 'department_head' ? departmentHeadLinks : ['cultural_coordinator', 'technical_coordinator', 'dsw', 'registrar', 'vice_chancellor'].includes(role) ? authorityLinks.map((item) => ({ ...item, to: `/${role === 'vice_chancellor' ? 'vice-chancellor' : role.replaceAll('_', '-')}` })) : studentLinks
 
   const handleSignOut = () => {
     localStorage.removeItem('scms-user')

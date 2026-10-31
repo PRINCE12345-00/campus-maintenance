@@ -41,6 +41,10 @@ export default function ComplaintDetailPage() {
             <p className="text-sm text-slate-500">Priority</p>
             <p className="mt-2 font-semibold text-slate-800">{complaint.priority}</p>
           </div>
+          <div className="rounded-2xl bg-slate-50 p-4">
+            <p className="text-sm text-slate-500">Assigned office</p>
+            <p className="mt-2 font-semibold text-slate-800">{complaint.destination || 'Department'}</p>
+          </div>
         </div>
 
         <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ArrowLeft, Mail, ShieldCheck, UserRound } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
+import { authApi } from '../../services/api'
 
 export default function RegisterPage() {
   const navigate = useNavigate()
@@ -33,38 +34,26 @@ export default function RegisterPage() {
     return nextErrors
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     const nextErrors = validate()
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length) return
 
-    let registeredUsers = []
     try {
-      registeredUsers = JSON.parse(localStorage.getItem('scms-registered-users') || '[]')
-    } catch {
-      registeredUsers = []
-    }
+      await authApi.register({
+        name: form.name,
+        rollNumber: form.rollNumber,
+        email: form.email,
+        department: form.department,
+        password: form.password,
+      })
 
-    const normalizedEmail = form.email.trim().toLowerCase()
-    if (registeredUsers.some((account) => account.email.toLowerCase() === normalizedEmail)) {
-      setErrors({ email: 'An account with this email already exists. Please log in.' })
-      return
+      navigate('/login', { state: { email: form.email.trim().toLowerCase() } })
+    } catch (error) {
+      const message = error?.response?.data?.message || 'Registration failed. Please try again.'
+      setErrors({ email: message })
     }
-
-    const registeredUser = {
-      id: form.rollNumber.trim(),
-      rollNumber: form.rollNumber.trim(),
-      name: form.name.trim(),
-      email: normalizedEmail,
-      role: 'student',
-      department: form.department.trim(),
-      batch: '2026',
-      password: form.password,
-    }
-
-    localStorage.setItem('scms-registered-users', JSON.stringify([...registeredUsers, registeredUser]))
-    navigate('/login', { state: { email: normalizedEmail } })
   }
 
   return (

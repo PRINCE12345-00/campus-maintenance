@@ -1,10 +1,25 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
+import { complaintsApi, notificationsApi, permissionsApi } from '../services/api'
+import { useAppContext } from '../context/AppContext'
 
 export default function AppLayout({ role = 'student' }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { setComplaints, setPermissions, setNotifications } = useAppContext()
+
+  useEffect(() => {
+    let active = true
+    Promise.allSettled([complaintsApi.getAll(), permissionsApi.getAll(), notificationsApi.getAll()]).then((results) => {
+      if (!active) return
+      const [complaintResult, permissionResult, notificationResult] = results
+      if (complaintResult.status === 'fulfilled') setComplaints(complaintResult.value.data)
+      if (permissionResult.status === 'fulfilled') setPermissions(permissionResult.value.data)
+      if (notificationResult.status === 'fulfilled') setNotifications(notificationResult.value.data)
+    })
+    return () => { active = false }
+  }, [role, setComplaints, setPermissions, setNotifications])
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">

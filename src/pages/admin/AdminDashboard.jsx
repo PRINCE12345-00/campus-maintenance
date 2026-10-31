@@ -17,7 +17,7 @@ export default function AdminDashboard() {
   const { complaints, permissions } = useAppContext()
   const openComplaints = complaints.filter((c) => ['Submitted', 'Assigned', 'In Progress'].includes(c.status)).length
   const resolvedComplaints = complaints.filter((c) => ['Resolved', 'Closed'].includes(c.status)).length
-  const pendingPermissions = permissions.filter((p) => p.status === 'Under Review').length
+  const pendingPermissions = permissions.filter((p) => p.status === 'Pending Approval' && p.currentStage !== 'Department Head').length
 
   return (
     <div className="space-y-6">

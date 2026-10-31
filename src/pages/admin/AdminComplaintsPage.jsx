@@ -22,8 +22,13 @@ export default function AdminComplaintsPage() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
   const rows = filtered.slice((page - 1) * pageSize, page * pageSize)
 
-  const updateStatus = (id, nextStatus) => {
-    setComplaints((prev) => prev.map((item) => item.id === id ? { ...item, status: nextStatus, lastUpdated: new Date().toISOString().slice(0, 10) } : item))
+  const updateStatus = async (id, nextStatus) => {
+    try {
+      const { data } = await import('../../services/api').then((mod) => mod.complaintsApi.updateStatus(id, nextStatus))
+      setComplaints((prev) => prev.map((item) => item.id === id ? data : item))
+    } catch (error) {
+      setComplaints((prev) => prev.map((item) => item.id === id ? { ...item, status: nextStatus, lastUpdated: new Date().toISOString().slice(0, 10) } : item))
+    }
   }
 
   return (
@@ -54,6 +59,7 @@ export default function AdminComplaintsPage() {
                 <th className="pb-3 font-medium">Complaint</th>
                 <th className="pb-3 font-medium">Category</th>
                 <th className="pb-3 font-medium">Location</th>
+                <th className="pb-3 font-medium">Route</th>
                 <th className="pb-3 font-medium">Evidence</th>
                 <th className="pb-3 font-medium">Status</th>
                 <th className="pb-3 font-medium">Action</th>
@@ -70,6 +76,7 @@ export default function AdminComplaintsPage() {
                   </td>
                   <td className="py-4 pr-4">{item.category}</td>
                   <td className="py-4 pr-4">{item.location}</td>
+                  <td className="py-4 pr-4">{item.destination || 'Department'}</td>
                   <td className="py-4 pr-4">
                     {item.attachments?.some((file) => typeof file === 'object' && file.dataUrl) ? (
                       <div className="flex items-center gap-2">

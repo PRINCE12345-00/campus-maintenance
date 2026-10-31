@@ -31,7 +31,7 @@ export default function Navbar({ role = 'student', onToggleSidebar, showSidebarB
         </div>
 
         <div className="flex items-center gap-3">
-          <Link to={role === 'admin' ? '/admin/notifications' : '/student/notifications'} className="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition hover:bg-slate-50">
+          <Link to={role === 'admin' ? '/admin/notifications' : role === 'department_head' ? '/department-head' : ['cultural_coordinator', 'technical_coordinator', 'dsw', 'registrar', 'vice_chancellor'].includes(role) ? `/${role === 'vice_chancellor' ? 'vice-chancellor' : role.replaceAll('_', '-')}` : '/student/notifications'} className="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition hover:bg-slate-50">
             <Bell size={18} />
             {unreadCount > 0 && (
               <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white">

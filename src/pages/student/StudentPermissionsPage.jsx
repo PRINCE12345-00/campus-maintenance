@@ -1,8 +1,11 @@
 import { useState } from 'react'
-import { FileText, FolderOpen, Search } from 'lucide-react'
+import { FileText, Search } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { useAppContext } from '../../context/AppContext'
 import StatusBadge from '../../components/StatusBadge'
+import { permissionsApi } from '../../services/api'
 import { getStudentPermissions } from '../../utils/studentRecords'
+import { createApprovalChain, getPermissionChain } from '../../utils/approvalWorkflow'
 
 const permissionTypes = ['Educational', 'Cultural']
 
@@ -18,6 +21,7 @@ export default function StudentPermissionsPage() {
     details: '',
   })
   const [errors, setErrors] = useState({})
+  const [responses, setResponses] = useState({})
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -34,7 +38,7 @@ export default function StudentPermissionsPage() {
     return nextErrors
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     const nextErrors = validateForm()
     setErrors(nextErrors)
@@ -47,16 +51,41 @@ export default function StudentPermissionsPage() {
       purpose: form.purpose,
       date: form.date,
       location: form.location,
-      status: 'Under Review',
+      status: 'Pending Approval',
+      currentStage: 'Department Head',
+      approvalChain: createApprovalChain(type),
+      approvalHistory: [{ stage: 'Submission', status: 'Submitted', date: new Date().toISOString(), note: 'Request submitted for approval.' }],
       submittedBy: user?.name || 'Student',
       submittedById: user?.id,
       submittedByEmail: user?.email,
+      department: user?.department || '',
       faculty: 'Department Faculty',
       details: form.details || 'Permission request submitted for administrative review.'
     }
 
-    setPermissions((prev) => [newPermission, ...prev])
-    setForm({ title: '', purpose: '', date: '', location: '', details: '' })
+    try {
+      const { data } = await permissionsApi.create(newPermission)
+      setPermissions((prev) => [data, ...prev])
+      setForm({ title: '', purpose: '', date: '', location: '', details: '' })
+    } catch (error) {
+      setErrors({ submit: error?.response?.data?.message || 'Could not submit permission request.' })
+    }
+  }
+
+  const handleResubmit = async (permission) => {
+    const response = responses[permission.id] || ''
+    if (!response.trim()) {
+      setErrors((previous) => ({ ...previous, [permission.id]: 'Please respond to the reviewer feedback before resubmitting.' }))
+      return
+    }
+    try {
+      const { data } = await permissionsApi.resubmit(permission.id, response)
+      setPermissions((previous) => previous.map((item) => item.id === permission.id ? data : item))
+      setResponses((previous) => ({ ...previous, [permission.id]: '' }))
+      setErrors((previous) => ({ ...previous, [permission.id]: '' }))
+    } catch (error) {
+      setErrors((previous) => ({ ...previous, [permission.id]: error?.response?.data?.message || 'Could not resubmit this request.' }))
+    }
   }
 
   return (
@@ -136,6 +165,25 @@ export default function StudentPermissionsPage() {
                     </div>
                     <p className="mt-2 text-sm text-slate-600">{permission.type} • {permission.location}</p>
                     <p className="mt-1 text-xs text-slate-500">{permission.date}</p>
+                    <p className="mt-3 text-xs font-semibold text-blue-700">{permission.status === 'Approved' ? 'Workflow complete' : permission.status === 'Rejected' ? 'Request rejected' : permission.status === 'Changes Requested' ? 'Changes requested from you' : `Current stage: ${permission.currentStage || 'Department Head'}`}</p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {getPermissionChain(permission).map((stage, index) => (
+                        <span key={stage.stage} className={`rounded-full px-2 py-1 text-[11px] ${stage.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' : stage.status === 'Pending' ? 'bg-blue-100 text-blue-800' : stage.status === 'Rejected' ? 'bg-rose-100 text-rose-800' : 'bg-slate-200 text-slate-600'}`}>
+                          {index + 1}. {stage.stage}: {stage.status}
+                        </span>
+                      ))}
+                    </div>
+                    <Link to={`/student/permission/${permission.id}`} className="mt-3 inline-flex text-sm font-semibold text-blue-600">View approval tracking</Link>
+                    {permission.approvalHistory?.filter((event) => event.status === 'Returned for revision').map((event, index) => <p key={`${event.stage}-${index}`} className="mt-2 rounded-xl bg-amber-50 p-3 text-xs text-amber-900">Returned by {event.returnedBy} to {event.stage}: {event.note}</p>)}
+                    {permission.status === 'Changes Requested' && (
+                      <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                        <p className="text-sm font-semibold text-amber-900">Changes requested</p>
+                        {permission.approvalChain?.filter((stage) => stage.status === 'Returned').map((stage) => <p key={stage.stage} className="mt-1 text-sm text-amber-800">{stage.stage}: {stage.comment}</p>)}
+                        <textarea value={responses[permission.id] || ''} onChange={(event) => setResponses((previous) => ({ ...previous, [permission.id]: event.target.value }))} rows={2} placeholder="Describe your corrections or clarification" className="mt-3 w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm" />
+                        {errors[permission.id] && <p className="mt-2 text-sm text-red-600">{errors[permission.id]}</p>}
+                        <button type="button" onClick={() => handleResubmit(permission)} className="mt-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white">Resubmit to Department Head</button>
+                      </div>
+                    )}
                   </div>
                   <StatusBadge status={permission.status} />
                 </div>
