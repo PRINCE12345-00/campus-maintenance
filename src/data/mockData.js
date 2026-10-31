@@ -1,0 +1,223 @@
+export const demoUsers = {
+  student: {
+    id: 'STU-202401',
+    name: 'Aarav Sharma',
+    email: 'aarav@student.dcrust.in',
+    role: 'student',
+    department: 'Computer Science & Engineering',
+    batch: '2026',
+    phone: '+91 98765 43210',
+    hostel: 'Boys Hostel Block A',
+  },
+  admin: {
+    id: 'ADM-9001',
+    name: 'Prince Chahal',
+    email: 'chahalprince0481@gmail.com',
+    role: 'admin',
+    department: 'Administrative Office',
+    phone: '',
+  },
+}
+
+export const initialComplaints = [
+  {
+    id: 'CMP-1001',
+    category: 'Electrical',
+    location: 'Academic Block A',
+    title: 'Street light flickering near main gate',
+    description: 'The lights near the main gate are flickering intermittently after 8 PM and create unsafe conditions for students returning late.',
+    status: 'Assigned',
+    priority: 'High',
+    submittedBy: 'Aarav Sharma',
+    assignedTo: 'Maintenance Team',
+    submissionDate: '2026-10-02',
+    lastUpdated: '2026-10-03',
+    attachments: ['gate-light.png'],
+    timeline: [
+      { status: 'Submitted', date: '2026-10-02', note: 'Complaint filed by student.' },
+      { status: 'Assigned', date: '2026-10-03', note: 'Assigned to electrical team.' },
+    ],
+    rating: 4,
+    feedback: 'Fast response and good repair.'
+  },
+  {
+    id: 'CMP-1002',
+    category: 'Plumbing',
+    location: 'Girls Hostel',
+    title: 'Water supply issue in second floor washroom',
+    description: 'The tap pressure is weak and there is water leakage from the supply pipe during early morning hours.',
+    status: 'In Progress',
+    priority: 'Medium',
+    submittedBy: 'Aarav Sharma',
+    assignedTo: 'Plumbing Unit',
+    submissionDate: '2026-09-28',
+    lastUpdated: '2026-10-04',
+    attachments: ['washroom-leak.jpg'],
+    timeline: [
+      { status: 'Submitted', date: '2026-09-28', note: 'Complaint filed.' },
+      { status: 'Assigned', date: '2026-09-29', note: 'Assigned to plumber.' },
+      { status: 'In Progress', date: '2026-10-04', note: 'Pipe replacement in progress.' },
+    ],
+    rating: null,
+    feedback: ''
+  },
+  {
+    id: 'CMP-1003',
+    category: 'Cleaning',
+    location: 'Library',
+    title: 'Garbage accumulated near reading hall',
+    description: 'Bins are overflowing near the entrance and papers are scattered near the study tables.',
+    status: 'Resolved',
+    priority: 'Low',
+    submittedBy: 'Aarav Sharma',
+    assignedTo: 'Janitorial Team',
+    submissionDate: '2026-09-18',
+    lastUpdated: '2026-09-25',
+    attachments: ['library-trash.jpg'],
+    timeline: [
+      { status: 'Submitted', date: '2026-09-18', note: 'Complaint filed.' },
+      { status: 'Assigned', date: '2026-09-19', note: 'Cleaning team assigned.' },
+      { status: 'Resolved', date: '2026-09-25', note: 'Area cleaned and bins replaced.' },
+    ],
+    rating: 5,
+    feedback: 'Very prompt service.'
+  },
+  {
+    id: 'CMP-1004',
+    category: 'IT/Network',
+    location: 'Computer Lab 3',
+    title: 'Wi-Fi connectivity drops during practical sessions',
+    description: 'The institution Wi-Fi disconnects intermittently during lab hours causing issues with coding assignments and online assessments.',
+    status: 'Closed',
+    priority: 'High',
+    submittedBy: 'Aarav Sharma',
+    assignedTo: 'IT Support Cell',
+    submissionDate: '2026-09-10',
+    lastUpdated: '2026-09-21',
+    attachments: ['wifi-lab.png'],
+    timeline: [
+      { status: 'Submitted', date: '2026-09-10', note: 'Complaint filed.' },
+      { status: 'Assigned', date: '2026-09-11', note: 'IT support team assigned.' },
+      { status: 'In Progress', date: '2026-09-14', note: 'Router checks and signal mapping done.' },
+      { status: 'Resolved', date: '2026-09-20', note: 'AP replacement completed.' },
+      { status: 'Closed', date: '2026-09-21', note: 'Confirmed by student and admin.' },
+    ],
+    rating: 4,
+    feedback: 'Good follow-up from IT staff.'
+  },
+]
+
+export const initialPermissions = [
+  {
+    id: 'PER-2001',
+    type: 'Educational',
+    title: 'Industrial Visit to NHPC',
+    purpose: 'Field exposure and practical learning for renewable energy systems.',
+    date: '2026-10-18',
+    location: 'NHPC, Yamuna Nagar',
+    status: 'Under Review',
+    submittedBy: 'Aarav Sharma',
+    faculty: 'Dr. R. Kapoor',
+    details: '12 students from CSE 6th semester will participate in the visit with faculty escort.'
+  },
+  {
+    id: 'PER-2002',
+    type: 'Cultural',
+    title: 'Inter-College Dance Festival',
+    purpose: 'Participation in university cultural fest representing the department.',
+    date: '2026-11-02',
+    location: 'Main Auditorium',
+    status: 'Approved',
+    submittedBy: 'Aarav Sharma',
+    faculty: 'Prof. S. Verma',
+    details: 'Department team of 8 students selected for performance and rehearsal.'
+  },
+  {
+    id: 'PER-2003',
+    type: 'Educational',
+    title: 'Robotics Workshop attendance',
+    purpose: 'Skill development workshop with practical robotics activities.',
+    date: '2026-10-27',
+    location: 'Innovation Lab',
+    status: 'Rejected',
+    submittedBy: 'Aarav Sharma',
+    faculty: 'Dr. A. Gill',
+    details: 'Workshop requires prior approval due to schedule conflict with classes.'
+  },
+]
+
+export const initialNotifications = [
+  {
+    id: 'NOT-1',
+    title: 'Complaint assigned',
+    message: 'Your electrical complaint at Academic Block A has been assigned to the maintenance team.',
+    type: 'complaint',
+    isRead: false,
+    createdAt: '2026-10-03T09:15:00',
+  },
+  {
+    id: 'NOT-2',
+    title: 'Permission approved',
+    message: 'Your cultural permission application has been approved by the administration.',
+    type: 'permission',
+    isRead: true,
+    createdAt: '2026-10-02T16:45:00',
+  },
+  {
+    id: 'NOT-3',
+    title: 'Maintenance update',
+    message: 'The plumbing team has started the repair work in Girls Hostel.',
+    type: 'complaint',
+    isRead: false,
+    createdAt: '2026-10-04T08:30:00',
+  },
+]
+
+export const mockAnalytics = {
+  categoryDistribution: [
+    { name: 'Electrical', value: 20 },
+    { name: 'Plumbing', value: 18 },
+    { name: 'Cleaning', value: 24 },
+    { name: 'Furniture', value: 14 },
+    { name: 'IT/Network', value: 17 },
+    { name: 'Other', value: 7 },
+  ],
+  locations: [
+    { name: 'Academic Block A', complaints: 18 },
+    { name: 'Girls Hostel', complaints: 24 },
+    { name: 'Library', complaints: 15 },
+    { name: 'Computer Lab', complaints: 22 },
+    { name: 'Main Gate', complaints: 11 },
+  ],
+  monthlyTrend: [
+    { month: 'Jan', complaints: 34 },
+    { month: 'Feb', complaints: 41 },
+    { month: 'Mar', complaints: 38 },
+    { month: 'Apr', complaints: 52 },
+    { month: 'May', complaints: 49 },
+    { month: 'Jun', complaints: 61 },
+    { month: 'Jul', complaints: 58 },
+    { month: 'Aug', complaints: 64 },
+  ],
+  statusSummary: [
+    { name: 'Pending', value: 28 },
+    { name: 'Resolved', value: 62 },
+  ],
+  averageResolutionTime: 4.8,
+  predictedCategory: 'Cleaning',
+  predictedPriority: 'Medium',
+  predictedResolutionTime: '4.2 days',
+  recurringIssues: ['Water leakage', 'Wi-fi instability', 'Dust accumulation', 'Lighting maintenance'],
+  hotspots: ['Girls Hostel', 'Academic Block A', 'Computer Lab 3', 'Library'],
+}
+
+export const defaultProfile = {
+  fullName: 'Aarav Sharma',
+  email: 'aarav@student.dcrust.in',
+  phone: '+91 98765 43210',
+  department: 'Computer Science & Engineering',
+  batch: '2026',
+  hostel: 'Boys Hostel Block A',
+  notificationsEnabled: true,
+  darkMode: false,
+}
