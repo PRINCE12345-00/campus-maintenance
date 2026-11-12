@@ -213,26 +213,45 @@ app.post('/api/auth/login', (req, res) => {
 
 app.post('/api/auth/register', (req, res) => {
   const { name, rollNumber, email, department, password } = req.body || {}
+  const normalizedName = String(name || '').trim()
+  const normalizedRollNumber = String(rollNumber || '').trim()
+  const normalizedEmail = String(email || '').trim().toLowerCase()
+  const normalizedDepartment = String(department || '').trim()
+  const normalizedPassword = String(password || '')
 
-  if (!name || !rollNumber || !email || !department || !password) {
+  if (!normalizedName || !normalizedRollNumber || !normalizedEmail || !normalizedDepartment || !normalizedPassword) {
     return res.status(400).json({ message: 'All fields are required.' })
   }
 
-  const normalizedEmail = String(email).trim().toLowerCase()
+  if (!/^\d{11}$/.test(normalizedRollNumber)) {
+    return res.status(400).json({ message: 'Enter your 11-digit university roll number.' })
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+    return res.status(400).json({ message: 'Enter a valid email address.' })
+  }
+
+  if (normalizedPassword.length < 6) {
+    return res.status(400).json({ message: 'Password should be at least 6 characters.' })
+  }
 
   if (demoUsers.some((entry) => entry.email.toLowerCase() === normalizedEmail)) {
     return res.status(409).json({ message: 'An account with this email already exists.' })
   }
 
+  if (demoUsers.some((entry) => entry.id === normalizedRollNumber)) {
+    return res.status(409).json({ message: 'An account with this roll number already exists.' })
+  }
+
   const newUser = {
-    id: String(rollNumber).trim(),
-    rollNumber: String(rollNumber).trim(),
-    name: String(name).trim(),
+    id: normalizedRollNumber,
+    rollNumber: normalizedRollNumber,
+    name: normalizedName,
     email: normalizedEmail,
     role: 'student',
-    department: String(department).trim(),
+    department: normalizedDepartment,
     batch: '2026',
-    password: String(password),
+    password: normalizedPassword,
   }
 
   demoUsers.push(newUser)

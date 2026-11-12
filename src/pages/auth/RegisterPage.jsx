@@ -1,7 +1,9 @@
 import { useState } from 'react'
-import { ArrowLeft, Mail, ShieldCheck, UserRound } from 'lucide-react'
+import { ArrowLeft, Mail, ShieldCheck } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { authApi } from '../../services/api'
+import authBackground from '../../../pictures/background2.jpeg'
+import universityLogo from '../../../pictures/logo.jpeg'
 
 export default function RegisterPage() {
   const navigate = useNavigate()
@@ -14,6 +16,7 @@ export default function RegisterPage() {
     confirmPassword: '',
   })
   const [errors, setErrors] = useState({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -40,19 +43,25 @@ export default function RegisterPage() {
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length) return
 
+    setIsSubmitting(true)
     try {
       await authApi.register({
-        name: form.name,
-        rollNumber: form.rollNumber,
-        email: form.email,
-        department: form.department,
+        name: form.name.trim(),
+        rollNumber: form.rollNumber.trim(),
+        email: form.email.trim().toLowerCase(),
+        department: form.department.trim(),
         password: form.password,
       })
 
       navigate('/login', { state: { email: form.email.trim().toLowerCase() } })
     } catch (error) {
-      const message = error?.response?.data?.message || 'Registration failed. Please try again.'
-      setErrors({ email: message })
+      const message = error?.response?.data?.message
+        || (error?.code === 'ERR_NETWORK'
+          ? 'Could not reach the registration service. Start the app with “npm run dev” so the backend is running.'
+          : 'Registration failed. Please check your details and try again.')
+      setErrors({ form: message })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -60,12 +69,15 @@ export default function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-8">
       <div className="w-full max-w-4xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-soft">
         <div className="grid gap-0 lg:grid-cols-[0.8fr_1.2fr]">
-          <div className="bg-slate-950 p-8 text-white">
+          <div className="bg-slate-950 bg-cover bg-center p-8 text-white" style={{ backgroundImage: `linear-gradient(rgba(2, 6, 23, 0.88), rgba(2, 6, 23, 0.88)), url(${authBackground})` }}>
             <Link to="/" className="inline-flex items-center gap-2 text-sm text-slate-300 hover:text-white">
               <ArrowLeft size={16} /> Back to home
             </Link>
             <div className="mt-12">
-              <p className="text-xs uppercase tracking-[0.22em] text-blue-300">Student registration</p>
+              <div className="flex items-center gap-3">
+                <img src={universityLogo} alt="DCRUST university logo" className="h-12 w-12 rounded-lg bg-white object-contain p-1" />
+                <p className="text-xs uppercase tracking-[0.22em] text-blue-300">Student registration</p>
+              </div>
               <h1 className="mt-4 text-4xl font-bold">Join the campus network</h1>
               <p className="mt-5 text-slate-300">Set up your account to submit issues, request permissions, and track activity in real time.</p>
             </div>
@@ -74,7 +86,7 @@ export default function RegisterPage() {
                 <ShieldCheck className="text-blue-300" size={22} />
                 <div>
                   <p className="font-semibold">Secure demo flow</p>
-                  <p className="text-sm text-slate-400">Frontend-only registration mock for demo purposes.</p>
+                  <p className="text-sm text-slate-400">Create a student account for the campus portal.</p>
                 </div>
               </div>
             </div>
@@ -87,6 +99,7 @@ export default function RegisterPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="grid gap-5 md:grid-cols-2">
+              {errors.form && <p role="alert" className="md:col-span-2 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{errors.form}</p>}
               <div className="md:col-span-2">
                 <label className="mb-2 block text-sm font-medium text-slate-700">Full name</label>
                 <input name="name" value={form.name} onChange={handleChange} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 outline-none focus:border-blue-500" placeholder="Your full name" />
@@ -127,7 +140,7 @@ export default function RegisterPage() {
               </div>
 
               <div className="md:col-span-2">
-                <button type="submit" className="w-full rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700">Register</button>
+                <button type="submit" disabled={isSubmitting} className="w-full rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60">{isSubmitting ? 'Creating account…' : 'Register'}</button>
               </div>
 
               <div className="md:col-span-2 text-center text-sm text-slate-600">

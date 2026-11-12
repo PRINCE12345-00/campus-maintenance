@@ -4,6 +4,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { demoUsers } from '../../data/mockData'
 import { useAppContext } from '../../context/AppContext'
 import { authApi } from '../../services/api'
+import authBackground from '../../../pictures/background2.jpeg'
+import universityLogo from '../../../pictures/logo.jpeg'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -80,12 +82,15 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-8">
       <div className="w-full max-w-5xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-soft">
         <div className="grid lg:grid-cols-2">
-          <div className="bg-slate-950 p-8 text-white lg:p-12">
+          <div className="bg-slate-950 bg-cover bg-center p-8 text-white lg:p-12" style={{ backgroundImage: `linear-gradient(rgba(2, 6, 23, 0.88), rgba(2, 6, 23, 0.88)), url(${authBackground})` }}>
             <Link to="/" className="inline-flex items-center gap-2 text-sm text-slate-300 hover:text-white">
               <ArrowLeft size={16} /> Back to home
             </Link>
             <div className="mt-12">
-              <p className="text-xs uppercase tracking-[0.24em] text-blue-300">DCRUST</p>
+              <div className="flex items-center gap-3">
+                <img src={universityLogo} alt="DCRUST university logo" className="h-12 w-12 rounded-lg bg-white object-contain p-1" />
+                <p className="text-xs uppercase tracking-[0.24em] text-blue-300">DCRUST</p>
+              </div>
               <h1 className="mt-4 text-4xl font-bold">Smart Campus Portal</h1>
               <p className="mt-5 text-slate-300">
                 Manage complaints, permission requests, and campus operations from a single responsive dashboard.

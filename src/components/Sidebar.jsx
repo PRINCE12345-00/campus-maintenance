@@ -1,6 +1,7 @@
 import { Bell, Building2, ClipboardCheck, Gauge, LogOut, ShieldCheck, UserRound } from 'lucide-react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAppContext } from '../context/AppContext'
+import universityLogo from '../../pictures/logo.jpeg'
 
 const studentLinks = [
   { to: '/student', label: 'Overview', icon: Gauge },
@@ -38,7 +39,7 @@ export default function Sidebar({ role = 'student' }) {
   return (
     <aside className="h-full w-full bg-slate-950 text-slate-100 shadow-soft">
       <div className="flex items-center gap-3 border-b border-slate-800 p-5">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 font-bold text-white">D</div>
+        <img src={universityLogo} alt="DCRUST university logo" className="h-11 w-11 rounded-xl bg-white object-contain p-1" />
         <div>
           <p className="text-xs uppercase tracking-[0.22em] text-slate-400">DCRUST</p>
           <h2 className="text-lg font-semibold text-white">Smart Campus</h2>
