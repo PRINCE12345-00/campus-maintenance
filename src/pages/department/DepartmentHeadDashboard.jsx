@@ -6,9 +6,14 @@ import { useAppContext } from '../../context/AppContext'
 import { complaintsApi, permissionsApi } from '../../services/api'
 import { getPermissionChain } from '../../utils/approvalWorkflow'
 
+const normalizeDepartment = (value = '') => value.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim()
+
 const departmentMatches = (record, department) => {
-  const target = `${record.department || ''} ${record.destination || ''} ${record.submittedByDepartment || ''}`.toLowerCase()
-  return !department || department === 'Administrative Office' || target.includes(department.toLowerCase()) || target.includes('department')
+  const target = normalizeDepartment(`${record.department || ''} ${record.destination || ''} ${record.submittedByDepartment || ''} ${record.currentStage || ''}`)
+  const departmentName = normalizeDepartment(department)
+
+  if (!departmentName || departmentName === 'administrative office') return true
+  return target.includes(departmentName) || target.includes('department') || target.includes('department head')
 }
 
 export default function DepartmentHeadDashboard() {
@@ -21,7 +26,10 @@ export default function DepartmentHeadDashboard() {
     const routedToDepartment = !item.destination || item.destination.toLowerCase().includes('department')
     return routedToDepartment && departmentMatches(item, department)
   }), [complaints, department])
-  const departmentPermissions = useMemo(() => permissions.filter((item) => item.currentStage === 'Department Head' && departmentMatches(item, department)), [permissions, department])
+  const departmentPermissions = useMemo(() => permissions.filter((item) => {
+    const isPendingDepartmentStage = item.currentStage === 'Department Head' || item.status === 'Pending Approval' || item.status === 'Under Review' || item.status === 'Changes Requested'
+    return isPendingDepartmentStage && departmentMatches(item, department)
+  }), [permissions, department])
 
   const updateComplaint = async (id, status) => {
     try {

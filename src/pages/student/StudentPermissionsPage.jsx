@@ -54,6 +54,8 @@ export default function StudentPermissionsPage() {
       submittedById: user?.id,
       submittedByEmail: user?.email,
       department: user?.department || '',
+      submittedByDepartment: user?.department || '',
+      destination: user?.department || 'Department',
       faculty: 'Department Faculty',
       details: form.details || 'Permission request submitted for administrative review.',
     }
