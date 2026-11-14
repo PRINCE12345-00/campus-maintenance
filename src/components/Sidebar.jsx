@@ -33,17 +33,9 @@ export default function Sidebar({ role = 'student' }) {
   }
 
   return (
-<<<<<<< HEAD
     <aside className="h-full w-full bg-slate-950 text-slate-100 shadow-soft">
       <div className="flex items-center gap-3 border-b border-slate-800 p-5">
         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 font-bold text-white">D</div>
-=======
-    <aside className="h-full w-full border-r border-white/10 bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.22),_transparent_24%),linear-gradient(180deg,_rgba(2,6,23,0.96),_rgba(15,23,42,0.9))] text-slate-100 shadow-[0_32px_90px_rgba(2,6,23,0.55)] backdrop-blur-xl">
-      <div className="flex items-center gap-3 border-b border-white/10 p-5">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/20">
-          <img src={universityLogo} alt="DCRUST university logo" className="h-9 w-9 rounded-xl bg-white object-contain p-1" />
-        </div>
->>>>>>> bca09af (UPDATED)
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">DCRUST</p>
           <h2 className="text-lg font-semibold text-white">Smart Campus</h2>
@@ -78,7 +70,7 @@ export default function Sidebar({ role = 'student' }) {
         </nav>
       </div>
 
-      <div className="mt-auto border-t border-white/10 p-3">
+      <div className="mt-auto border-t border-slate-800 p-3">
         <button
           type="button"
           onClick={handleSignOut}

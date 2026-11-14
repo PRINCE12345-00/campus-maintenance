@@ -60,7 +60,6 @@ export default function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top_left,_rgba(96,165,250,0.18),_transparent_25%),radial-gradient(circle_at_bottom_right,_rgba(139,92,246,0.15),_transparent_25%),linear-gradient(180deg,_#020817_0%,_#0f172a_30%,_#111827_100%)] px-4 py-8">
       <div className="w-full max-w-4xl overflow-hidden rounded-[30px] border border-white/10 bg-slate-950/60 shadow-[0_30px_90px_rgba(2,6,23,0.58)] backdrop-blur-xl">
         <div className="grid gap-0 lg:grid-cols-[0.8fr_1.2fr]">
-<<<<<<< HEAD
           <div className="bg-slate-950 p-8 text-white">
             <Link to="/" className="inline-flex items-center gap-2 text-sm text-slate-300 hover:text-white">
               <ArrowLeft size={16} /> Back to home
@@ -68,18 +67,6 @@ export default function RegisterPage() {
             <div className="mt-12">
               <p className="text-xs uppercase tracking-[0.22em] text-blue-300">Student registration</p>
               <h1 className="mt-4 text-4xl font-bold">Join the campus network</h1>
-=======
-          <div className="bg-slate-950 bg-cover bg-center p-8 text-white" style={{ backgroundImage: `linear-gradient(rgba(2, 6, 23, 0.78), rgba(2, 6, 23, 0.84)), url(${authBackground})` }}>
-            <Link to="/" className="inline-flex items-center gap-2 text-sm text-slate-300 transition hover:text-white">
-              <ArrowLeft size={16} /> Back to home
-            </Link>
-            <div className="mt-12">
-              <div className="flex items-center gap-3">
-                <img src={universityLogo} alt="DCRUST university logo" className="h-12 w-12 rounded-lg bg-white object-contain p-1" />
-                <p className="text-xs uppercase tracking-[0.22em] text-blue-300">Student registration</p>
-              </div>
-              <h1 className="mt-4 text-4xl font-bold tracking-tight">Join the campus network</h1>
->>>>>>> bca09af (UPDATED)
               <p className="mt-5 text-slate-300">Set up your account to submit issues, request permissions, and track activity in real time.</p>
             </div>
             <div className="mt-10 rounded-2xl border border-white/10 bg-slate-900/60 p-5">
@@ -100,10 +87,6 @@ export default function RegisterPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="grid gap-5 md:grid-cols-2">
-<<<<<<< HEAD
-=======
-              {errors.form && <p role="alert" className="md:col-span-2 rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-300 ring-1 ring-red-500/20">{errors.form}</p>}
->>>>>>> bca09af (UPDATED)
               <div className="md:col-span-2">
                 <label className="mb-2 block text-sm font-medium text-slate-300">Full name</label>
                 <input name="name" value={form.name} onChange={handleChange} className="w-full rounded-2xl border border-white/10 bg-slate-950/50 px-3 py-3 text-slate-100 outline-none ring-1 ring-transparent transition focus:border-blue-400/60 focus:ring-blue-500/20" placeholder="Your full name" />
@@ -144,11 +127,7 @@ export default function RegisterPage() {
               </div>
 
               <div className="md:col-span-2">
-<<<<<<< HEAD
                 <button type="submit" className="w-full rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700">Register</button>
-=======
-                <button type="submit" disabled={isSubmitting} className="w-full rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-500 px-4 py-3.5 font-semibold text-white shadow-[0_18px_36px_rgba(37,99,235,0.38)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60">{isSubmitting ? 'Creating account…' : 'Register'}</button>
->>>>>>> bca09af (UPDATED)
               </div>
 
               <div className="md:col-span-2 text-center text-sm text-slate-300">

@@ -94,7 +94,6 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top_left,_rgba(96,165,250,0.18),_transparent_25%),radial-gradient(circle_at_bottom_right,_rgba(139,92,246,0.15),_transparent_25%),linear-gradient(180deg,_#020817_0%,_#0f172a_30%,_#111827_100%)] px-4 py-8">
       <div className="w-full max-w-5xl overflow-hidden rounded-[30px] border border-white/10 bg-slate-950/60 shadow-[0_30px_90px_rgba(2,6,23,0.58)] backdrop-blur-xl">
         <div className="grid lg:grid-cols-2">
-<<<<<<< HEAD
           <div className="bg-slate-950 p-8 text-white lg:p-12">
             <Link to="/" className="inline-flex items-center gap-2 text-sm text-slate-300 hover:text-white">
               <ArrowLeft size={16} /> Back to home
@@ -102,18 +101,6 @@ export default function LoginPage() {
             <div className="mt-12">
               <p className="text-xs uppercase tracking-[0.24em] text-blue-300">DCRUST</p>
               <h1 className="mt-4 text-4xl font-bold">Smart Campus Portal</h1>
-=======
-          <div className="bg-slate-950 bg-cover bg-center p-8 text-white lg:p-12" style={{ backgroundImage: `linear-gradient(rgba(2, 6, 23, 0.78), rgba(2, 6, 23, 0.84)), url(${authBackground})` }}>
-            <Link to="/" className="inline-flex items-center gap-2 text-sm text-slate-300 transition hover:text-white">
-              <ArrowLeft size={16} /> Back to home
-            </Link>
-            <div className="mt-12">
-              <div className="flex items-center gap-3">
-                <img src={universityLogo} alt="DCRUST university logo" className="h-12 w-12 rounded-lg bg-white object-contain p-1" />
-                <p className="text-xs uppercase tracking-[0.24em] text-blue-300">DCRUST</p>
-              </div>
-              <h1 className="mt-4 text-4xl font-bold tracking-tight">Smart Campus Portal</h1>
->>>>>>> bca09af (UPDATED)
               <p className="mt-5 text-slate-300">
                 Manage complaints, permission requests, and campus operations from a single responsive dashboard.
               </p>
@@ -218,10 +205,9 @@ export default function LoginPage() {
                 Login
               </button>
 
-              <p className="text-center text-sm text-slate-300">
-                Don’t have an account?{' '}
-                <Link to="/register" className="font-semibold text-blue-300">Create one</Link>
-              </p>
+              <div className="text-center text-sm text-slate-300">
+                Need an account? <Link to="/register" className="font-semibold text-blue-300">Create one</Link>
+              </div>
             </form>
           </div>
         </div>
