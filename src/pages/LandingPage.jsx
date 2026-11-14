@@ -1,5 +1,37 @@
+<<<<<<< HEAD
 import { ArrowRight, Building2, ClipboardList, ShieldCheck, Sparkles } from 'lucide-react'
+=======
+import { ArrowRight, Building2, CheckCircle2, ClipboardList, ShieldCheck, Sparkles } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { useEffect, useState } from 'react'
+>>>>>>> bca09af (UPDATED)
 import { Link } from 'react-router-dom'
+
+function TypingHeadline() {
+  const fullText = 'Smarter campus operations for a future-ready university.'
+  const [typedText, setTypedText] = useState('')
+
+  useEffect(() => {
+    let index = 0
+    const timer = setInterval(() => {
+      index += 1
+      setTypedText(fullText.slice(0, index))
+
+      if (index >= fullText.length) {
+        clearInterval(timer)
+      }
+    }, 90)
+
+    return () => clearInterval(timer)
+  }, [])
+
+  return (
+    <h1>
+      {typedText}
+      <span className="typing-cursor" aria-hidden="true" />
+    </h1>
+  )
+}
 
 const features = [
   {
@@ -20,6 +52,13 @@ const features = [
 ]
 
 export default function LandingPage() {
+  const reveal = {
+    initial: { opacity: 0, y: 24 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, amount: 0.2 },
+    transition: { duration: 0.55 },
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <header className="mx-auto max-w-7xl px-6 py-6">
@@ -46,6 +85,7 @@ export default function LandingPage() {
       </header>
 
       <main>
+<<<<<<< HEAD
         <section className="mx-auto grid max-w-7xl gap-12 px-6 pb-20 pt-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:pt-20">
           <div>
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-blue-700">
@@ -101,6 +141,32 @@ export default function LandingPage() {
                   </div>
                   <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-700">
                     <div className="h-full w-[78%] rounded-full bg-gradient-to-r from-emerald-400 to-teal-300" />
+=======
+        <section className="landing-hero" style={{ backgroundImage: `url(${campusPhoto})` }}>
+          <div className="landing-hero-inner landing-shell">
+            <motion.div className="landing-hero-copy" initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.65 }}>
+              <p className="landing-eyebrow"><Building2 size={15} /> Smart Campus Management System</p>
+              <TypingHeadline />
+              <p className="landing-hero-description">
+                A central place for DCRUST students and staff to manage campus complaints, permission requests, notifications, and service updates.
+              </p>
+              <div className="landing-hero-actions">
+                <Link to="/login" className="landing-button landing-button-primary">Explore the portal <ArrowRight size={17} /></Link>
+                <Link to="/register" className="landing-button landing-button-quiet">Student registration</Link>
+              </div>
+              <div className="landing-trust" aria-label="Portal benefits">
+                <span><CheckCircle2 size={15} /> Clear request tracking</span>
+                <span><CheckCircle2 size={15} /> Student and staff workflows</span>
+              </div>
+            </motion.div>
+
+            <motion.aside className="campus-card" aria-label="Illustrative campus dashboard preview" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7, delay: 0.08 }}>
+              <div className="campus-card-inner">
+                <div className="campus-card-heading">
+                  <div>
+                    <p className="campus-card-kicker">Demo preview</p>
+                    <h2 className="campus-card-title">Campus overview</h2>
+>>>>>>> bca09af (UPDATED)
                   </div>
                 </div>
                 <div className="rounded-2xl bg-slate-800 p-4">
@@ -113,6 +179,7 @@ export default function LandingPage() {
                   </div>
                 </div>
               </div>
+<<<<<<< HEAD
 
               <div className="mt-8 grid grid-cols-2 gap-4">
                 <div className="rounded-2xl bg-slate-800 p-4">
@@ -143,10 +210,31 @@ export default function LandingPage() {
                 <h4 className="text-xl font-semibold text-slate-900">{title}</h4>
                 <p className="mt-3 text-sm leading-7 text-slate-600">{description}</p>
               </div>
+=======
+            </motion.aside>
+          </div>
+        </section>
+
+        <section id="features" className="landing-section landing-shell">
+          <motion.div className="landing-section-heading" {...reveal}>
+            <p>Built for campus life</p>
+            <h2>Everyday campus services, in one place</h2>
+            <span>Simple tools help students submit requests and help university teams keep work moving.</span>
+          </motion.div>
+
+          <div className="landing-feature-grid">
+            {features.map(({ icon: Icon, title, description }, index) => (
+              <motion.article key={title} className="landing-feature" initial={{ opacity: 0, y: 26 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.45, delay: index * 0.08 }}>
+                <div className="landing-feature-icon"><Icon size={22} aria-hidden="true" /></div>
+                <h3>{title}</h3>
+                <p>{description}</p>
+              </motion.article>
+>>>>>>> bca09af (UPDATED)
             ))}
           </div>
         </section>
 
+<<<<<<< HEAD
         <section id="about" className="bg-white py-20">
           <div className="mx-auto grid max-w-7xl gap-10 px-6 lg:grid-cols-2 lg:items-center">
             <div>
@@ -154,9 +242,19 @@ export default function LandingPage() {
               <h3 className="mt-3 text-3xl font-bold text-slate-900">A modern student-first management experience</h3>
               <p className="mt-5 text-lg leading-8 text-slate-600">
                 The Smart Campus Management System improves transparency between students, hostel staff, maintenance teams, and university administration. It streamlines complaint logging, permission handling, and analytics to reduce manual delays and improve campus responsiveness.
+=======
+        <section id="about" className="landing-about">
+          <div className="landing-about-inner landing-shell landing-section">
+            <motion.div className="landing-about-copy" {...reveal}>
+              <p>Designed around your campus</p>
+              <h2>A clearer connection between students and university teams.</h2>
+              <p>
+                The Smart Campus portal brings common campus requests into a more organized digital workflow. Students can follow progress, while university teams can review requests and share updates in one place.
+>>>>>>> bca09af (UPDATED)
               </p>
-            </div>
+            </motion.div>
 
+<<<<<<< HEAD
             <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-soft">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="rounded-2xl bg-white p-5">
@@ -175,8 +273,16 @@ export default function LandingPage() {
                   <p className="text-sm text-slate-500">Analytics layer</p>
                   <p className="mt-2 text-2xl font-bold text-slate-900">Demo ML</p>
                 </div>
+=======
+            <motion.div className="landing-about-panel" {...reveal}>
+              <div className="landing-about-grid">
+                <div className="landing-about-stat"><span>Complaint tracking</span><strong>From report to resolution</strong></div>
+                <div className="landing-about-stat"><span>Campus permissions</span><strong>Requests and reviews</strong></div>
+                <div className="landing-about-stat"><span>Role-based access</span><strong>Workflows by responsibility</strong></div>
+                <div className="landing-about-stat"><span>Service updates</span><strong>Progress in one place</strong></div>
+>>>>>>> bca09af (UPDATED)
               </div>
-            </div>
+            </motion.div>
           </div>
         </section>
       </main>

@@ -1,9 +1,20 @@
 import { useState } from 'react'
-import { ArrowLeft, Eye, EyeOff, LockKeyhole, Mail, UserRound } from 'lucide-react'
+import { ArrowLeft, ChevronDown, Eye, EyeOff, LockKeyhole, Mail, UserRound } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { demoUsers } from '../../data/mockData'
 import { useAppContext } from '../../context/AppContext'
 import { authApi } from '../../services/api'
+
+const demoRoleOptions = [
+  { value: 'student', label: 'Student', email: 'aarav@student.dcrust.in' },
+  { value: 'admin', label: 'Admin', email: 'chahalprince0481@gmail.com' },
+  { value: 'department_head', label: 'Department Head', email: 'hod.cse@dcrust.in' },
+  { value: 'cultural_coordinator', label: 'Cultural Coordinator', email: 'cultural.coordinator@dcrust.in' },
+  { value: 'technical_coordinator', label: 'Technical Coordinator', email: 'technical.coordinator@dcrust.in' },
+  { value: 'dsw', label: 'DSW', email: 'dsw@dcrust.in' },
+  { value: 'registrar', label: 'Registrar', email: 'registrar@dcrust.in' },
+  { value: 'vice_chancellor', label: 'Vice Chancellor', email: 'vc@dcrust.in' },
+]
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -12,6 +23,7 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: location.state?.email || 'aarav@student.dcrust.in', password: '' })
   const [errors, setErrors] = useState({})
   const [showPassword, setShowPassword] = useState(false)
+  const [selectedDemoRole, setSelectedDemoRole] = useState('student')
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -76,10 +88,13 @@ export default function LoginPage() {
     navigate(role === 'student' ? '/student' : role === 'admin' ? '/admin' : role === 'department_head' ? '/department-head' : `/${role === 'vice_chancellor' ? 'vice-chancellor' : role.replaceAll('_', '-')}`)
   }
 
+  const selectedDemoUser = demoRoleOptions.find((option) => option.value === selectedDemoRole) || demoRoleOptions[0]
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-8">
-      <div className="w-full max-w-5xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-soft">
+    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top_left,_rgba(96,165,250,0.18),_transparent_25%),radial-gradient(circle_at_bottom_right,_rgba(139,92,246,0.15),_transparent_25%),linear-gradient(180deg,_#020817_0%,_#0f172a_30%,_#111827_100%)] px-4 py-8">
+      <div className="w-full max-w-5xl overflow-hidden rounded-[30px] border border-white/10 bg-slate-950/60 shadow-[0_30px_90px_rgba(2,6,23,0.58)] backdrop-blur-xl">
         <div className="grid lg:grid-cols-2">
+<<<<<<< HEAD
           <div className="bg-slate-950 p-8 text-white lg:p-12">
             <Link to="/" className="inline-flex items-center gap-2 text-sm text-slate-300 hover:text-white">
               <ArrowLeft size={16} /> Back to home
@@ -87,118 +102,125 @@ export default function LoginPage() {
             <div className="mt-12">
               <p className="text-xs uppercase tracking-[0.24em] text-blue-300">DCRUST</p>
               <h1 className="mt-4 text-4xl font-bold">Smart Campus Portal</h1>
+=======
+          <div className="bg-slate-950 bg-cover bg-center p-8 text-white lg:p-12" style={{ backgroundImage: `linear-gradient(rgba(2, 6, 23, 0.78), rgba(2, 6, 23, 0.84)), url(${authBackground})` }}>
+            <Link to="/" className="inline-flex items-center gap-2 text-sm text-slate-300 transition hover:text-white">
+              <ArrowLeft size={16} /> Back to home
+            </Link>
+            <div className="mt-12">
+              <div className="flex items-center gap-3">
+                <img src={universityLogo} alt="DCRUST university logo" className="h-12 w-12 rounded-lg bg-white object-contain p-1" />
+                <p className="text-xs uppercase tracking-[0.24em] text-blue-300">DCRUST</p>
+              </div>
+              <h1 className="mt-4 text-4xl font-bold tracking-tight">Smart Campus Portal</h1>
+>>>>>>> bca09af (UPDATED)
               <p className="mt-5 text-slate-300">
                 Manage complaints, permission requests, and campus operations from a single responsive dashboard.
               </p>
             </div>
 
             <div className="mt-10 space-y-4">
-              <button onClick={() => demoLogin('student')} className="w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-left transition hover:bg-slate-800">
-                <div className="flex items-center justify-between">
+              <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-3.5">
+                <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">Quick demo access</label>
+                <div className="relative">
+                  <select
+                    value={selectedDemoRole}
+                    onChange={(event) => setSelectedDemoRole(event.target.value)}
+                    className="w-full appearance-none rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 pr-10 text-sm font-medium text-white outline-none transition focus:border-blue-400/60"
+                    aria-label="Select demo login role"
+                  >
+                    {demoRoleOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                </div>
+
+                <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-blue-500/20 bg-blue-500/5 px-3 py-2.5">
                   <div>
-                    <p className="text-sm font-semibold text-white">Demo Student Login</p>
-                    <p className="text-xs text-slate-400">aarav@student.dcrust.in</p>
+                    <p className="text-xs uppercase tracking-[0.18em] text-blue-300">Selected role</p>
+                    <p className="mt-1 text-sm font-semibold text-white">{selectedDemoUser.label}</p>
+                    <p className="text-xs text-slate-400">{selectedDemoUser.email}</p>
                   </div>
                   <UserRound size={18} className="text-blue-300" />
                 </div>
-              </button>
 
-              <button onClick={() => demoLogin('admin')} className="w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-left transition hover:bg-slate-800">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-white">Demo Admin Login · Prince</p>
-                    <p className="text-xs text-slate-400">chahalprince0481@gmail.com</p>
-                  </div>
-                  <LockKeyhole size={18} className="text-blue-300" />
-                </div>
-              </button>
-              <button onClick={() => demoLogin('department_head')} className="w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-left transition hover:bg-slate-800">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-white">Demo Department Head</p>
-                    <p className="text-xs text-slate-400">hod.cse@dcrust.in</p>
-                  </div>
-                  <LockKeyhole size={18} className="text-blue-300" />
-                </div>
-              </button>
-              {[
-                ['cultural_coordinator', 'Cultural Coordinator', 'cultural.coordinator@dcrust.in'],
-                ['technical_coordinator', 'Technical Coordinator', 'technical.coordinator@dcrust.in'],
-                ['dsw', 'Dean of Student Welfare', 'dsw@dcrust.in'],
-                ['registrar', 'Registrar', 'registrar@dcrust.in'],
-                ['vice_chancellor', 'Vice Chancellor', 'vc@dcrust.in'],
-              ].map(([role, label, email]) => (
-                <button key={role} onClick={() => demoLogin(role)} className="w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-left transition hover:bg-slate-800">
-                  <p className="text-sm font-semibold text-white">Demo {label}</p>
-                  <p className="text-xs text-slate-400">{email}</p>
+                <button
+                  type="button"
+                  onClick={() => demoLogin(selectedDemoRole)}
+                  className="mt-3 w-full rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-500 px-4 py-3 text-sm font-semibold text-white shadow-[0_16px_32px_rgba(37,99,235,0.30)] transition hover:brightness-110"
+                >
+                  Login as {selectedDemoUser.label}
                 </button>
-              ))}
+              </div>
             </div>
           </div>
 
-          <div className="p-6 sm:p-8 lg:p-12">
+          <div className="bg-slate-900/40 p-6 sm:p-8 lg:p-12">
             <div className="mb-8">
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600">Welcome back</p>
-              <h2 className="mt-3 text-3xl font-bold text-slate-900">Login to your account</h2>
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-400">Welcome back</p>
+              <h2 className="mt-3 text-3xl font-bold text-white">Login to your account</h2>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">Email address</label>
-                <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 focus-within:border-blue-500">
+                <label className="mb-2 block text-sm font-medium text-slate-300">Email address</label>
+                <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-slate-950/50 px-3 py-3 ring-1 ring-transparent transition focus-within:border-blue-400/60 focus-within:ring-blue-400/20">
                   <Mail size={18} className="text-slate-400" />
                   <input
                     type="email"
                     name="email"
                     value={form.email}
                     onChange={handleChange}
-                    className="w-full border-0 bg-transparent text-slate-800 outline-none placeholder:text-slate-400"
+                    className="w-full border-0 bg-transparent text-slate-100 outline-none placeholder:text-slate-500"
                     placeholder="name@domain.com"
                   />
                 </div>
-                {errors.email && <p className="mt-2 text-sm text-red-600">{errors.email}</p>}
+                {errors.email && <p className="mt-2 text-sm text-red-400">{errors.email}</p>}
               </div>
 
-              {errors.form && <p className="text-sm text-red-600">{errors.form}</p>}
+              {errors.form && <p className="text-sm text-red-400">{errors.form}</p>}
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">Password</label>
-                <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 focus-within:border-blue-500">
+                <label className="mb-2 block text-sm font-medium text-slate-300">Password</label>
+                <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-slate-950/50 px-3 py-3 ring-1 ring-transparent transition focus-within:border-blue-400/60 focus-within:ring-blue-400/20">
                   <LockKeyhole size={18} className="text-slate-400" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     name="password"
                     value={form.password}
                     onChange={handleChange}
-                    className="w-full border-0 bg-transparent text-slate-800 outline-none placeholder:text-slate-400"
+                    className="w-full border-0 bg-transparent text-slate-100 outline-none placeholder:text-slate-500"
                     placeholder="Enter your password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((visible) => !visible)}
-                    className="text-slate-500"
+                    className="text-slate-400 transition hover:text-slate-100"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-                {errors.password && <p className="mt-2 text-sm text-red-600">{errors.password}</p>}
+                {errors.password && <p className="mt-2 text-sm text-red-400">{errors.password}</p>}
               </div>
 
               <div className="flex items-center justify-between text-sm">
-                <label className="flex items-center gap-2 text-slate-600">
-                  <input type="checkbox" className="h-4 w-4 rounded border-slate-300" /> Remember me
+                <label className="flex items-center gap-2 text-slate-300">
+                  <input type="checkbox" className="h-4 w-4 rounded border-slate-600 bg-slate-950" /> Remember me
                 </label>
-                <Link to="/forgot-password" className="font-medium text-blue-600 hover:text-blue-700">Forgot password?</Link>
+                <Link to="/forgot-password" className="font-medium text-blue-400 hover:text-blue-300">Forgot password?</Link>
               </div>
 
-              <button type="submit" className="w-full rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700">
+              <button type="submit" className="w-full rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-500 px-4 py-3.5 font-semibold text-white shadow-[0_18px_36px_rgba(37,99,235,0.38)] transition hover:brightness-110">
                 Login
               </button>
 
-              <p className="text-center text-sm text-slate-600">
+              <p className="text-center text-sm text-slate-300">
                 Don’t have an account?{' '}
-                <Link to="/register" className="font-semibold text-blue-600">Create one</Link>
+                <Link to="/register" className="font-semibold text-blue-300">Create one</Link>
               </p>
             </form>
           </div>
