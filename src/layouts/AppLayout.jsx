@@ -29,10 +29,10 @@ export default function AppLayout({ role = 'student' }) {
       </div>
 
       <div className="relative flex min-h-screen">
-        <div className={`${sidebarOpen ? 'block' : 'hidden'} fixed inset-0 z-30 bg-slate-950/60 backdrop-blur-sm lg:hidden`} onClick={() => setSidebarOpen(false)} />
+        {sidebarOpen && <button type="button" aria-label="Close navigation menu" className="fixed inset-0 z-30 bg-slate-950/60 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
         <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-40 w-72 transition-transform duration-300 ease-out lg:static lg:w-72 lg:translate-x-0`}>
-          <Sidebar role={role} />
+          <Sidebar role={role} onNavigate={() => setSidebarOpen(false)} />
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">

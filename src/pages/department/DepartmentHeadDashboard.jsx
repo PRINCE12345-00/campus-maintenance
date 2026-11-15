@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import StatusBadge from '../../components/StatusBadge'
 import { useAppContext } from '../../context/AppContext'
 import { complaintsApi, permissionsApi } from '../../services/api'
-import { getPermissionChain } from '../../utils/approvalWorkflow'
+import { getPermissionChain, getPermissionStageLabel } from '../../utils/approvalWorkflow'
 
 const normalizeDepartment = (value = '') => value.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim()
 
@@ -49,7 +49,7 @@ export default function DepartmentHeadDashboard() {
     try {
       const { data } = await permissionsApi.review(id, decision, 'department_head', comment)
       setPermissions((items) => items.map((item) => item.id === id ? data : item))
-      setMessage(decision === 'approve' ? 'Department approval recorded. The request is now with the next reviewer.' : decision === 'return' ? `Request returned to ${data.currentStage || 'the student'} with your feedback.` : 'Permission request rejected at department review.')
+      setMessage(decision === 'approve' ? 'Department approval recorded. The request is now with the next reviewer.' : decision === 'return' ? `Request returned to ${getPermissionStageLabel(data.currentStage) || 'the student'} with your feedback.` : 'Permission request rejected at department review.')
     } catch (error) {
       setMessage(error?.response?.data?.message || 'Could not record this decision. Make sure the backend is running.')
     }
@@ -58,7 +58,7 @@ export default function DepartmentHeadDashboard() {
   return (
     <div className="space-y-6">
       <header className="rounded-3xl bg-slate-950 p-6 text-white shadow-soft">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-300">Department Head workspace</p>
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-300">Department workspace</p>
         <h1 className="mt-2 text-3xl font-bold">{department}</h1>
         <p className="mt-2 text-slate-300">Review departmental complaints and approve student requests before they move to the next office.</p>
       </header>
@@ -77,7 +77,7 @@ export default function DepartmentHeadDashboard() {
               </div>
               <label className="mt-4 block text-sm font-medium text-slate-700">Reviewer suggestion or reason<textarea value={comments[item.id] || ''} onChange={(event) => setComments((previous) => ({ ...previous, [item.id]: event.target.value }))} rows={2} placeholder="Add required documents, corrections, or review notes" className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400" /></label>
               <div className="mt-3 flex flex-wrap gap-2"><button onClick={() => decidePermission(item.id, 'approve')} className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white"><Check size={16} /> Approve for next stage</button><button onClick={() => decidePermission(item.id, 'return')} className="inline-flex items-center gap-2 rounded-xl bg-amber-600 px-4 py-2 text-sm font-semibold text-white">Return with suggestions</button><button onClick={() => decidePermission(item.id, 'reject')} className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white"><X size={16} /> Reject</button></div>
-              <div className="mt-3 flex flex-wrap gap-2">{getPermissionChain(item).map((stage) => <span key={stage.stage} className={`rounded-full px-2.5 py-1 text-xs ${stage.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' : stage.status === 'Pending' ? 'bg-blue-100 text-blue-800' : 'bg-slate-200 text-slate-600'}`}>{stage.stage}: {stage.status}</span>)}</div>
+              <div className="mt-3 flex flex-wrap gap-2">{getPermissionChain(item).map((stage) => <span key={stage.stage} className={`rounded-full px-2.5 py-1 text-xs ${stage.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' : stage.status === 'Pending' ? 'bg-blue-100 text-blue-800' : 'bg-slate-200 text-slate-600'}`}>{getPermissionStageLabel(stage.stage)}: {stage.status}</span>)}</div>
               {item.approvalChain?.some((stage) => stage.status === 'Returned') && <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Previous reviewer feedback: {item.approvalChain.find((stage) => stage.status === 'Returned')?.comment}</p>}
             </article>
           ))}

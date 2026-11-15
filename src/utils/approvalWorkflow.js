@@ -6,6 +6,8 @@ export const getPermissionStages = (type) => [
   'Vice Chancellor',
 ]
 
+export const getPermissionStageLabel = (stage) => stage === 'Department Head' ? 'Department' : stage
+
 export const createApprovalChain = (type) => getPermissionStages(type).map((stage, index) => ({
   stage,
   status: index === 0 ? 'Pending' : 'Waiting',

@@ -1,10 +1,11 @@
-import { Bell, Menu, Search, UserCircle2 } from 'lucide-react'
+import { Bell, Menu, UserCircle2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAppContext } from '../context/AppContext'
 
 export default function Navbar({ role = 'student', onToggleSidebar, showSidebarButton = false }) {
   const { notifications, user } = useAppContext()
   const unreadCount = notifications.filter((item) => !item.isRead).length
+  const roleLabel = role === 'department_head' ? 'Department' : role.replaceAll('_', ' ')
 
   return (
     <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-950/60 backdrop-blur-xl">
@@ -20,13 +21,9 @@ export default function Navbar({ role = 'student', onToggleSidebar, showSidebarB
             </button>
           )}
 
-          <div className="hidden items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 md:flex">
-            <Search size={16} className="text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search campus records"
-              className="w-52 border-0 bg-transparent text-sm text-slate-100 outline-none placeholder:text-slate-400"
-            />
+          <div className="hidden md:block">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">Campus Maintenance</p>
+            <p className="mt-0.5 text-sm font-semibold capitalize text-slate-100">{roleLabel} workspace</p>
           </div>
         </div>
 
@@ -49,7 +46,7 @@ export default function Navbar({ role = 'student', onToggleSidebar, showSidebarB
             </div>
             <div className="hidden sm:block">
               <p className="text-sm font-semibold text-white">{user?.name || 'Campus User'}</p>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">{role}</p>
+              <p className="text-[10px] capitalize tracking-[0.12em] text-slate-400">{roleLabel}</p>
             </div>
           </div>
         </div>

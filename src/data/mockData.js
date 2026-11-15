@@ -19,7 +19,7 @@ export const demoUsers = {
   },
   departmentHead: {
     id: 'HOD-CSE-01',
-    name: 'CSE Department Head',
+    name: 'CSE Department',
     email: 'hod.cse@dcrust.in',
     role: 'department_head',
     department: 'Computer Science & Engineering',

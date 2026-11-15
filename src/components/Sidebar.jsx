@@ -1,6 +1,7 @@
 import { Bell, Building2, ClipboardCheck, Gauge, LogOut, ShieldCheck, UserRound } from 'lucide-react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAppContext } from '../context/AppContext'
+import logo from '../../pictures/logo.jpeg'
 
 const studentLinks = [
   { to: '/student', label: 'Overview', icon: Gauge },
@@ -21,10 +22,11 @@ const adminLinks = [
 const departmentHeadLinks = [{ to: '/department-head', label: 'Department overview', icon: Gauge }]
 const authorityLinks = [{ to: '/', label: 'Authority dashboard', icon: Gauge }]
 
-export default function Sidebar({ role = 'student' }) {
+export default function Sidebar({ role = 'student', onNavigate }) {
   const navigate = useNavigate()
   const { setUser } = useAppContext()
   const links = role === 'admin' ? adminLinks : role === 'department_head' ? departmentHeadLinks : ['cultural_coordinator', 'technical_coordinator', 'dsw', 'registrar', 'vice_chancellor'].includes(role) ? authorityLinks.map((item) => ({ ...item, to: `/${role === 'vice_chancellor' ? 'vice-chancellor' : role.replaceAll('_', '-')}` })) : studentLinks
+  const roleLabel = role === 'department_head' ? 'Department' : role.replaceAll('_', ' ')
 
   const handleSignOut = () => {
     localStorage.removeItem('scms-user')
@@ -33,12 +35,12 @@ export default function Sidebar({ role = 'student' }) {
   }
 
   return (
-    <aside className="h-full w-full bg-slate-950 text-slate-100 shadow-soft">
+    <aside className="flex h-full w-full flex-col bg-slate-950 text-slate-100 shadow-soft">
       <div className="flex items-center gap-3 border-b border-slate-800 p-5">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 font-bold text-white">D</div>
+        <img src={logo} alt="" className="h-11 w-11 rounded-xl border border-white/10 bg-white object-cover" />
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">DCRUST</p>
-          <h2 className="text-lg font-semibold text-white">Smart Campus</h2>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">CAMPUS CARE</p>
+          <h2 className="text-lg font-semibold text-white">Maintenance</h2>
         </div>
       </div>
 
@@ -49,6 +51,7 @@ export default function Sidebar({ role = 'student' }) {
             <NavLink
               key={to}
               to={to}
+              onClick={onNavigate}
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium transition-all duration-200 ${
                   isActive
@@ -73,7 +76,7 @@ export default function Sidebar({ role = 'student' }) {
       <div className="mt-auto border-t border-slate-800 p-3">
         <button
           type="button"
-          onClick={handleSignOut}
+          onClick={() => { onNavigate?.(); handleSignOut() }}
           className="flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-medium text-slate-300 transition hover:bg-white/5 hover:text-white"
         >
           <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-800/80">
@@ -81,6 +84,7 @@ export default function Sidebar({ role = 'student' }) {
           </span>
           Sign out
         </button>
+        <p className="mt-3 px-3 text-[10px] capitalize tracking-wide text-slate-500">{roleLabel} workspace</p>
       </div>
     </aside>
   )

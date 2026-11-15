@@ -8,7 +8,7 @@ import { authApi } from '../../services/api'
 const demoRoleOptions = [
   { value: 'student', label: 'Student', email: 'aarav@student.dcrust.in' },
   { value: 'admin', label: 'Admin', email: 'chahalprince0481@gmail.com' },
-  { value: 'department_head', label: 'Department Head', email: 'hod.cse@dcrust.in' },
+  { value: 'department_head', label: 'Department', email: 'hod.cse@dcrust.in' },
   { value: 'cultural_coordinator', label: 'Cultural Coordinator', email: 'cultural.coordinator@dcrust.in' },
   { value: 'technical_coordinator', label: 'Technical Coordinator', email: 'technical.coordinator@dcrust.in' },
   { value: 'dsw', label: 'DSW', email: 'dsw@dcrust.in' },

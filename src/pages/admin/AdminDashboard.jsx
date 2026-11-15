@@ -1,25 +1,35 @@
+import { useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { AlertTriangle, BarChart4, ClipboardCheck, FileText, ShieldCheck, TrendingUp } from 'lucide-react'
+import { AlertTriangle, ClipboardCheck, FileText, Gauge, ShieldCheck, TrendingUp } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import StatCard from '../../components/StatCard'
 import StatusBadge from '../../components/StatusBadge'
 import { useAppContext } from '../../context/AppContext'
 
-const chartData = [
-  { name: 'Jan', complaints: 18 },
-  { name: 'Feb', complaints: 26 },
-  { name: 'Mar', complaints: 21 },
-  { name: 'Apr', complaints: 34 },
-  { name: 'May', complaints: 29 },
-  { name: 'Jun', complaints: 38 },
-]
-
 export default function AdminDashboard() {
   const { complaints, permissions, user } = useAppContext()
   const openComplaints = complaints.filter((c) => ['Submitted', 'Assigned', 'In Progress'].includes(c.status)).length
   const resolvedComplaints = complaints.filter((c) => ['Resolved', 'Closed'].includes(c.status)).length
   const pendingPermissions = permissions.filter((p) => p.status === 'Pending Approval').length
+  const activeComplaints = complaints.filter((item) => ['Assigned', 'In Progress'].includes(item.status)).length
+  const feedbackReceived = complaints.filter((item) => Boolean(item.feedback?.trim())).length
+  const chartData = useMemo(() => {
+    const now = new Date()
+    const months = Array.from({ length: 6 }, (_, index) => {
+      const month = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1)
+      return { key: `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, '0')}`, name: month.toLocaleString(undefined, { month: 'short' }), complaints: 0 }
+    })
+    const counts = new Map(months.map((month) => [month.key, month]))
+    complaints.forEach((item) => {
+      const date = new Date(item.submissionDate || item.createdAt || '')
+      if (Number.isNaN(date.getTime())) return
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+      const month = counts.get(key)
+      if (month) month.complaints += 1
+    })
+    return months
+  }, [complaints])
   const firstName = user?.name?.trim().split(/\s+/)[0] || 'Admin'
 
   return (
@@ -39,7 +49,7 @@ export default function AdminDashboard() {
         <StatCard title="Open complaints" value={openComplaints} detail="Need action" icon={AlertTriangle} tone="amber" />
         <StatCard title="Resolved" value={resolvedComplaints} detail="Closed cases" icon={ClipboardCheck} tone="emerald" />
         <StatCard title="Pending permissions" value={pendingPermissions} detail="Awaiting decisions" icon={ShieldCheck} tone="blue" />
-        <StatCard title="Analytics" value="Demo ML" detail="Mock prediction active" icon={BarChart4} tone="slate" />
+        <StatCard title="Tracked requests" value={complaints.length + permissions.length} detail="Complaint and permission records" icon={Gauge} tone="slate" />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
@@ -92,16 +102,16 @@ export default function AdminDashboard() {
         </div>
         <div className="grid gap-4 md:grid-cols-3">
           <div className="rounded-2xl border border-white/8 bg-slate-900/40 p-4">
-            <p className="text-sm text-slate-400">Assigned today</p>
-            <p className="mt-2 text-2xl font-bold text-white">14</p>
+            <p className="text-sm text-slate-400">Assigned or in progress</p>
+            <p className="mt-2 text-2xl font-bold text-white">{activeComplaints}</p>
           </div>
           <div className="rounded-2xl border border-white/8 bg-slate-900/40 p-4">
             <p className="text-sm text-slate-400">Feedback received</p>
-            <p className="mt-2 text-2xl font-bold text-white">9</p>
+            <p className="mt-2 text-2xl font-bold text-white">{feedbackReceived}</p>
           </div>
           <div className="rounded-2xl border border-white/8 bg-slate-900/40 p-4">
-            <p className="text-sm text-slate-400">SLA breaches</p>
-            <p className="mt-2 text-2xl font-bold text-rose-400">2</p>
+            <p className="text-sm text-slate-400">Permission requests awaiting review</p>
+            <p className="mt-2 text-2xl font-bold text-white">{pendingPermissions}</p>
           </div>
         </div>
       </div>

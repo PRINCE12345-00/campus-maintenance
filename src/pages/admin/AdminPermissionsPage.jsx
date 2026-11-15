@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { useAppContext } from '../../context/AppContext'
 import StatusBadge from '../../components/StatusBadge'
 import { permissionsApi } from '../../services/api'
-import { getPermissionChain } from '../../utils/approvalWorkflow'
+import { getPermissionChain, getPermissionStageLabel } from '../../utils/approvalWorkflow'
 
 export default function AdminPermissionsPage() {
   const { permissions, setPermissions } = useAppContext()
@@ -34,7 +34,7 @@ export default function AdminPermissionsPage() {
 
       <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-soft">
         <div className="space-y-4">
-          {downstreamPermissions.length === 0 && <p className="rounded-2xl border border-dashed border-slate-300 p-5 text-sm text-slate-500">Requests appear here after the Department Head approves them.</p>}
+          {downstreamPermissions.length === 0 && <p className="rounded-2xl border border-dashed border-slate-300 p-5 text-sm text-slate-500">Requests appear here after the department approves them.</p>}
           {downstreamPermissions.map((permission) => (
             <div key={permission.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -46,13 +46,13 @@ export default function AdminPermissionsPage() {
                   <p className="mt-2 text-sm text-slate-600">{permission.type} • {permission.location}</p>
                   <p className="mt-1 text-sm text-slate-500">Purpose: {permission.purpose}</p>
                   <p className="mt-1 text-sm text-slate-500">Submitted by: {permission.submittedBy}</p>
-                  {permission.approvalChain?.filter((stage) => stage.status === 'Returned').map((stage) => <p key={stage.stage} className="mt-2 rounded-lg bg-amber-50 p-2 text-sm text-amber-900">Previous feedback from {stage.stage}: {stage.comment}</p>)}
-                  <p className="mt-2 text-sm font-semibold text-blue-700">Current reviewer: {permission.currentStage || 'Workflow complete'}</p>
+                  {permission.approvalChain?.filter((stage) => stage.status === 'Returned').map((stage) => <p key={stage.stage} className="mt-2 rounded-lg bg-amber-50 p-2 text-sm text-amber-900">Previous feedback from {getPermissionStageLabel(stage.stage)}: {stage.comment}</p>)}
+                  <p className="mt-2 text-sm font-semibold text-blue-700">Current reviewer: {getPermissionStageLabel(permission.currentStage) || 'Workflow complete'}</p>
                   <Link to={`/admin/permission/${permission.id}`} className="mt-2 inline-flex text-sm font-semibold text-blue-600">View full tracking</Link>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {getPermissionChain(permission).map((stage, index) => (
                       <span key={stage.stage} className={`rounded-full px-2.5 py-1 text-xs ${stage.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' : stage.status === 'Pending' ? 'bg-blue-100 text-blue-800' : stage.status === 'Rejected' ? 'bg-rose-100 text-rose-800' : 'bg-slate-200 text-slate-600'}`}>
-                        {index + 1}. {stage.stage} · {stage.status}
+                        {index + 1}. {getPermissionStageLabel(stage.stage)} · {stage.status}
                       </span>
                     ))}
                   </div>

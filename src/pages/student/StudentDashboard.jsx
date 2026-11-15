@@ -6,7 +6,7 @@ import StatCard from '../../components/StatCard'
 import StatusBadge from '../../components/StatusBadge'
 import { useAppContext } from '../../context/AppContext'
 import { getStudentComplaints, getStudentNotifications, getStudentPermissions } from '../../utils/studentRecords'
-import { getPermissionChain } from '../../utils/approvalWorkflow'
+import { getPermissionChain, getPermissionStageLabel } from '../../utils/approvalWorkflow'
 
 export default function StudentDashboard() {
   const { complaints, permissions, notifications, user } = useAppContext()
@@ -173,7 +173,7 @@ export default function StudentDashboard() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="font-semibold text-white">{permission.title}</p>
-                  <p className="mt-1 text-sm text-slate-400">{permission.type} · {permission.status === 'Approved' ? 'Complete' : permission.status === 'Rejected' ? 'Rejected' : `Awaiting ${permission.currentStage || 'Department Head'}`}</p>
+                  <p className="mt-1 text-sm text-slate-400">{permission.type} · {permission.status === 'Approved' ? 'Complete' : permission.status === 'Rejected' ? 'Rejected' : `Awaiting ${getPermissionStageLabel(permission.currentStage || 'Department Head')}`}</p>
                 </div>
                 <Link to={`/student/permission/${permission.id}`} className="text-sm font-semibold text-sky-300">Track request</Link>
               </div>
@@ -181,7 +181,7 @@ export default function StudentDashboard() {
                 <div className="mt-3 rounded-xl border border-warning/25 bg-amber-500/10 p-3">
                   <p className="text-sm font-semibold text-amber-200">Changes requested by the reviewer</p>
                   {permission.approvalChain?.filter((stage) => stage.status === 'Returned').map((stage) => (
-                    <p key={stage.stage} className="mt-1 text-sm text-amber-100"><strong>{stage.stage}:</strong> {stage.comment || 'Please review the request and contact the department.'}</p>
+                    <p key={stage.stage} className="mt-1 text-sm text-amber-100"><strong>{getPermissionStageLabel(stage.stage)}:</strong> {stage.comment || 'Please review the request and contact the department.'}</p>
                   ))}
                   <Link to="/student/permissions" className="mt-2 inline-flex text-sm font-semibold text-sky-300">Open request and respond</Link>
                 </div>
@@ -189,7 +189,7 @@ export default function StudentDashboard() {
               <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
                 {getPermissionChain(permission).map((stage) => (
                   <div key={stage.stage} className={`rounded-xl px-3 py-2 text-xs ${stage.status === 'Approved' ? 'bg-emerald-500/15 text-emerald-200 ring-1 ring-emerald-400/20' : stage.status === 'Pending' ? 'bg-blue-500/15 text-blue-200 ring-1 ring-blue-400/20' : stage.status === 'Rejected' ? 'bg-rose-500/15 text-rose-200 ring-1 ring-rose-400/20' : 'bg-slate-800/80 text-slate-300 ring-1 ring-white/5'}`}>
-                    <p className="font-semibold">{stage.stage}</p>
+                    <p className="font-semibold">{getPermissionStageLabel(stage.stage)}</p>
                     <p className="mt-1">{stage.status}</p>
                   </div>
                 ))}

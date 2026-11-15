@@ -140,10 +140,24 @@
   background-size: cover;
 }
 
-.landing-hero::before {
+.landing-hero-background {
   position: absolute;
   inset: 0;
   z-index: -1;
+  background-position: center 48%;
+  background-size: cover;
+  opacity: 0;
+  transition: opacity 700ms ease-in-out;
+}
+
+.landing-hero-background.is-active {
+  opacity: 1;
+}
+
+.landing-hero::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   background:
     linear-gradient(90deg, rgba(2, 8, 23, 0.86) 0%, rgba(15, 23, 42, 0.72) 48%, rgba(15, 23, 42, 0.62) 100%),
     linear-gradient(0deg, rgba(15, 23, 42, 0.26), transparent 52%);
@@ -151,6 +165,8 @@
 }
 
 .landing-hero-inner {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(360px, 0.9fr);
   align-items: center;

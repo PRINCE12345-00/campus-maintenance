@@ -6,7 +6,7 @@ import { useAppContext } from '../../context/AppContext'
 import StatusBadge from '../../components/StatusBadge'
 import { permissionsApi } from '../../services/api'
 import { getStudentPermissions } from '../../utils/studentRecords'
-import { createApprovalChain, getPermissionChain } from '../../utils/approvalWorkflow'
+import { createApprovalChain, getPermissionChain, getPermissionStageLabel } from '../../utils/approvalWorkflow'
 
 const permissionTypes = ['Educational', 'Cultural']
 
@@ -174,12 +174,12 @@ export default function StudentPermissionsPage() {
                     <p className="mt-2 text-sm text-slate-400">{permission.type} • {permission.location}</p>
                     <p className="mt-1 text-xs text-slate-500">{permission.date}</p>
                     <p className="mt-3 text-xs font-semibold text-sky-300">
-                      {permission.status === 'Approved' ? 'Workflow complete' : permission.status === 'Rejected' ? 'Request rejected' : permission.status === 'Changes Requested' ? 'Changes requested from you' : `Current stage: ${permission.currentStage || 'Department Head'}`}
+                      {permission.status === 'Approved' ? 'Workflow complete' : permission.status === 'Rejected' ? 'Request rejected' : permission.status === 'Changes Requested' ? 'Changes requested from you' : `Current stage: ${getPermissionStageLabel(permission.currentStage || 'Department Head')}`}
                     </p>
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {getPermissionChain(permission).map((stage, index) => (
                         <span key={stage.stage} className={`rounded-full px-2 py-1 text-[11px] ${stage.status === 'Approved' ? 'bg-emerald-500/15 text-emerald-300' : stage.status === 'Pending' ? 'bg-blue-500/15 text-blue-300' : stage.status === 'Rejected' ? 'bg-rose-500/15 text-rose-300' : 'bg-slate-700/60 text-slate-400'}`}>
-                          {index + 1}. {stage.stage}: {stage.status}
+                          {index + 1}. {getPermissionStageLabel(stage.stage)}: {stage.status}
                         </span>
                       ))}
                     </div>
@@ -188,7 +188,7 @@ export default function StudentPermissionsPage() {
                       <div className="mt-3 rounded-xl border border-amber-400/25 bg-amber-500/10 p-3">
                         <p className="text-sm font-semibold text-amber-200">Changes requested</p>
                         {permission.approvalChain?.filter((stage) => stage.status === 'Returned').map((stage) => (
-                          <p key={stage.stage} className="mt-1 text-sm text-amber-300">{stage.stage}: {stage.comment}</p>
+                          <p key={stage.stage} className="mt-1 text-sm text-amber-300">{getPermissionStageLabel(stage.stage)}: {stage.comment}</p>
                         ))}
                         <textarea
                           value={responses[permission.id] || ''}
@@ -198,7 +198,7 @@ export default function StudentPermissionsPage() {
                           className="mt-3 w-full rounded-lg border border-amber-400/20 bg-slate-900/60 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500"
                         />
                         {errors[permission.id] && <p className="mt-2 text-sm text-red-400">{errors[permission.id]}</p>}
-                        <button type="button" onClick={() => handleResubmit(permission)} className="mt-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500">Resubmit to Department Head</button>
+                        <button type="button" onClick={() => handleResubmit(permission)} className="mt-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500">Resubmit to Department</button>
                       </div>
                     )}
                   </div>
