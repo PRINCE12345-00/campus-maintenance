@@ -1,11 +1,53 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowDown, ArrowRight, Building2, CheckCircle2, ClipboardCheck, Droplets, FlaskConical, Gauge, Lightbulb, Menu, MonitorCog, ShieldCheck, Sparkles, SprayCan, Wrench, X } from 'lucide-react'
+import { ArrowDown, ArrowRight, Building2, CheckCircle2, ClipboardCheck, Droplets, FlaskConical, Gauge, Lightbulb, Mail, MapPin, Menu, MonitorCog, Phone, Send, ShieldCheck, Sparkles, SprayCan, Wrench, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import campusPhoto from '../../pictures/background.jpeg'
 import logo from '../../pictures/logo.jpeg'
 import { complaintsApi, permissionsApi } from '../services/api'
 import './LandingPagePremium.css'
+
+function YoutubeIcon({ size = 16, className = '' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+    </svg>
+  )
+}
+
+function LinkedinIcon({ size = 15, className = '' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
+    </svg>
+  )
+}
+
+function XIcon({ size = 13, className = '' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  )
+}
+
+function InstagramIcon({ size = 15, className = '' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+    </svg>
+  )
+}
+
+function WhatsAppIcon({ size = 14, className = '' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.15c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a7.89 7.89 0 0 1-1.21-4.38c0-4.36 3.55-7.91 7.91-7.91 2.11 0 4.09.82 5.58 2.31 1.49 1.49 2.31 3.47 2.31 5.58 0 4.36-3.55 7.91-7.9 7.91zm4.33-5.92c-.24-.12-1.4-.69-1.62-.77-.22-.08-.37-.12-.53.12-.16.24-.61.77-.75.93-.14.16-.28.18-.51.06-.24-.12-1-.37-1.9-1.18-.7-.62-1.17-1.39-1.31-1.63-.14-.24-.01-.37.1-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.53-1.27-.72-1.74-.19-.46-.38-.4-.53-.41h-.45c-.16 0-.41.06-.63.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.7 2.59 4.12 3.63.58.25 1.02.4 1.38.51.58.18 1.11.16 1.53.1.47-.07 1.4-.57 1.6-1.13.2-.55.2-1.02.14-1.13-.06-.1-.2-.16-.44-.28z" />
+    </svg>
+  )
+}
 
 const services = [
   { icon: Lightbulb, title: 'Electrical maintenance', description: 'Lighting, power, and electrical infrastructure issues.' },
@@ -34,6 +76,72 @@ export default function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [metrics, setMetrics] = useState(null)
+  const [newsletterEmail, setNewsletterEmail] = useState('')
+  const [newsletterSubscribed, setNewsletterSubscribed] = useState(false)
+  const [devContactOpen, setDevContactOpen] = useState(false)
+  const [typewriterText1, setTypewriterText1] = useState('')
+  const [typewriterText2, setTypewriterText2] = useState('')
+  const [isFading, setIsFading] = useState(false)
+
+  useEffect(() => {
+    let isCancelled = false
+    const text1 = 'SMART CAMPUS.'
+    const text2 = 'BETTER LIVING.'
+    const charSpeed = 80
+    const interLinePause = 220
+    const readingPause = 4500
+    const fadeOutSpeed = 350
+
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+    const runTypewriter = async () => {
+      await sleep(300)
+
+      while (!isCancelled) {
+        setIsFading(false)
+        setTypewriterText1('')
+        setTypewriterText2('')
+        await sleep(150)
+        if (isCancelled) break
+
+        for (let i = 1; i <= text1.length; i++) {
+          if (isCancelled) return
+          setTypewriterText1(text1.slice(0, i))
+          await sleep(charSpeed)
+        }
+
+        if (isCancelled) break
+        await sleep(interLinePause)
+
+        for (let j = 1; j <= text2.length; j++) {
+          if (isCancelled) return
+          setTypewriterText2(text2.slice(0, j))
+          await sleep(charSpeed)
+        }
+
+        if (isCancelled) break
+        await sleep(readingPause)
+
+        if (isCancelled) break
+        setIsFading(true)
+        await sleep(fadeOutSpeed)
+      }
+    }
+
+    runTypewriter()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [])
+
+  const handleNewsletterSubmit = (e) => {
+    e.preventDefault()
+    if (!newsletterEmail.trim()) return
+    setNewsletterSubscribed(true)
+    setNewsletterEmail('')
+    setTimeout(() => setNewsletterSubscribed(false), 4000)
+  }
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 24)
@@ -111,8 +219,15 @@ export default function LandingPage() {
               <p className="landing-eyebrow">
                 <Sparkles size={15} /> CAMPUS MAINTENANCE, REIMAGINED
               </p>
-              <motion.h1 initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.75 }}>
-                SMART CAMPUS.<br /><span>BETTER LIVING.</span>
+              <motion.h1
+                className={`landing-hero-title${isFading ? ' is-fading' : ''}`}
+                initial={{ opacity: 0, y: 22 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.75 }}
+              >
+                {typewriterText1 || '\u00A0'}
+                <br />
+                <span>{typewriterText2 || '\u00A0'}</span>
               </motion.h1>
               <p className="landing-hero-description">
                 Making campus maintenance smarter, faster and more transparent. Report issues, track progress and keep your campus running smoothly.
@@ -238,19 +353,203 @@ export default function LandingPage() {
       </main>
 
       <footer id="contact" className="landing-footer">
-        <div className="landing-footer-main landing-shell">
-          <div className="footer-brand-block">
-            <Link to="/" className="landing-brand" aria-label="Campus Maintenance home">
-              <img src={logo} alt="" />
-              <div className="landing-brand-copy"><span>CAMPUS CARE</span><strong>Maintenance</strong></div>
-            </Link>
-            <p>A clearer, more connected way to care for campus spaces.</p>
+        <div className="landing-shell landing-footer-shell">
+          <div className="landing-footer-grid">
+            {/* Column 1: Brand Info */}
+            <div className="footer-col footer-col-brand">
+              <div className="footer-brand-header">
+                <div className="footer-brand-logo-wrap">
+                  <img src={logo} alt="DCRUST Logo" className="footer-brand-logo" />
+                </div>
+                <div className="footer-brand-title">
+                  <span className="brand-name-main">DCRUST</span>
+                  <span className="brand-name-sub">Smart Campus</span>
+                  <span className="brand-tagline">Connect • Manage • Grow</span>
+                </div>
+              </div>
+              <p className="footer-brand-desc">
+                A smart, secure and efficient campus management platform for a <span className="highlight-text">better</span> academic experience.
+              </p>
+              <div className="footer-social-row">
+                <a href="https://www.youtube.com/watch?v=JN2Y74xvOSg" target="_blank" rel="noopener noreferrer" className="footer-social-btn" aria-label="YouTube">
+                  <YoutubeIcon size={16} />
+                </a>
+                <a href="https://www.linkedin.com/company/dcrustm/?originalSubdomain=in" target="_blank" rel="noopener noreferrer" className="footer-social-btn" aria-label="LinkedIn">
+                  <LinkedinIcon size={15} />
+                </a>
+                <a href="https://x.com/MurthalDcrust?lang=en" target="_blank" rel="noopener noreferrer" className="footer-social-btn" aria-label="X (Twitter)">
+                  <XIcon size={13} />
+                </a>
+                <a href="https://www.instagram.com/dcrustnews/" target="_blank" rel="noopener noreferrer" className="footer-social-btn" aria-label="Instagram">
+                  <InstagramIcon size={15} />
+                </a>
+              </div>
+            </div>
+
+            {/* Column 2: Quick Links */}
+            <div className="footer-col">
+              <h3 className="footer-col-heading">Quick Links</h3>
+              <div className="footer-heading-bar" />
+              <ul className="footer-links-list">
+                <li><a href="https://www.dcrustm.ac.in/" target="_blank" rel="noopener noreferrer"><span className="link-chevron">&gt;</span> About DCRUST</a></li>
+                <li><a href="#contact"><span className="link-chevron">&gt;</span> Contact Us</a></li>
+                <li><a href="#services"><span className="link-chevron">&gt;</span> Help &amp; Support</a></li>
+                <li><a href="#how-it-works"><span className="link-chevron">&gt;</span> FAQs</a></li>
+                <li><a href="#about"><span className="link-chevron">&gt;</span> Terms &amp; Conditions</a></li>
+                <li><a href="#about"><span className="link-chevron">&gt;</span> Privacy Policy</a></li>
+              </ul>
+            </div>
+
+            {/* Column 3: Our Services */}
+            <div className="footer-col">
+              <h3 className="footer-col-heading">Our Services</h3>
+              <div className="footer-heading-bar" />
+              <ul className="footer-links-list">
+                <li><a href="#services"><span className="link-chevron">&gt;</span> Campus Management</a></li>
+                <li><a href="#services"><span className="link-chevron">&gt;</span> Student Services</a></li>
+                <li><Link to="/login"><span className="link-chevron">&gt;</span> Complaint Portal</Link></li>
+                <li><Link to="/login"><span className="link-chevron">&gt;</span> Permission Requests</Link></li>
+                <li><Link to="/login"><span className="link-chevron">&gt;</span> Notifications</Link></li>
+                <li><Link to="/login"><span className="link-chevron">&gt;</span> Analytics Dashboard</Link></li>
+              </ul>
+            </div>
+
+            {/* Column 4: Contact Us */}
+            <div className="footer-col footer-col-contact">
+              <h3 className="footer-col-heading">Contact Us</h3>
+              <div className="footer-heading-bar" />
+              <div className="footer-contact-list">
+                <div className="footer-contact-item">
+                  <MapPin size={18} className="footer-contact-icon" />
+                  <div className="footer-contact-text">
+                    <span>DCRUST, Murthal</span>
+                    <span>(Sonepat), Haryana</span>
+                  </div>
+                </div>
+                <div className="footer-contact-item">
+                  <Phone size={18} className="footer-contact-icon" />
+                  <a href="tel:01302484005" className="footer-contact-link">0130-2484005</a>
+                </div>
+                <div className="footer-contact-item">
+                  <Mail size={18} className="footer-contact-icon" />
+                  <a href="mailto:support@dcrust.ac.in" className="footer-contact-link">support@dcrust.ac.in</a>
+                </div>
+              </div>
+            </div>
+
+            {/* Column 5: Stay Updated Card */}
+            <div className="footer-col footer-col-newsletter">
+              <div className="newsletter-card">
+                <div className="newsletter-header">
+                  <Send size={18} className="newsletter-icon" />
+                  <h3>Stay Updated</h3>
+                </div>
+                <p className="newsletter-desc">
+                  Get the latest updates from DCRUST Smart Campus.
+                </p>
+                <form className="newsletter-form" onSubmit={handleNewsletterSubmit}>
+                  <input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={newsletterEmail}
+                    onChange={(e) => setNewsletterEmail(e.target.value)}
+                    required
+                    className="newsletter-input"
+                  />
+                  <button type="submit" className="newsletter-submit-btn" aria-label="Subscribe to updates">
+                    <ArrowRight size={17} />
+                  </button>
+                </form>
+                {newsletterSubscribed && (
+                  <p className="newsletter-status-msg">Thank you for subscribing!</p>
+                )}
+              </div>
+            </div>
           </div>
-          <div className="footer-column"><h3>Explore</h3><a href="#about">About</a><a href="#services">Services</a><a href="#how-it-works">How it works</a></div>
-          <div className="footer-column"><h3>Campus portal</h3><Link to="/login">Dashboard login</Link><Link to="/register">Create an account</Link><Link to="/login">Report an issue</Link></div>
-          <div className="footer-column"><h3>Services</h3><a href="#services">Facilities & maintenance</a><a href="#services">Technology support</a><a href="#services">Campus requests</a></div>
+
+          {/* Bottom Bar */}
+          <div className="footer-bottom-bar">
+            <div className="footer-bottom-copy">
+              &copy; 2026 <strong>DCRUST Smart Campus</strong>. All Rights Reserved.
+            </div>
+            <div className="footer-bottom-divider" aria-hidden="true" />
+            <div className="footer-bottom-center">
+              <div
+                className="developer-contact-wrapper"
+                onMouseEnter={() => setDevContactOpen(true)}
+                onMouseLeave={() => setDevContactOpen(false)}
+                onClick={() => setDevContactOpen((prev) => !prev)}
+              >
+                <button
+                  type="button"
+                  className="developer-contact-link"
+                  aria-expanded={devContactOpen}
+                  aria-haspopup="dialog"
+                >
+                  Developer Contact
+                </button>
+
+                <div className={`developer-popover ${devContactOpen ? 'is-visible' : ''}`} role="tooltip">
+                  <div className="dev-popover-header">
+                    <h4>Developer Contact</h4>
+                  </div>
+                  <div className="dev-popover-body">
+                    <div className="dev-card-item">
+                      <div className="dev-name">Pankaj Kumar</div>
+                      <div className="dev-branch">B.Tech CSE: 2023-27</div>
+                      <div className="dev-mob">
+                        Mob: <a href="https://wa.me/919306817255?text=Hello%20Pankaj%2C%20I%20have%20an%20issue%20regarding%20the%20Campus%20Maintenance%20Portal." target="_blank" rel="noopener noreferrer" className="dev-whatsapp-link" title="Chat with Pankaj on WhatsApp">
+                          +91 9306817255
+                          <WhatsAppIcon size={14} className="whatsapp-icon" />
+                        </a>
+                      </div>
+                    </div>
+
+                    <div className="dev-card-item">
+                      <div className="dev-name">Prince</div>
+                      <div className="dev-branch">B.Tech CSE: 2023-27</div>
+                      <div className="dev-mob">
+                        Mob: <a href="https://wa.me/918307676381?text=Hello%20Prince%2C%20I%20have%20an%20issue%20regarding%20the%20Campus%20Maintenance%20Portal." target="_blank" rel="noopener noreferrer" className="dev-whatsapp-link" title="Chat with Prince on WhatsApp">
+                          +91 8307676381
+                          <WhatsAppIcon size={14} className="whatsapp-icon" />
+                        </a>
+                      </div>
+                    </div>
+
+                    <div className="dev-card-item">
+                      <div className="dev-name">MD Raza</div>
+                      <div className="dev-branch">B.Tech CSE: 2024-27</div>
+                      <div className="dev-mob">
+                        Mob: <a href="https://wa.me/917562950586?text=Hello%20MD%20Raza%2C%20I%20have%20an%20issue%20regarding%20the%20Campus%20Maintenance%20Portal." target="_blank" rel="noopener noreferrer" className="dev-whatsapp-link" title="Chat with MD Raza on WhatsApp">
+                          +91 7562950586
+                          <WhatsAppIcon size={14} className="whatsapp-icon" />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="footer-bottom-divider" aria-hidden="true" />
+            <div className="footer-bottom-follow">
+              <span className="follow-label">Follow Us:</span>
+              <div className="footer-social-row footer-social-mini">
+                <a href="https://www.youtube.com/watch?v=JN2Y74xvOSg" target="_blank" rel="noopener noreferrer" className="footer-social-btn" aria-label="YouTube">
+                  <YoutubeIcon size={14} />
+                </a>
+                <a href="https://www.linkedin.com/company/dcrustm/?originalSubdomain=in" target="_blank" rel="noopener noreferrer" className="footer-social-btn" aria-label="LinkedIn">
+                  <LinkedinIcon size={13} />
+                </a>
+                <a href="https://x.com/MurthalDcrust?lang=en" target="_blank" rel="noopener noreferrer" className="footer-social-btn" aria-label="X (Twitter)">
+                  <XIcon size={12} />
+                </a>
+                <a href="https://www.instagram.com/dcrustnews/" target="_blank" rel="noopener noreferrer" className="footer-social-btn" aria-label="Instagram">
+                  <InstagramIcon size={13} />
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="landing-footer-bottom landing-shell"><span>© {new Date().getFullYear()} Campus Maintenance</span><a href="#home">Back to top ↑</a><span>Designed for a better campus experience</span></div>
       </footer>
     </div>
   )
