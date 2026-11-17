@@ -106,9 +106,9 @@ export default function AdminAnalyticsPage() {
       {/* Header */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-600">Advanced AI & Data Science</p>
-          <h1 className="mt-2 text-3xl font-bold text-slate-900">Predictive Maintenance & Performance Analytics</h1>
-          <p className="mt-2 text-sm text-slate-500">Live analytics dynamically computed from campus records, XGBoost/Random Forest regressors, and SHAP explainability pipelines.</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-400">Advanced AI & Data Science</p>
+          <h1 className="mt-2 text-3xl font-bold text-white">Predictive Maintenance & Performance Analytics</h1>
+          <p className="mt-2 text-sm text-slate-300">Live analytics dynamically computed from campus records, XGBoost/Random Forest regressors, and SHAP explainability pipelines.</p>
         </div>
         <button
           onClick={fetchAnalyticsData}
