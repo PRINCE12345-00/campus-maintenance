@@ -20,7 +20,10 @@ export const analyticsApi = {
 export const complaintsApi = {
   getAll: () => api.get('/complaints'),
   create: (payload) => api.post('/complaints', payload),
-  updateStatus: (id, status, reviewerRole = 'admin') => api.patch(`/complaints/${id}/status`, { status, reviewerRole }),
+  updateStatus: (id, status, reviewerRole = 'admin', extra = {}) =>
+    api.patch(`/complaints/${id}/status`, { status, reviewerRole, ...extra }),
+  sendUpdate: (id, payload) => api.patch(`/complaints/${id}/status`, payload),
+  notify: (id, payload) => api.post(`/complaints/${id}/notify`, payload),
 }
 
 export const permissionsApi = {

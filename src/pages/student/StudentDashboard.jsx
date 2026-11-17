@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts'
 import StatCard from '../../components/StatCard'
 import StatusBadge from '../../components/StatusBadge'
+import MobileNotificationBanner from '../../components/MobileNotificationBanner'
 import { useAppContext } from '../../context/AppContext'
 import { getStudentComplaints, getStudentNotifications, getStudentPermissions } from '../../utils/studentRecords'
 import { getPermissionChain, getPermissionStageLabel } from '../../utils/approvalWorkflow'
@@ -47,6 +48,8 @@ export default function StudentDashboard() {
           <Link to="/student/permissions" className="premium-button premium-button-secondary">Apply for permission</Link>
         </div>
       </div>
+
+      <MobileNotificationBanner />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard title="Total complaints" value={complaintCounts.total} detail="Across all categories" icon={ClipboardList} tone="blue" />
@@ -117,18 +120,27 @@ export default function StudentDashboard() {
             {studentComplaints.length === 0 && (
               <p className="rounded-2xl border border-dashed border-slate-700 bg-slate-900/50 p-5 text-sm text-slate-400">You have no complaints yet. Use “Submit complaint” to report a campus issue.</p>
             )}
-            {studentComplaints.slice(0, 3).map((complaint) => (
-              <div key={complaint.id} className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-slate-900/40 p-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="font-semibold text-white">{complaint.title}</p>
-                  <p className="mt-1 text-sm text-slate-400">{complaint.location} • {complaint.category}</p>
+            {studentComplaints.slice(0, 3).map((complaint) => {
+              const progressVal = complaint.progress !== undefined && complaint.progress !== null
+                ? complaint.progress
+                : (complaint.status === 'Resolved' || complaint.status === 'Closed' ? 100 : complaint.status === 'In Progress' ? 50 : 20)
+
+              return (
+                <div key={complaint.id} className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-slate-900/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-white">{complaint.title}</p>
+                      <span className="text-xs text-teal-300 font-bold">({progressVal}%)</span>
+                    </div>
+                    <p className="mt-1 text-sm text-slate-400">{complaint.location} • {complaint.category}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <StatusBadge status={complaint.status} />
+                    <Link to={`/student/complaint/${complaint.id}`} className="text-sm font-semibold text-sky-300 hover:text-white">Details</Link>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <StatusBadge status={complaint.status} />
-                  <Link to={`/student/complaint/${complaint.id}`} className="text-sm font-semibold text-sky-300">Details</Link>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
 

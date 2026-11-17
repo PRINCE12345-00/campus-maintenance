@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
 import { complaintsApi, notificationsApi, permissionsApi } from '../services/api'
@@ -8,6 +8,11 @@ import { useAppContext } from '../context/AppContext'
 export default function AppLayout({ role = 'student' }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { setComplaints, setPermissions, setNotifications } = useAppContext()
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }, [pathname])
 
   useEffect(() => {
     let active = true

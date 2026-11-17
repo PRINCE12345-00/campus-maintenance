@@ -49,6 +49,8 @@ function WhatsAppIcon({ size = 14, className = '' }) {
   )
 }
 
+
+
 const services = [
   { icon: Lightbulb, title: 'Electrical maintenance', description: 'Lighting, power, and electrical infrastructure issues.' },
   { icon: Droplets, title: 'Plumbing', description: 'Water supply, drainage, and plumbing concerns.' },
@@ -76,12 +78,20 @@ export default function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [metrics, setMetrics] = useState(null)
+  const [devContactOpen, setDevContactOpen] = useState(false)
   const [newsletterEmail, setNewsletterEmail] = useState('')
   const [newsletterSubscribed, setNewsletterSubscribed] = useState(false)
-  const [devContactOpen, setDevContactOpen] = useState(false)
   const [typewriterText1, setTypewriterText1] = useState('')
   const [typewriterText2, setTypewriterText2] = useState('')
   const [isFading, setIsFading] = useState(false)
+
+  const handleNewsletterSubmit = (e) => {
+    e.preventDefault()
+    if (!newsletterEmail.trim()) return
+    setNewsletterSubscribed(true)
+    setNewsletterEmail('')
+    setTimeout(() => setNewsletterSubscribed(false), 4000)
+  }
 
   useEffect(() => {
     let isCancelled = false
@@ -135,13 +145,7 @@ export default function LandingPage() {
     }
   }, [])
 
-  const handleNewsletterSubmit = (e) => {
-    e.preventDefault()
-    if (!newsletterEmail.trim()) return
-    setNewsletterSubscribed(true)
-    setNewsletterEmail('')
-    setTimeout(() => setNewsletterSubscribed(false), 4000)
-  }
+
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 24)
@@ -407,10 +411,10 @@ export default function LandingPage() {
               <ul className="footer-links-list">
                 <li><a href="#services"><span className="link-chevron">&gt;</span> Campus Management</a></li>
                 <li><a href="#services"><span className="link-chevron">&gt;</span> Student Services</a></li>
-                <li><Link to="/login"><span className="link-chevron">&gt;</span> Complaint Portal</Link></li>
-                <li><Link to="/login"><span className="link-chevron">&gt;</span> Permission Requests</Link></li>
-                <li><Link to="/login"><span className="link-chevron">&gt;</span> Notifications</Link></li>
-                <li><Link to="/login"><span className="link-chevron">&gt;</span> Analytics Dashboard</Link></li>
+                <li><Link to="/login" onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })}><span className="link-chevron">&gt;</span> Complaint Portal</Link></li>
+                <li><Link to="/login" onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })}><span className="link-chevron">&gt;</span> Permission Requests</Link></li>
+                <li><Link to="/login" onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })}><span className="link-chevron">&gt;</span> Notifications</Link></li>
+                <li><Link to="/login" onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })}><span className="link-chevron">&gt;</span> Analytics Dashboard</Link></li>
               </ul>
             </div>
 
