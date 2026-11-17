@@ -16,6 +16,8 @@ export const authApi = {
 export const analyticsApi = {
   get: () => api.get('/analytics'),
   getPredictiveMaintenance: () => api.get('/analytics/predictive-maintenance'),
+  getAssetHealthMatrix: () => api.get('/analytics/asset-health-matrix'),
+  clusterDuplicates: (target_id, threshold = 0.50) => api.post('/analytics/cluster-duplicates', { target_id, threshold }),
 }
 
 export const chatbotApi = {

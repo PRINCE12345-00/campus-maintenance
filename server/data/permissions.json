@@ -7,7 +7,7 @@
     "date": "2026-11-26",
     "location": "NCC Ground",
     "status": "Pending Approval",
-    "currentStage": "DSW",
+    "currentStage": "Registrar",
     "approvalChain": [
       {
         "stage": "Department Head",
@@ -23,13 +23,13 @@
       },
       {
         "stage": "DSW",
-        "status": "Pending",
-        "decidedAt": null,
-        "comment": ""
+        "status": "Approved",
+        "decidedAt": "2026-11-17T20:50:39.444Z",
+        "comment": "Approved by University Administration"
       },
       {
         "stage": "Registrar",
-        "status": "Waiting",
+        "status": "Pending",
         "decidedAt": null,
         "comment": ""
       },
@@ -58,6 +58,12 @@
         "status": "Approved",
         "date": "2026-11-17T15:30:11.475Z",
         "note": "Stage (Cultural Coordinator) approved by Administration. Advanced to next office."
+      },
+      {
+        "stage": "DSW",
+        "status": "Approved",
+        "date": "2026-11-17T20:50:39.444Z",
+        "note": "Approved by University Administration"
       }
     ],
     "submittedBy": "Pankaj Kumar",
@@ -69,6 +75,16 @@
     "faculty": "Department Faculty",
     "details": "Expected Participants: 30 Students\nFaculty coordinator will supervise the event. Sound System and stage arrangements will be required.",
     "emailUpdates": [
+      {
+        "id": "EML-PER-1794948639445",
+        "date": "2026-11-17T20:50:39.444Z",
+        "sender": "Campus Admin (Prince Chahal)",
+        "recipient": "pankajsulekh255@gmail.com",
+        "subject": "Permission Update: Annual Cultural Fest",
+        "message": "Your permission request for \"Annual Cultural Fest\" was approved by University Administration. It is now awaiting review from: Registrar. Note: Approved by University Administration",
+        "status": "Pending Approval",
+        "delivered": true
+      },
       {
         "id": "EML-PER-1794929411477",
         "date": "2026-11-17T15:30:11.475Z",

@@ -13,6 +13,7 @@ from typing import Optional, List, Dict, Any
 
 from chatbot import MaintenanceRAGChatbot
 from vision import analyze_complaint_image
+from cluster_engine import analyze_complaint_clusters, compute_asset_health_matrix
 
 # Base directory paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -446,6 +447,36 @@ def handle_vision_analysis(req: VisionRequest):
         return res
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Image decoding failed: {str(e)}")
+
+class ClusterRequest(BaseModel):
+    complaints: List[Dict[str, Any]] = Field(..., description="Active campus complaints list")
+    target_id: Optional[str] = Field(None, description="Specific complaint ID to inspect")
+    threshold: Optional[float] = Field(0.50, description="Similarity threshold (0.0 to 1.0)")
+
+@app.post("/analytics/cluster-duplicates")
+def handle_cluster_duplicates(req: ClusterRequest):
+    """
+    Phase 12: Unsupervised Semantic Duplicate & Incident Clustering
+    Computes TF-IDF Cosine Similarity Matrix with spatial location boost.
+    """
+    res = analyze_complaint_clusters(req.complaints, req.target_id, req.threshold)
+    return res
+
+class AssetHealthRequest(BaseModel):
+    live_complaints: Optional[List[Dict[str, Any]]] = Field(default=[], description="Live complaints list")
+
+@app.post("/analytics/asset-health-matrix")
+def handle_asset_health_matrix_post(req: AssetHealthRequest):
+    """
+    Phase 13: Predictive Campus Asset Health & Reliability Matrix (MTBF & Failure Probability)
+    """
+    res = compute_asset_health_matrix(req.live_complaints or [], historical_df)
+    return res
+
+@app.get("/analytics/asset-health-matrix")
+def handle_asset_health_matrix_get():
+    res = compute_asset_health_matrix([], historical_df)
+    return res
 
 if __name__ == "__main__":
     import uvicorn

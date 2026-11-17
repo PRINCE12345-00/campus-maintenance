@@ -1,10 +1,19 @@
 [
   {
+    "id": "NOT-1794948639445-8b34b9c227ec3",
+    "title": "Permission Update: Annual Cultural Fest",
+    "message": "Your permission request for \"Annual Cultural Fest\" was approved by University Administration. It is now awaiting review from: Registrar. Note: Approved by University Administration",
+    "type": "permission",
+    "isRead": true,
+    "createdAt": "2026-11-17T20:50:39.445Z",
+    "userEmail": "pankajsulekh255@gmail.com"
+  },
+  {
     "id": "NOT-1794941064731-f4fe810625e1a",
     "title": "Evidence Verified & Technician Assigned",
     "message": "Your photo evidence for \"Street light flickering near main gate\" has been verified by the maintenance office. Work assigned.",
     "type": "complaint",
-    "isRead": false,
+    "isRead": true,
     "createdAt": "2026-11-17T18:44:24.731Z",
     "userEmail": "aarav@student.dcrust.in"
   },

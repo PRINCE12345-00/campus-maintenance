@@ -17,7 +17,7 @@ import {
 } from 'lucide-react'
 import { useAppContext } from '../context/AppContext'
 import StatusBadge from '../components/StatusBadge'
-import { complaintsApi, visionApi } from '../services/api'
+import { analyticsApi, complaintsApi, visionApi } from '../services/api'
 import { formatDate } from '../utils/formatters'
 import { triggerMobileNotification } from '../utils/mobileNotifications'
 
@@ -110,6 +110,24 @@ export default function ComplaintDetailPage() {
       if (primary) {
         runVisionAnalysis(primary)
       }
+    }
+  }, [complaint?.id])
+
+  // AI Semantic Duplicate & Incident Cluster State
+  const [clusterData, setClusterData] = useState(null)
+  const [isCheckingCluster, setIsCheckingCluster] = useState(false)
+
+  useEffect(() => {
+    if (complaint?.id) {
+      setIsCheckingCluster(true)
+      analyticsApi.clusterDuplicates(complaint.id)
+        .then((res) => {
+          if (res.data?.success) {
+            setClusterData(res.data)
+          }
+        })
+        .catch(() => {})
+        .finally(() => setIsCheckingCluster(false))
     }
   }, [complaint?.id])
 
@@ -538,6 +556,67 @@ export default function ComplaintDetailPage() {
           </div>
         )
       })()}
+
+      {/* Phase 12: AI Semantic Incident Cluster & Duplicate Detection Card */}
+      {clusterData?.is_clustered && (
+        <div className="rounded-3xl border border-indigo-500/30 bg-gradient-to-br from-indigo-950/50 via-slate-900/80 to-purple-950/40 p-5 text-white shadow-xl backdrop-blur-md">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div className="flex items-center gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-base">
+                🧬
+              </span>
+              <div>
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  NLP Incident Cluster Detected ({clusterData.cluster_size} Related Tickets)
+                  <span className="rounded-full bg-indigo-500/20 px-2 py-0.5 text-[10px] font-bold text-indigo-300 border border-indigo-500/30">
+                    {clusterData.similar_complaints[0]?.similarity_score}% Match
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Unsupervised TF-IDF Cosine Similarity in <span className="text-indigo-300 font-medium">{complaint.location}</span>
+                </p>
+              </div>
+            </div>
+            {clusterData.master_ticket_id && (
+              <span className="rounded-xl border border-teal-500/30 bg-teal-500/10 px-3 py-1 text-xs font-semibold text-teal-300">
+                Master Incident: {clusterData.master_ticket_id}
+              </span>
+            )}
+          </div>
+
+          <div className="rounded-xl border border-indigo-500/20 bg-indigo-950/30 p-3 text-xs text-indigo-200 mb-3">
+            <p className="font-semibold text-indigo-300">
+              🤖 AI Operational Recommendation:
+            </p>
+            <p className="mt-1 text-slate-200 leading-relaxed">
+              {clusterData.ai_cluster_recommendation}
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+              Correlated Incident Tickets in this Cluster:
+            </p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {clusterData.similar_complaints.map((sim) => (
+                <Link
+                  key={sim.id}
+                  to={`/admin/complaint/${sim.id}`}
+                  className="flex items-center justify-between rounded-xl border border-white/5 bg-slate-900/60 p-2.5 hover:border-indigo-500/40 hover:bg-slate-800/80 transition-all text-xs"
+                >
+                  <div className="truncate pr-2">
+                    <p className="font-semibold text-slate-100 truncate">{sim.title}</p>
+                    <p className="text-[10px] text-slate-400">{sim.id} • {sim.location} • {sim.status}</p>
+                  </div>
+                  <span className="shrink-0 rounded-lg bg-indigo-500/20 px-2 py-0.5 text-[10px] font-bold text-indigo-300 border border-indigo-500/30">
+                    {sim.similarity_score}% Match
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
 
       {/* ADMIN COMMUNICATION & EMAIL DISPATCH PORTAL (Visible to Admins / Authority) */}
