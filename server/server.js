@@ -630,13 +630,13 @@ app.post('/api/chat', async (req, res) => {
 // Phase 11: Computer Vision Analysis API
 app.post('/api/vision/analyze', async (req, res) => {
   try {
-    const { image_base64, filename } = req.body || {}
+    const { image_base64, filename, category } = req.body || {}
     if (!image_base64) return res.status(400).json({ message: 'image_base64 is required.' })
 
     const mlRes = await fetch(`${mlServiceUrl}/vision/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image_base64, filename: filename || 'upload.jpg' }),
+      body: JSON.stringify({ image_base64, filename: filename || 'upload.jpg', category }),
       signal: AbortSignal.timeout(10000),
     })
     if (!mlRes.ok) throw new Error(`Vision service returned ${mlRes.status}`)

@@ -431,6 +431,7 @@ def handle_chat_query(req: ChatQueryRequest):
 class VisionRequest(BaseModel):
     image_base64: str = Field(..., description="Base64-encoded image string")
     filename: Optional[str] = Field("upload.jpg", description="Original file name")
+    category: Optional[str] = Field(None, description="Complaint category hint")
 
 @app.post("/vision/analyze")
 def handle_vision_analysis(req: VisionRequest):
@@ -441,7 +442,7 @@ def handle_vision_analysis(req: VisionRequest):
     try:
         header_stripped = req.image_base64.split(",")[-1]
         image_bytes = base64.b64decode(header_stripped)
-        res = analyze_complaint_image(image_bytes, req.filename)
+        res = analyze_complaint_image(image_bytes, req.filename, req.category)
         return res
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Image decoding failed: {str(e)}")

@@ -23,7 +23,7 @@ export const chatbotApi = {
 }
 
 export const visionApi = {
-  analyzeImage: (image_base64, filename) => api.post('/vision/analyze', { image_base64, filename }),
+  analyzeImage: (image_base64, filename, category) => api.post('/vision/analyze', { image_base64, filename, category }),
 }
 
 export const complaintsApi = {

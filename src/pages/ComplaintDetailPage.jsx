@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useLocation } from 'react-router-dom'
 import {
   AlertCircle,
@@ -17,7 +17,7 @@ import {
 } from 'lucide-react'
 import { useAppContext } from '../context/AppContext'
 import StatusBadge from '../components/StatusBadge'
-import { complaintsApi } from '../services/api'
+import { complaintsApi, visionApi } from '../services/api'
 import { formatDate } from '../utils/formatters'
 import { triggerMobileNotification } from '../utils/mobileNotifications'
 
@@ -80,6 +80,38 @@ export default function ComplaintDetailPage() {
   const [rejectReason, setRejectReason] = useState('')
   const [showRejectInput, setShowRejectInput] = useState(false)
   const [isReviewingEvidence, setIsReviewingEvidence] = useState(false)
+
+  // AI Computer Vision Authenticity & Defect Inspection State
+  const [visionResult, setVisionResult] = useState(complaint?.aiVisionResult || null)
+  const [isAnalyzingVision, setIsAnalyzingVision] = useState(false)
+  const [visionError, setVisionError] = useState(null)
+
+  const runVisionAnalysis = async (attachment) => {
+    if (!attachment?.dataUrl) return
+    setIsAnalyzingVision(true)
+    setVisionError(null)
+    try {
+      const res = await visionApi.analyzeImage(attachment.dataUrl, attachment.name, complaint?.category)
+      if (res.data?.success) {
+        setVisionResult(res.data)
+      } else {
+        setVisionError(res.data?.error || 'AI Vision analysis could not process this image format.')
+      }
+    } catch {
+      setVisionError('Vision service unavailable. Ensure Python ML service is running on port 8000.')
+    } finally {
+      setIsAnalyzingVision(false)
+    }
+  }
+
+  useEffect(() => {
+    if (complaint?.attachments?.length && !visionResult && !isAnalyzingVision) {
+      const primary = complaint.attachments.find((a) => a.dataUrl)
+      if (primary) {
+        runVisionAnalysis(primary)
+      }
+    }
+  }, [complaint?.id])
 
   // Admin Update & Email Form State
   const [selectedProgress, setSelectedProgress] = useState(complaint?.progress || (complaint?.status === 'Resolved' ? 100 : 25))
@@ -833,6 +865,120 @@ export default function ComplaintDetailPage() {
             </div>
           ) : (
             <p className="mt-2 text-sm text-slate-400">No physical evidence or photos were attached.</p>
+          )}
+
+          {/* AI Computer Vision Evidence Authenticity & Defect Inspector */}
+          {complaint.attachments?.length > 0 && (
+            <div className="mt-5 rounded-2xl border border-white/10 bg-slate-950/70 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles size={18} className="text-teal-400" />
+                  <h4 className="text-sm font-bold text-white">AI Computer Vision Evidence Authenticity Audit</h4>
+                </div>
+                <button
+                  type="button"
+                  disabled={isAnalyzingVision}
+                  onClick={() => {
+                    const primary = complaint.attachments.find((a) => a.dataUrl)
+                    if (primary) runVisionAnalysis(primary)
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-teal-500/30 bg-teal-500/10 px-2.5 py-1 text-xs font-semibold text-teal-300 hover:bg-teal-500/20 transition disabled:opacity-50 cursor-pointer"
+                >
+                  <Camera size={13} /> {isAnalyzingVision ? 'Analyzing...' : '⚡ Re-Run AI Vision Audit'}
+                </button>
+              </div>
+
+              {isAnalyzingVision && (
+                <div className="flex items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-300 animate-pulse">
+                  <Camera size={16} /> Scanning image pixels, edge gradients, and defect patterns with Computer Vision...
+                </div>
+              )}
+
+              {visionError && (
+                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-300">
+                  {visionError}
+                </div>
+              )}
+
+              {visionResult && !isAnalyzingVision && (
+                <div className="space-y-3">
+                  {/* Score & Classification Header */}
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-xl border border-white/5 bg-slate-900/60 p-3">
+                      <p className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Authenticity Score</p>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className={`text-lg font-bold ${
+                          visionResult.is_genuine
+                            ? 'text-emerald-400'
+                            : visionResult.authenticity_score < 45
+                            ? 'text-rose-400'
+                            : 'text-amber-400'
+                        }`}>
+                          {visionResult.authenticity_score}%
+                        </span>
+                        <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase ${
+                          visionResult.is_genuine
+                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                            : visionResult.authenticity_score < 45
+                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                            : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                        }`}>
+                          {visionResult.authenticity_status}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-white/5 bg-slate-900/60 p-3">
+                      <p className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Detected Visual Feature</p>
+                      <p className="text-sm font-semibold text-slate-100 mt-1 truncate">
+                        {visionResult.defect_class || 'Surface Inspected'}
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">Category: {complaint.category}</p>
+                    </div>
+
+                    <div className="rounded-xl border border-white/5 bg-slate-900/60 p-3">
+                      <p className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Image Clarity & Quality</p>
+                      <p className="text-sm font-semibold text-slate-100 mt-1">
+                        {visionResult.quality?.status || 'Clear'}
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">Sharpness: {visionResult.quality?.sharpness_score || 0}</p>
+                    </div>
+                  </div>
+
+                  {/* PROMINENT ADMIN ALERT BANNER */}
+                  <div className={`rounded-xl border p-3.5 text-xs flex items-start gap-2.5 ${
+                    visionResult.is_genuine
+                      ? 'border-emerald-500/30 bg-emerald-950/20 text-emerald-200'
+                      : visionResult.authenticity_score < 45
+                      ? 'border-rose-500/30 bg-rose-950/30 text-rose-200'
+                      : 'border-amber-500/30 bg-amber-950/20 text-amber-200'
+                  }`}>
+                    {visionResult.is_genuine ? (
+                      <CheckCircle2 size={18} className="text-emerald-400 shrink-0 mt-0.5" />
+                    ) : (
+                      <AlertCircle size={18} className={`${visionResult.authenticity_score < 45 ? 'text-rose-400' : 'text-amber-400'} shrink-0 mt-0.5`} />
+                    )}
+                    <div className="space-y-1">
+                      <p className="font-bold text-sm">
+                        {visionResult.is_genuine ? 'Genuine Defect Detected' : 'AI Evidence Authenticity Warning'}
+                      </p>
+                      <p className="text-xs leading-relaxed text-slate-200">
+                        {visionResult.admin_alert}
+                      </p>
+                      {visionResult.reasons?.length > 0 && (
+                        <div className="pt-1 flex flex-wrap gap-1.5">
+                          {visionResult.reasons.map((r, i) => (
+                            <span key={i} className="rounded-md bg-white/5 px-2 py-0.5 text-[11px] text-slate-300 border border-white/10">
+                              • {r}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
 
           {/* Admin Stage-1 Evidence Review Gate */}
