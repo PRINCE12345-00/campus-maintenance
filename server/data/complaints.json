@@ -180,7 +180,7 @@
     "submittedByEmail": "aarav@student.dcrust.in",
     "assignedTo": "Maintenance Team",
     "submissionDate": "2026-10-02",
-    "lastUpdated": "2026-10-03",
+    "lastUpdated": "2026-11-17",
     "attachments": [
       "gate-light.png"
     ],
@@ -196,6 +196,13 @@
         "progress": 25,
         "date": "2026-10-03",
         "note": "Assigned to electrical team."
+      },
+      {
+        "status": "Assigned",
+        "progress": 25,
+        "date": "2026-11-17",
+        "note": "Evidence reviewed & verified by Admin. Technician dispatched to inspect issue.",
+        "emailSent": true
       }
     ],
     "emailUpdates": [
@@ -213,7 +220,8 @@
       }
     ],
     "rating": 4,
-    "feedback": "Fast response and good repair."
+    "feedback": "Fast response and good repair.",
+    "evidenceStatus": "Approved"
   },
   {
     "id": "CMP-1002",

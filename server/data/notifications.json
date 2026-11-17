@@ -1,5 +1,14 @@
 [
   {
+    "id": "NOT-1794941064731-f4fe810625e1a",
+    "title": "Evidence Verified & Technician Assigned",
+    "message": "Your photo evidence for \"Street light flickering near main gate\" has been verified by the maintenance office. Work assigned.",
+    "type": "complaint",
+    "isRead": false,
+    "createdAt": "2026-11-17T18:44:24.731Z",
+    "userEmail": "aarav@student.dcrust.in"
+  },
+  {
     "id": "NOT-1794936837290",
     "userEmail": "pankajsulekh255@gmail.com",
     "title": "[Progress: 50% - In Progress] Fan not Working",
