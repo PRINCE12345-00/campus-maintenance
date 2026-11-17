@@ -7,15 +7,34 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+CAMPUS_FACILITY_CONCEPTS = [
+    {"concept": "fan_cooling", "keywords": ["fan", "fans", "ceiling fan", "cooler", "exhaust", "regulator", "ventilation"]},
+    {"concept": "lighting", "keywords": ["light", "lights", "lamp", "bulb", "tube", "tubelight", "flicker", "flickering", "dark", "street light", "led"]},
+    {"concept": "water_sanitation", "keywords": ["water", "leak", "leaking", "pipe", "pipes", "tap", "taps", "faucet", "washroom", "toilet", "drain", "drainage", "flush", "sink", "geyser", "supply"]},
+    {"concept": "electrical_power", "keywords": ["power", "switch", "socket", "short circuit", "spark", "breaker", "fuse", "mcb", "wiring", "voltage", "blackout", "tripping", "meter"]},
+    {"concept": "network_lab", "keywords": ["wifi", "wi-fi", "internet", "lan", "router", "network", "connectivity", "cable", "ethernet", "computer", "lab", "pc", "monitor"]},
+    {"concept": "furniture_civil", "keywords": ["bench", "chair", "desk", "table", "door", "window", "lock", "handle", "blackboard", "whiteboard", "tile", "wall", "plaster"]},
+]
+
+def extract_concepts(text: str) -> set:
+    text_lower = text.lower()
+    matched = set()
+    for item in CAMPUS_FACILITY_CONCEPTS:
+        for kw in item["keywords"]:
+            if kw in text_lower:
+                matched.add(item["concept"])
+                break
+    return matched
+
 def analyze_complaint_clusters(
     complaints: List[Dict[str, Any]], 
     target_id: Optional[str] = None, 
-    threshold: float = 0.50
+    threshold: float = 0.35
 ) -> Dict[str, Any]:
     """
     Data Science Unsupervised Incident Clustering Engine:
     - Uses TF-IDF Vector Space Modeling + Cosine Similarity Matrix.
-    - Applies spatial location and category semantic boosting.
+    - Applies spatial location, category semantic, and domain keyword concept boosting.
     - Groups related/duplicate complaints into Incident Clusters.
     - Identifies Master Tickets to eliminate duplicate maintenance dispatches.
     """
@@ -29,15 +48,15 @@ def analyze_complaint_clusters(
             "ai_cluster_recommendation": "No other active complaints available for clustering."
         }
 
-    # Normalize texts for TF-IDF
+    # Normalize problem texts for TF-IDF
     corpus = []
+    concepts_list = []
     for c in complaints:
         title = str(c.get("title", ""))
         desc = str(c.get("description", ""))
-        cat = str(c.get("category", ""))
-        loc = str(c.get("location", ""))
-        text = f"{title} {title} {desc} {cat} {loc}".strip().lower()
+        text = f"{title} {title} {desc}".strip().lower()
         corpus.append(text)
+        concepts_list.append(extract_concepts(text))
 
     try:
         vectorizer = TfidfVectorizer(
@@ -56,18 +75,22 @@ def analyze_complaint_clusters(
         }
 
     n = len(complaints)
-    # Apply domain location & category boost
+    # Apply domain concept, location & category boost
     boosted_sim = np.copy(sim_matrix)
     for i in range(n):
         for j in range(n):
             if i != j:
                 same_loc = (complaints[i].get("location") == complaints[j].get("location")) and bool(complaints[i].get("location"))
                 same_cat = (complaints[i].get("category") == complaints[j].get("category")) and bool(complaints[i].get("category"))
+                shared_concepts = concepts_list[i].intersection(concepts_list[j])
+
+                if shared_concepts:
+                    boosted_sim[i, j] += 0.28  # Shared domain maintenance concept boost
                 if same_loc:
-                    boosted_sim[i, j] += 0.22  # High spatial proximity boost
+                    boosted_sim[i, j] += 0.20  # High spatial proximity boost
                 if same_cat:
-                    boosted_sim[i, j] += 0.08  # Category match boost
-                boosted_sim[i, j] = min(0.99, boosted_sim[i, j])
+                    boosted_sim[i, j] += 0.12  # Category match boost
+                boosted_sim[i, j] = min(0.98, boosted_sim[i, j])
 
     # If target_id is specified, compute cluster for that specific complaint
     target_idx = None
@@ -100,24 +123,26 @@ def analyze_complaint_clusters(
         is_clustered = len(matches) > 0
         cluster_size = len(matches) + 1
 
-        # Determine Master Ticket (earliest submitted)
+        # Determine Master Ticket (earliest submitted or in-progress)
         master_id = target_comp.get("id")
         master_title = target_comp.get("title")
         if is_clustered:
             all_cluster_items = [target_comp] + [complaints[j] for j in range(n) if float(boosted_sim[target_idx, j]) >= threshold and j != target_idx]
-            # Earliest by submission date or lowest ID
             earliest = sorted(all_cluster_items, key=lambda x: str(x.get("submissionDate", "")) or str(x.get("id", "")))[0]
             master_id = earliest.get("id")
             master_title = earliest.get("title")
 
         if is_clustered:
             rec = (
-                f"Cluster of {cluster_size} related complaints detected in {target_comp.get('location')}. "
+                f"Cluster of {cluster_size} related tickets detected in {target_comp.get('location')}. "
                 f"Top match: '{matches[0]['title']}' ({matches[0]['similarity_score']}% match). "
-                f"Recommended: Coordinate repairs under Master Ticket {master_id} to optimize maintenance crew dispatch."
+                f"Recommended: Coordinate repairs under Master Ticket {master_id} to eliminate redundant technician dispatches."
             )
         else:
-            rec = "No redundant or duplicate complaints detected. This is an isolated maintenance ticket."
+            rec = (
+                f"Verified Isolated Incident. No duplicate or correlated tickets detected in {target_comp.get('location')} "
+                f"under {target_comp.get('category')}. Standalone dispatch verified."
+            )
 
         return {
             "success": True,
@@ -131,32 +156,83 @@ def analyze_complaint_clusters(
             "ai_cluster_recommendation": rec
         }
 
-    # Global clustering overview across all complaints
+    # Global clustering overview across all campus complaints
     all_clusters = []
     visited = set()
     for i in range(n):
         if i in visited:
             continue
-        group = [complaints[i].get("id")]
-        visited.add(i)
+        group_indices = [i]
         for j in range(n):
-            if j not in visited and float(boosted_sim[i, j]) >= threshold:
-                group.append(complaints[j].get("id"))
-                visited.add(j)
-        if len(group) > 1:
+            if j != i and j not in visited and float(boosted_sim[i, j]) >= threshold:
+                group_indices.append(j)
+
+        if len(group_indices) > 1:
+            for idx in group_indices:
+                visited.add(idx)
+
+            cluster_items = [complaints[idx] for idx in group_indices]
+            earliest = sorted(cluster_items, key=lambda x: str(x.get("submissionDate", "")) or str(x.get("id", "")))[0]
+            master_id = earliest.get("id")
+            master_title = earliest.get("title")
+
+            # Average similarity score among members
+            scores = []
+            tickets = []
+            for idx in group_indices:
+                comp = complaints[idx]
+                sim_score = 100.0 if comp.get("id") == master_id else round(float(boosted_sim[group_indices[0], idx]) * 100, 1)
+                scores.append(sim_score)
+                tickets.append({
+                    "id": comp.get("id"),
+                    "title": comp.get("title"),
+                    "category": comp.get("category"),
+                    "location": comp.get("location"),
+                    "status": comp.get("status"),
+                    "submittedBy": comp.get("submittedBy"),
+                    "is_master": comp.get("id") == master_id,
+                    "similarity_score": sim_score
+                })
+
+            tickets.sort(key=lambda t: (not t["is_master"], -t["similarity_score"]))
+            avg_score = round(sum(scores) / len(scores), 1)
+
             all_clusters.append({
-                "cluster_id": f"CLUST-{len(all_clusters)+1}",
-                "ticket_ids": group,
-                "size": len(group),
-                "location": complaints[i].get("location"),
-                "category": complaints[i].get("category")
+                "cluster_id": f"CLUST-0{len(all_clusters)+1}",
+                "category": complaints[group_indices[0]].get("category"),
+                "location": complaints[group_indices[0]].get("location"),
+                "size": len(group_indices),
+                "master_ticket_id": master_id,
+                "master_ticket_title": master_title,
+                "avg_similarity_score": avg_score,
+                "recommended_action": f"Consolidate {len(group_indices)} tickets under Master Ticket {master_id}. Eliminates {len(group_indices) - 1} redundant dispatch(es).",
+                "tickets": tickets
             })
+
+    # Isolated complaints that do not belong to any cluster
+    isolated = []
+    for i in range(n):
+        if i not in visited:
+            isolated.append({
+                "id": complaints[i].get("id"),
+                "title": complaints[i].get("title"),
+                "category": complaints[i].get("category"),
+                "location": complaints[i].get("location"),
+                "status": complaints[i].get("status"),
+                "submittedBy": complaints[i].get("submittedBy"),
+            })
+
+    redundant_count = sum(c["size"] - 1 for c in all_clusters)
+    efficiency_pct = round((redundant_count / n) * 100, 1) if n > 0 else 0.0
 
     return {
         "success": True,
         "total_complaints_analyzed": n,
         "total_clusters_found": len(all_clusters),
-        "clusters": all_clusters
+        "redundant_tickets_eliminated": redundant_count,
+        "dispatch_efficiency_gain": f"{efficiency_pct}%",
+        "clusters": all_clusters,
+        "isolated_complaints": isolated
     }
 
 # ---------------------------------------------------------------------------

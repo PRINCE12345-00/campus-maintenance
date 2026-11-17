@@ -451,7 +451,7 @@ def handle_vision_analysis(req: VisionRequest):
 class ClusterRequest(BaseModel):
     complaints: List[Dict[str, Any]] = Field(..., description="Active campus complaints list")
     target_id: Optional[str] = Field(None, description="Specific complaint ID to inspect")
-    threshold: Optional[float] = Field(0.50, description="Similarity threshold (0.0 to 1.0)")
+    threshold: Optional[float] = Field(0.35, description="Similarity threshold (0.0 to 1.0)")
 
 @app.post("/analytics/cluster-duplicates")
 def handle_cluster_duplicates(req: ClusterRequest):

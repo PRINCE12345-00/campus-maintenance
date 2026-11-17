@@ -651,9 +651,227 @@ app.post('/api/vision/analyze', async (req, res) => {
 })
 
 // Phase 12: Unsupervised Semantic Duplicate & Incident Clustering
-app.post('/api/analytics/cluster-duplicates', async (req, res) => {
+const CAMPUS_FACILITY_CONCEPTS = [
+  { concept: 'fan_cooling', keywords: ['fan', 'fans', 'ceiling fan', 'cooler', 'exhaust', 'regulator', 'ventilation'] },
+  { concept: 'lighting', keywords: ['light', 'lights', 'lamp', 'bulb', 'tube', 'tubelight', 'flicker', 'flickering', 'dark', 'street light', 'led'] },
+  { concept: 'water_sanitation', keywords: ['water', 'leak', 'leaking', 'pipe', 'pipes', 'tap', 'taps', 'faucet', 'washroom', 'toilet', 'drain', 'drainage', 'flush', 'sink', 'geyser', 'supply'] },
+  { concept: 'electrical_power', keywords: ['power', 'switch', 'socket', 'short circuit', 'spark', 'breaker', 'fuse', 'mcb', 'wiring', 'voltage', 'blackout', 'tripping', 'meter'] },
+  { concept: 'network_lab', keywords: ['wifi', 'wi-fi', 'internet', 'lan', 'router', 'network', 'connectivity', 'cable', 'ethernet', 'computer', 'lab', 'pc', 'monitor'] },
+  { concept: 'furniture_civil', keywords: ['bench', 'chair', 'desk', 'table', 'door', 'window', 'lock', 'handle', 'blackboard', 'whiteboard', 'tile', 'wall', 'plaster'] },
+]
+
+function extractConceptsJs(text) {
+  const lower = (text || '').toLowerCase()
+  const matched = new Set()
+  for (const item of CAMPUS_FACILITY_CONCEPTS) {
+    for (const kw of item.keywords) {
+      if (lower.includes(kw)) {
+        matched.add(item.concept)
+        break
+      }
+    }
+  }
+  return matched
+}
+
+const CAMPUS_STOP_WORDS = new Set([
+  'the', 'and', 'for', 'are', 'was', 'were', 'with', 'from', 'near', 'after',
+  'this', 'that', 'not', 'have', 'has', 'had', 'been', 'will', 'would', 'should',
+  'could', 'about', 'into', 'over', 'more', 'some', 'any', 'all', 'out', 'per',
+  'also', 'due', 'issue', 'problem', 'broken', 'working', 'academic', 'block',
+  'hostel', 'electrical', 'plumbing',
+])
+
+function computeSimilarityScoreJs(compA, compB) {
+  const probA = `${compA.title || ''} ${compA.description || ''}`.toLowerCase()
+  const probB = `${compB.title || ''} ${compB.description || ''}`.toLowerCase()
+
+  const conceptsA = extractConceptsJs(probA)
+  const conceptsB = extractConceptsJs(probB)
+
+  let score = 0.0
+  const sharedConcept = conceptsA.size > 0 && conceptsB.size > 0 && [...conceptsA].some((c) => conceptsB.has(c))
+  if (sharedConcept) score += 0.40
+  if (compA.category && compA.category === compB.category) score += 0.10
+  if (compA.location && compA.location === compB.location) score += 0.15
+
+  // Meaningful problem description token overlap
+  const wordsA = new Set(probA.split(/\W+/).filter((w) => w.length > 2 && !CAMPUS_STOP_WORDS.has(w)))
+  const wordsB = new Set(probB.split(/\W+/).filter((w) => w.length > 2 && !CAMPUS_STOP_WORDS.has(w)))
+  let overlap = 0
+  for (const w of wordsA) {
+    if (wordsB.has(w)) overlap++
+  }
+  const minLen = Math.min(wordsA.size, wordsB.size)
+  if (minLen > 0) {
+    score += (overlap / minLen) * 0.35
+  }
+
+  return Math.min(0.96, score)
+}
+
+function computeLocalClusters(target_id = null, threshold = 0.35) {
+  const activeComps = complaints.map((c) => ({
+    id: c.id,
+    title: c.title,
+    description: c.description,
+    category: c.category,
+    location: c.location,
+    status: c.status,
+    submittedBy: c.submittedBy,
+    submissionDate: c.submissionDate,
+  }))
+
+  const n = activeComps.length
+
+  if (target_id) {
+    const targetComp = activeComps.find((c) => c.id === target_id)
+    if (!targetComp) {
+      return {
+        success: true,
+        target_id,
+        is_clustered: false,
+        cluster_size: 1,
+        similarity_threshold_used: Math.round(threshold * 100),
+        similar_complaints: [],
+        ai_cluster_recommendation: 'Target complaint not found in campus database.',
+      }
+    }
+
+    const matches = []
+    for (const other of activeComps) {
+      if (other.id !== target_id) {
+        const sim = computeSimilarityScoreJs(targetComp, other)
+        if (sim >= threshold) {
+          matches.push({
+            id: other.id,
+            title: other.title,
+            category: other.category,
+            location: other.location,
+            status: other.status,
+            submission_date: other.submissionDate,
+            similarity_score: Math.round(sim * 1000) / 10,
+          })
+        }
+      }
+    }
+
+    matches.sort((a, b) => b.similarity_score - a.similarity_score)
+    const isClustered = matches.length > 0
+    const clusterSize = matches.length + 1
+
+    let masterId = targetComp.id
+    let masterTitle = targetComp.title
+    if (isClustered) {
+      const allCluster = [targetComp, ...activeComps.filter((c) => matches.some((m) => m.id === c.id))]
+      allCluster.sort((a, b) => (a.submissionDate || '').localeCompare(b.submissionDate || ''))
+      masterId = allCluster[0].id
+      masterTitle = allCluster[0].title
+    }
+
+    const rec = isClustered
+      ? `Cluster of ${clusterSize} related tickets detected in ${targetComp.location}. Top match: '${matches[0].title}' (${matches[0].similarity_score}% match). Recommended: Coordinate repairs under Master Ticket ${masterId} to eliminate redundant technician dispatches.`
+      : `Verified Isolated Incident. No duplicate or correlated tickets detected in ${targetComp.location} under ${targetComp.category}. Standalone dispatch verified.`
+
+    return {
+      success: true,
+      target_id,
+      is_clustered: isClustered,
+      cluster_size: clusterSize,
+      similarity_threshold_used: Math.round(threshold * 100),
+      master_ticket_id: masterId,
+      master_ticket_title: masterTitle,
+      similar_complaints: matches,
+      ai_cluster_recommendation: rec,
+    }
+  }
+
+  // Global clustering across all complaints
+  const visited = new Set()
+  const allClusters = []
+
+  for (let i = 0; i < n; i++) {
+    if (visited.has(i)) continue
+    const groupIndices = [i]
+
+    for (let j = 0; j < n; j++) {
+      if (j !== i && !visited.has(j)) {
+        const sim = computeSimilarityScoreJs(activeComps[i], activeComps[j])
+        if (sim >= threshold) {
+          groupIndices.push(j)
+        }
+      }
+    }
+
+    if (groupIndices.length > 1) {
+      groupIndices.forEach((idx) => visited.add(idx))
+      const clusterItems = groupIndices.map((idx) => activeComps[idx])
+      clusterItems.sort((a, b) => (a.submissionDate || '').localeCompare(b.submissionDate || ''))
+      const masterComp = clusterItems[0]
+
+      const tickets = groupIndices.map((idx) => {
+        const comp = activeComps[idx]
+        const simScore = comp.id === masterComp.id ? 100.0 : Math.round(computeSimilarityScoreJs(masterComp, comp) * 1000) / 10
+        return {
+          id: comp.id,
+          title: comp.title,
+          category: comp.category,
+          location: comp.location,
+          status: comp.status,
+          submittedBy: comp.submittedBy,
+          is_master: comp.id === masterComp.id,
+          similarity_score: simScore,
+        }
+      })
+
+      tickets.sort((a, b) => (b.is_master ? 1 : 0) - (a.is_master ? 1 : 0) || b.similarity_score - a.similarity_score)
+      const avgScore = Math.round((tickets.reduce((acc, t) => acc + t.similarity_score, 0) / tickets.length) * 10) / 10
+
+      allClusters.push({
+        cluster_id: `CLUST-0${allClusters.length + 1}`,
+        category: activeComps[groupIndices[0]].category,
+        location: activeComps[groupIndices[0]].location,
+        size: groupIndices.length,
+        master_ticket_id: masterComp.id,
+        master_ticket_title: masterComp.title,
+        avg_similarity_score: avgScore,
+        recommended_action: `Consolidate ${groupIndices.length} tickets under Master Ticket ${masterComp.id}. Eliminates ${groupIndices.length - 1} redundant technician dispatch(es).`,
+        tickets,
+      })
+    }
+  }
+
+  const isolated = []
+  for (let i = 0; i < n; i++) {
+    if (!visited.has(i)) {
+      isolated.push({
+        id: activeComps[i].id,
+        title: activeComps[i].title,
+        category: activeComps[i].category,
+        location: activeComps[i].location,
+        status: activeComps[i].status,
+        submittedBy: activeComps[i].submittedBy,
+      })
+    }
+  }
+
+  const redundantCount = allClusters.reduce((acc, c) => acc + (c.size - 1), 0)
+  const efficiencyPct = n > 0 ? Math.round((redundantCount / n) * 1000) / 10 : 0.0
+
+  return {
+    success: true,
+    total_complaints_analyzed: n,
+    total_clusters_found: allClusters.length,
+    redundant_tickets_eliminated: redundantCount,
+    dispatch_efficiency_gain: `${efficiencyPct}%`,
+    clusters: allClusters,
+    isolated_complaints: isolated,
+  }
+}
+
+app.all('/api/analytics/cluster-duplicates', async (req, res) => {
+  const { target_id, threshold = 0.35 } = (req.method === 'GET' ? req.query : req.body) || {}
   try {
-    const { target_id, threshold = 0.50 } = req.body || {}
     const payload = {
       complaints: complaints.map((c) => ({
         id: c.id,
@@ -662,10 +880,11 @@ app.post('/api/analytics/cluster-duplicates', async (req, res) => {
         category: c.category,
         location: c.location,
         status: c.status,
+        submittedBy: c.submittedBy,
         submissionDate: c.submissionDate,
       })),
-      target_id,
-      threshold,
+      target_id: target_id || null,
+      threshold: Number(threshold) || 0.35,
     }
 
     const mlRes = await fetch(`${mlServiceUrl}/analytics/cluster-duplicates`, {
@@ -679,36 +898,9 @@ app.post('/api/analytics/cluster-duplicates', async (req, res) => {
     const data = await mlRes.json()
     return res.json(data)
   } catch (error) {
-    // Local fallback clustering
-    const { target_id } = req.body || {}
-    const targetComp = complaints.find((c) => c.id === target_id)
-    if (!targetComp) {
-      return res.json({ success: true, is_clustered: false, similar_complaints: [] })
-    }
-    const matches = complaints.filter((c) => (
-      c.id !== target_id &&
-      (c.location === targetComp.location || c.category === targetComp.category) &&
-      c.status !== 'Resolved' && c.status !== 'Closed'
-    )).map((c) => ({
-      id: c.id,
-      title: c.title,
-      category: c.category,
-      location: c.location,
-      status: c.status,
-      similarity_score: c.location === targetComp.location && c.category === targetComp.category ? 82.5 : 62.0,
-    }))
-
-    return res.json({
-      success: true,
-      target_id,
-      is_clustered: matches.length > 0,
-      cluster_size: matches.length + 1,
-      master_ticket_id: matches.length > 0 ? targetComp.id : null,
-      similar_complaints: matches,
-      ai_cluster_recommendation: matches.length > 0
-        ? `Cluster of ${matches.length + 1} related tickets in ${targetComp.location}. Recommended: Group repairs under Master Ticket.`
-        : 'Isolated ticket. No duplicate incidents detected.',
-    })
+    // Smart local fallback clustering with domain concepts
+    const localResult = computeLocalClusters(target_id || null, Number(threshold) || 0.35)
+    return res.json(localResult)
   }
 })
 
