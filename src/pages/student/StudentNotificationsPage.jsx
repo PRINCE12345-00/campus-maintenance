@@ -1,4 +1,5 @@
 import { BellRing, CheckCheck } from 'lucide-react'
+import MobileNotificationBanner from '../../components/MobileNotificationBanner'
 import { useAppContext } from '../../context/AppContext'
 import { getStudentNotifications } from '../../utils/studentRecords'
 
@@ -16,6 +17,8 @@ export default function StudentNotificationsPage() {
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-600">Notifications</p>
         <h1 className="mt-2 text-3xl font-bold text-slate-900">Inbox</h1>
       </div>
+
+      <MobileNotificationBanner />
 
       <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-soft">
         <div className="space-y-4">

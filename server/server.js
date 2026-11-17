@@ -54,15 +54,31 @@ const complaints = [
     title: 'Street light flickering near main gate',
     description: 'The lights near the main gate are flickering intermittently after 8 PM and create unsafe conditions for students returning late.',
     status: 'Assigned',
+    progress: 25,
     priority: 'High',
     submittedBy: 'Aarav Sharma',
+    submittedByEmail: 'aarav@student.dcrust.in',
     assignedTo: 'Maintenance Team',
     submissionDate: '2026-10-02',
     lastUpdated: '2026-10-03',
     attachments: ['gate-light.png'],
     timeline: [
-      { status: 'Submitted', date: '2026-10-02', note: 'Complaint filed by student.' },
-      { status: 'Assigned', date: '2026-10-03', note: 'Assigned to electrical team.' },
+      { status: 'Submitted', progress: 10, date: '2026-10-02', note: 'Complaint filed by student.' },
+      { status: 'Assigned', progress: 25, date: '2026-10-03', note: 'Assigned to electrical team.' },
+    ],
+    emailUpdates: [
+      {
+        id: 'EML-1001-1',
+        date: '2026-10-03T09:30:00Z',
+        sender: 'Admin Office (Prince Chahal)',
+        recipient: 'aarav@student.dcrust.in',
+        subject: '[Progress: 25% Assigned] Street light flickering near main gate',
+        message: 'Dear Aarav, your complaint has been reviewed and assigned to the campus Electrical Maintenance Unit. A technician will inspect the main gate light today.',
+        status: 'Assigned',
+        progress: 25,
+        delivered: true,
+        mode: 'email',
+      },
     ],
     rating: 4,
     feedback: 'Fast response and good repair.',
@@ -74,16 +90,44 @@ const complaints = [
     title: 'Water supply issue in second floor washroom',
     description: 'The tap pressure is weak and there is water leakage from the supply pipe during early morning hours.',
     status: 'In Progress',
+    progress: 60,
     priority: 'Medium',
     submittedBy: 'Aarav Sharma',
+    submittedByEmail: 'aarav@student.dcrust.in',
     assignedTo: 'Plumbing Unit',
     submissionDate: '2026-09-28',
     lastUpdated: '2026-10-04',
     attachments: ['washroom-leak.jpg'],
     timeline: [
-      { status: 'Submitted', date: '2026-09-28', note: 'Complaint filed.' },
-      { status: 'Assigned', date: '2026-09-29', note: 'Assigned to plumber.' },
-      { status: 'In Progress', date: '2026-10-04', note: 'Pipe replacement in progress.' },
+      { status: 'Submitted', progress: 10, date: '2026-09-28', note: 'Complaint filed.' },
+      { status: 'Assigned', progress: 25, date: '2026-09-29', note: 'Assigned to plumber.' },
+      { status: 'In Progress', progress: 60, date: '2026-10-04', note: 'Pipe replacement in progress.' },
+    ],
+    emailUpdates: [
+      {
+        id: 'EML-1002-1',
+        date: '2026-09-29T10:15:00Z',
+        sender: 'Admin Office',
+        recipient: 'aarav@student.dcrust.in',
+        subject: '[Update: 25% Assigned] Water supply issue in second floor washroom',
+        message: 'Your complaint has been acknowledged and assigned to the plumbing team.',
+        status: 'Assigned',
+        progress: 25,
+        delivered: true,
+        mode: 'email',
+      },
+      {
+        id: 'EML-1002-2',
+        date: '2026-10-04T11:40:00Z',
+        sender: 'Admin Office (Prince Chahal)',
+        recipient: 'aarav@student.dcrust.in',
+        subject: '[Progress: 60% In Progress] Pipe replacement under way',
+        message: 'Dear Aarav, the plumber has replaced the damaged joint and is currently fixing the main valve. We expect full resolution by evening.',
+        status: 'In Progress',
+        progress: 60,
+        delivered: true,
+        mode: 'email',
+      },
     ],
     rating: null,
     feedback: '',
@@ -328,26 +372,29 @@ app.post('/api/complaints', async (req, res) => {
 
   const newComplaint = {
     ...complaint,
-      category: mlPrediction?.success
-    ? mlPrediction.category
-    : (complaint.category || 'Uncategorized'),
+    category: mlPrediction?.success
+      ? mlPrediction.category
+      : (complaint.category || 'Uncategorized'),
 
-  priority: mlPrediction?.success
-    ? mlPrediction.priority
-    : (complaint.priority || 'Medium'),
+    priority: mlPrediction?.success
+      ? mlPrediction.priority
+      : (complaint.priority || 'Medium'),
 
-  mlPrediction: mlPrediction ? {
-    categoryConfidence: mlPrediction.category_confidence,
-    priorityConfidence: mlPrediction.priority_confidence,
-    manualReviewRequired: mlPrediction.manual_review_required,
-  } : null,
+    mlPrediction: mlPrediction ? {
+      categoryConfidence: mlPrediction.category_confidence,
+      priorityConfidence: mlPrediction.priority_confidence,
+      manualReviewRequired: mlPrediction.manual_review_required,
+    } : null,
     id: complaint.id || `CMP-${Date.now()}`,
     status: complaint.status || 'Submitted',
+    progress: Number(complaint.progress) || 10,
     submittedBy: complaint.submittedBy || 'Student',
+    submittedByEmail: complaint.submittedByEmail || 'aarav@student.dcrust.in',
     assignedTo: complaint.assignedTo || 'Maintenance Cell',
     submissionDate: complaint.submissionDate || new Date().toISOString().slice(0, 10),
     lastUpdated: complaint.lastUpdated || new Date().toISOString().slice(0, 10),
-    timeline: complaint.timeline || [{ status: 'Submitted', date: new Date().toISOString().slice(0, 10), note: `Complaint filed by student and routed to ${complaint.destination || complaint.department || 'Department'}.` }],
+    timeline: complaint.timeline || [{ status: 'Submitted', progress: 10, date: new Date().toISOString().slice(0, 10), note: `Complaint filed by student and routed to ${complaint.destination || complaint.department || 'Department'}.` }],
+    emailUpdates: complaint.emailUpdates || [],
     attachments: complaint.attachments || [],
     rating: complaint.rating ?? null,
     feedback: complaint.feedback || '',
@@ -356,7 +403,7 @@ app.post('/api/complaints', async (req, res) => {
 
   complaints.unshift(newComplaint)
 
-  const submittedEmail = String(complaint.submittedByEmail || '').trim()
+  const submittedEmail = String(complaint.submittedByEmail || newComplaint.submittedByEmail || '').trim()
   const student = demoUsers.find((entry) => entry.email?.toLowerCase() === submittedEmail.toLowerCase())
     || demoUsers.find((entry) => entry.name === complaint.submittedBy)
 
@@ -364,7 +411,7 @@ app.post('/api/complaints', async (req, res) => {
       student: { ...student, name: student?.name || complaint.submittedBy || 'Student', email: submittedEmail || student?.email },
       type: 'Complaint',
       title: 'Complaint Submitted',
-      message: `Your complaint "${newComplaint.title}" has been received and is now under review.`,
+      message: `Your complaint "${newComplaint.title}" has been received and is now under review. Initial progress: 10%.`,
     })
   if (student || submittedEmail) {
     notifications.unshift(createNotification('complaint', 'Complaint submitted', `Your complaint "${newComplaint.title}" has been received and is now under review.`))
@@ -375,7 +422,16 @@ app.post('/api/complaints', async (req, res) => {
 
 app.patch('/api/complaints/:id/status', async (req, res) => {
   const { id } = req.params
-  const { status, reviewerRole, comment = '' } = req.body || {}
+  const {
+    status,
+    reviewerRole = 'admin',
+    comment = '',
+    progress,
+    emailSubject,
+    emailMessage,
+    sendEmail = true,
+  } = req.body || {}
+
   const complaint = complaints.find((item) => item.id === id)
 
   if (!complaint) {
@@ -386,27 +442,172 @@ app.patch('/api/complaints/:id/status', async (req, res) => {
     return res.status(403).json({ message: 'This complaint is routed to another university office, not a department.' })
   }
 
-  complaint.status = status || complaint.status
+  if (status) {
+    complaint.status = status
+  }
+
+  // Derive progress
+  if (progress !== undefined && progress !== null && !Number.isNaN(Number(progress))) {
+    complaint.progress = Math.min(100, Math.max(0, Number(progress)))
+  } else if (status) {
+    if (status === 'Resolved' || status === 'Closed') {
+      complaint.progress = 100
+    } else if (status === 'In Progress' && (!complaint.progress || complaint.progress < 50)) {
+      complaint.progress = 50
+    } else if (status === 'Assigned' && (!complaint.progress || complaint.progress < 25)) {
+      complaint.progress = 25
+    } else if (status === 'Submitted' && !complaint.progress) {
+      complaint.progress = 10
+    }
+  }
+
   complaint.lastUpdated = new Date().toISOString().slice(0, 10)
-  complaint.timeline = [
-    ...(complaint.timeline || []),
-    { status: complaint.status, date: new Date().toISOString().slice(0, 10), note: String(comment).trim() || `Status updated to ${complaint.status}.` },
-  ]
+  complaint.timeline = complaint.timeline || []
+  complaint.emailUpdates = complaint.emailUpdates || []
 
   const student = demoUsers.find((entry) => entry.name === complaint.submittedBy)
     || demoUsers.find((entry) => entry.email?.toLowerCase() === String(complaint.submittedByEmail || '').toLowerCase())
 
-  if (student) {
-    notifications.unshift(createNotification('complaint', `Complaint ${complaint.status}`, `Your complaint "${complaint.title}" is now marked as ${complaint.status}.`))
-    await notifyStudent({
-      student,
-      type: 'Complaint Update',
-      title: `Complaint ${complaint.status}`,
-      message: `Your complaint "${complaint.title}" is now marked as ${complaint.status}.`,
+  const studentEmail = complaint.submittedByEmail || student?.email || 'aarav@student.dcrust.in'
+
+  const finalSubject = emailSubject || `[Progress: ${complaint.progress}% - ${complaint.status}] ${complaint.title}`
+  const finalMessage = String(emailMessage || comment || `Status updated to ${complaint.status}. Progress is now ${complaint.progress}%.`).trim()
+
+  let emailResult = { sent: false, mode: 'skipped' }
+  if (sendEmail) {
+    emailResult = await notifyStudent({
+      student: {
+        ...student,
+        name: student?.name || complaint.submittedBy || 'Student',
+        email: studentEmail,
+        phone: student?.phone,
+      },
+      type: `Complaint Progress (${complaint.progress}%)`,
+      title: finalSubject,
+      message: `${finalMessage}\n\nComplaint ID: ${complaint.id}\nStatus: ${complaint.status}\nProgress: ${complaint.progress}%\nLocation: ${complaint.location}`,
     })
   }
 
-  return res.json(complaint)
+  // Record official email communication
+  const emailRecord = {
+    id: `EML-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
+    date: new Date().toISOString(),
+    sender: reviewerRole === 'admin' ? 'Campus Admin (Prince Chahal)' : `${reviewerRole} Office`,
+    recipient: studentEmail,
+    subject: finalSubject,
+    message: finalMessage,
+    status: complaint.status,
+    progress: complaint.progress,
+    delivered: Boolean(emailResult?.sent || emailResult?.mode === 'dry-run'),
+    mode: emailResult?.mode || 'email',
+  }
+  complaint.emailUpdates.unshift(emailRecord)
+
+  complaint.timeline.push({
+    status: complaint.status,
+    progress: complaint.progress,
+    date: new Date().toISOString().slice(0, 10),
+    note: finalMessage,
+    emailSent: Boolean(sendEmail),
+  })
+
+  // Create in-app notification for the student
+  const inAppNotif = {
+    id: `NOT-${Date.now()}`,
+    userEmail: studentEmail,
+    title: finalSubject,
+    message: finalMessage,
+    type: 'complaint',
+    complaintId: complaint.id,
+    isRead: false,
+    createdAt: new Date().toISOString(),
+  }
+  notifications.unshift(inAppNotif)
+
+  return res.json({ complaint, emailResult, emailRecord })
+})
+
+app.post('/api/complaints/:id/notify', async (req, res) => {
+  const { id } = req.params
+  const {
+    progress,
+    status,
+    emailSubject,
+    emailMessage,
+    reviewerRole = 'admin',
+    sendEmail = true,
+  } = req.body || {}
+
+  const complaint = complaints.find((item) => item.id === id)
+  if (!complaint) {
+    return res.status(404).json({ message: 'Complaint not found.' })
+  }
+
+  if (status) complaint.status = status
+  if (progress !== undefined && progress !== null && !Number.isNaN(Number(progress))) {
+    complaint.progress = Math.min(100, Math.max(0, Number(progress)))
+  }
+
+  complaint.lastUpdated = new Date().toISOString().slice(0, 10)
+  complaint.emailUpdates = complaint.emailUpdates || []
+  complaint.timeline = complaint.timeline || []
+
+  const student = demoUsers.find((entry) => entry.name === complaint.submittedBy)
+    || demoUsers.find((entry) => entry.email?.toLowerCase() === String(complaint.submittedByEmail || '').toLowerCase())
+  const studentEmail = complaint.submittedByEmail || student?.email || 'aarav@student.dcrust.in'
+
+  const finalSubject = emailSubject || `[Update: ${complaint.progress}% - ${complaint.status}] ${complaint.title}`
+  const finalMessage = String(emailMessage || `Your complaint has reached ${complaint.progress}% resolution stage.`).trim()
+
+  let emailResult = { sent: false, mode: 'skipped' }
+  if (sendEmail) {
+    emailResult = await notifyStudent({
+      student: {
+        ...student,
+        name: student?.name || complaint.submittedBy || 'Student',
+        email: studentEmail,
+        phone: student?.phone,
+      },
+      type: `Complaint Progress (${complaint.progress}%)`,
+      title: finalSubject,
+      message: `${finalMessage}\n\nComplaint ID: ${complaint.id}\nStatus: ${complaint.status}\nProgress: ${complaint.progress}%\nLocation: ${complaint.location}`,
+    })
+  }
+
+  const emailRecord = {
+    id: `EML-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
+    date: new Date().toISOString(),
+    sender: reviewerRole === 'admin' ? 'Campus Admin (Prince Chahal)' : `${reviewerRole} Office`,
+    recipient: studentEmail,
+    subject: finalSubject,
+    message: finalMessage,
+    status: complaint.status,
+    progress: complaint.progress,
+    delivered: Boolean(emailResult?.sent || emailResult?.mode === 'dry-run'),
+    mode: emailResult?.mode || 'email',
+  }
+  complaint.emailUpdates.unshift(emailRecord)
+
+  complaint.timeline.push({
+    status: complaint.status,
+    progress: complaint.progress,
+    date: new Date().toISOString().slice(0, 10),
+    note: finalMessage,
+    emailSent: Boolean(sendEmail),
+  })
+
+  notifications.unshift({
+    id: `NOT-${Date.now()}`,
+    userEmail: studentEmail,
+    title: finalSubject,
+    message: finalMessage,
+    type: 'complaint',
+    complaintId: complaint.id,
+    isRead: false,
+    createdAt: new Date().toISOString(),
+  })
+
+  return res.json({ complaint, emailResult, emailRecord })
 })
 
 app.get('/api/permissions', (req, res) => {

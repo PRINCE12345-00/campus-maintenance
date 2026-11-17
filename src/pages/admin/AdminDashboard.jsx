@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { AlertTriangle, ClipboardCheck, FileText, Gauge, ShieldCheck, TrendingUp } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -9,6 +9,10 @@ import { useAppContext } from '../../context/AppContext'
 
 export default function AdminDashboard() {
   const { complaints, permissions, user } = useAppContext()
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }, [])
   const openComplaints = complaints.filter((c) => ['Submitted', 'Assigned', 'In Progress'].includes(c.status)).length
   const resolvedComplaints = complaints.filter((c) => ['Resolved', 'Closed'].includes(c.status)).length
   const pendingPermissions = permissions.filter((p) => p.status === 'Pending Approval').length

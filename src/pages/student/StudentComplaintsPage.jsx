@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useMemo, useState } from 'react'
-import { AlertCircle, CheckCircle2, Download, Filter, Search, Send } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Download, Filter, Mail, Search, Send } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import FileUpload from '../../components/FileUpload'
 import StatusBadge from '../../components/StatusBadge'
@@ -86,16 +86,18 @@ export default function StudentComplaintsPage() {
         title: form.title,
         description: form.description,
         status: 'Submitted',
+        progress: 10,
         priority: 'Medium',
         submittedBy: user?.name || 'Student',
         submittedById: user?.id,
-        submittedByEmail: user?.email,
+        submittedByEmail: user?.email || 'aarav@student.dcrust.in',
         department: user?.department || '',
         assignedTo: 'Maintenance Cell',
         submissionDate: today,
         lastUpdated: today,
         attachments,
-        timeline: [{ status: 'Submitted', date: today, note: 'Complaint filed by student.' }],
+        timeline: [{ status: 'Submitted', progress: 10, date: today, note: 'Complaint filed by student.' }],
+        emailUpdates: [],
         rating: null,
         feedback: '',
       }
@@ -215,23 +217,62 @@ export default function StudentComplaintsPage() {
                 <AlertCircle size={18} /> No complaints match your filters.
               </div>
             ) : (
-              paginatedComplaints.map((complaint) => (
-                <div key={complaint.id} className="flex flex-col gap-3 rounded-2xl border border-white/8 bg-slate-900/40 p-4 md:flex-row md:items-center md:justify-between">
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <p className="font-semibold text-slate-100">{complaint.title}</p>
-                      <StatusBadge status={complaint.status} />
+              paginatedComplaints.map((complaint) => {
+                const progressValue = complaint.progress !== undefined && complaint.progress !== null
+                  ? complaint.progress
+                  : (complaint.status === 'Resolved' || complaint.status === 'Closed' ? 100 : complaint.status === 'In Progress' ? 50 : 20)
+                const latestEmail = complaint.emailUpdates?.[0]
+
+                return (
+                  <div key={complaint.id} className="flex flex-col gap-3 rounded-2xl border border-white/8 bg-slate-900/40 p-4 transition hover:border-white/15">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-3">
+                          <p className="font-semibold text-slate-100">{complaint.title}</p>
+                          <StatusBadge status={complaint.status} />
+                          <span className="font-mono text-xs text-slate-400">({complaint.id})</span>
+                        </div>
+                        <p className="mt-1 text-sm text-slate-400">{complaint.category} • {complaint.location} • {formatDate(complaint.submissionDate)}</p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-slate-800 px-3 py-2 text-xs text-slate-300 hover:text-white">
+                          <Download size={14} /> Download
+                        </button>
+                        <Link to={`/student/complaint/${complaint.id}`} className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-500">
+                          <Mail size={13} /> View Updates
+                        </Link>
+                      </div>
                     </div>
-                    <p className="mt-2 text-sm text-slate-400">{complaint.category} • {complaint.location} • {formatDate(complaint.submissionDate)}</p>
+
+                    {/* Progress Bar & Percentage */}
+                    <div className="mt-1 rounded-xl bg-slate-800/40 p-3 border border-white/5">
+                      <div className="flex items-center justify-between text-xs mb-1.5 font-medium">
+                        <span className="text-slate-400">Resolution Progress</span>
+                        <span className={progressValue === 100 ? 'text-emerald-400 font-bold' : 'text-teal-400 font-bold'}>
+                          {progressValue}% Resolved
+                        </span>
+                      </div>
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-700/60">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-blue-500 to-teal-400 transition-all duration-500"
+                          style={{ width: `${Math.max(4, progressValue)}%` }}
+                        />
+                      </div>
+
+                      {/* Latest Email / Admin message preview */}
+                      {latestEmail && (
+                        <div className="mt-2.5 flex items-start gap-2 rounded-lg bg-blue-950/40 p-2 text-xs text-slate-300 border border-blue-500/20">
+                          <Mail size={14} className="mt-0.5 shrink-0 text-teal-400" />
+                          <div className="truncate">
+                            <span className="font-semibold text-teal-300">Admin Email Update: </span>
+                            <span className="text-slate-300">{latestEmail.message}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <button className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-slate-800 px-3 py-2 text-sm text-slate-300 hover:text-white">
-                      <Download size={16} /> Download
-                    </button>
-                    <Link to={`/student/complaint/${complaint.id}`} className="rounded-xl bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500">Details</Link>
-                  </div>
-                </div>
-              ))
+                )
+              })
             )}
           </div>
 
