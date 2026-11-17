@@ -60,7 +60,7 @@ def analyze_complaint_image(image_bytes: bytes, filename: str = "upload.jpg", ca
                 "authenticity_score": 15,
                 "authenticity_status": "Suspicious / Low Resolution Thumbnail",
                 "defect_class": "No Observable Defect (Normal Surface)",
-                "admin_alert": "⚠️ AI Alert: Photo ka resolution bahut chhota hai. Isse issue detect nahi ho raha. Manual physical verification required.",
+                "admin_alert": "⚠️ AI Quality Warning: Image resolution is too low (< 20px) to extract defect features. Manual physical inspection required.",
                 "quality": {
                     "sharpness_score": 0.0,
                     "is_blurry": True,
@@ -188,15 +188,15 @@ def analyze_complaint_image(image_bytes: bytes, filename: str = "upload.jpg", ca
         if authenticity_score >= 70 and not is_blank:
             is_genuine = True
             authenticity_status = "Verified Genuine Issue"
-            admin_alert = f"✓ AI Verified: Image mein genuine maintenance issue ({detected_category}) ke clear visual patterns detect hue hain."
+            admin_alert = f"✓ AI Verified: Clear visual evidence of a genuine maintenance issue ({detected_category}) was detected in the photo."
         elif authenticity_score >= 45 and not is_blank:
             is_genuine = False
             authenticity_status = "Inconclusive / Unclear Evidence"
-            admin_alert = "⚠️ AI Alert for Admin: AI ko is image se clear pata nahi chal raha hai ki genuine issue hai ya nahi. Image thodi dhundhli ya angle door ho sakta hai. Manual physical verification recommended."
+            admin_alert = "⚠️ AI Notice for Admin: Visual evidence is inconclusive. The image shows an intact surface without evident physical damage. On-site physical verification is recommended."
         else:
             is_genuine = False
             authenticity_status = "Suspicious / No Defect Detected"
-            admin_alert = "🚨 AI Warning for Admin: AI ko is image mein koi genuine physical defect ya maintenance issue nazar nahi aa raha hai. Photo blank, irrelevant ya fake ho sakti hai. Manual inspection required."
+            admin_alert = "🚨 AI Warning for Admin: No observable physical defect or maintenance hazard detected. The image appears blank, uniform, or unrelated to campus maintenance. Manual verification required."
 
         return {
             "success": True,
