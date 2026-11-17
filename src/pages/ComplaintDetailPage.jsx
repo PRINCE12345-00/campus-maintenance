@@ -385,6 +385,51 @@ export default function ComplaintDetailPage() {
                 <span className="rounded-full border border-blue-200 bg-blue-100/80 px-2.5 py-0.5 text-xs font-semibold text-blue-800">
                   {isMLAvailable ? 'Active ML Pipeline' : 'Manual Triage Mode'}
                 </span>
+                {(!isMLAvailable || !ml?.categoryConfidence) && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        const res = await fetch('http://127.0.0.1:8000/predict', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            title: complaint.title || '',
+                            description: complaint.description || '',
+                            location: complaint.location || 'Academic Block A',
+                            submission_date: complaint.submissionDate
+                          })
+                        })
+                        if (res.ok) {
+                          const data = await res.json()
+                          setComplaint(prev => ({
+                            ...prev,
+                            category: data.category,
+                            priority: data.priority,
+                            mlPrediction: {
+                              isAvailable: true,
+                              categoryConfidence: data.category_confidence,
+                              priorityConfidence: data.priority_confidence,
+                              estimatedResolutionDays: data.estimated_resolution_days,
+                              expectedResolutionDate: data.expected_resolution_date,
+                              delayRisk: data.delay_risk,
+                              explanation: data.explanation,
+                              routing: data.routing,
+                              modelVersion: data.model_version
+                            }
+                          }))
+                        } else {
+                          alert('Please make sure Python ML service is running on port 8000 (python ml-service/app.py)')
+                        }
+                      } catch {
+                        alert('Could not connect to Python ML service. Please start it using: python ml-service/app.py')
+                      }
+                    }}
+                    className="rounded-full bg-blue-600 hover:bg-blue-700 px-3 py-0.5 text-xs font-bold text-white shadow-xs transition-colors cursor-pointer"
+                    title="Run live Machine Learning triage on this complaint"
+                  >
+                    ⚡ Run Live AI Triage
+                  </button>
+                )}
               </div>
             </div>
 
