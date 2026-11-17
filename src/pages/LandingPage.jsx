@@ -3,6 +3,11 @@ import { motion } from 'framer-motion'
 import { ArrowDown, ArrowRight, Building2, CheckCircle2, ClipboardCheck, Droplets, FlaskConical, Gauge, Lightbulb, Menu, MonitorCog, ShieldCheck, Sparkles, SprayCan, Wrench, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import campusPhoto from '../../pictures/background.jpeg'
+import campusPhotoTwo from '../../pictures/background2.jpeg'
+import campusPhotoThree from '../../pictures/background3.jpeg'
+import campusPhotoFour from '../../pictures/background4jpeg?url'
+import campusPhotoFive from '../../pictures/background5.jpeg'
+import campusPhotoSix from '../../pictures/background6.jpeg'
 import logo from '../../pictures/logo.jpeg'
 import { complaintsApi, permissionsApi } from '../services/api'
 import './LandingPagePremium.css'
@@ -25,6 +30,11 @@ const steps = [
   { icon: CheckCircle2, title: 'Issue resolved', description: 'Follow the request through to its final status.' },
 ]
 
+const heroTitleFirstLine = 'SMART CAMPUS.'
+const heroTitleSecondLine = 'BETTER LIVING.'
+const heroTitleLength = heroTitleFirstLine.length + heroTitleSecondLine.length
+const heroBackgrounds = [campusPhoto, campusPhotoTwo, campusPhotoThree, campusPhotoFour, campusPhotoFive, campusPhotoSix]
+
 const reveal = {
   hidden: { opacity: 0, y: 24 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: 'easeOut' } },
@@ -34,6 +44,31 @@ export default function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [metrics, setMetrics] = useState(null)
+  const [typedTitleLength, setTypedTitleLength] = useState(0)
+  const [activeBackground, setActiveBackground] = useState(0)
+
+  useEffect(() => {
+    const backgroundTimer = window.setInterval(() => {
+      setActiveBackground((index) => (index + 1) % heroBackgrounds.length)
+    }, 1000)
+    return () => window.clearInterval(backgroundTimer)
+  }, [])
+
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setTypedTitleLength(heroTitleLength)
+      return undefined
+    }
+
+    if (typedTitleLength >= heroTitleLength) return undefined
+
+    const delay = typedTitleLength === 0 ? 350 : 95
+    const typingTimer = window.setTimeout(() => {
+      setTypedTitleLength((length) => Math.min(length + 1, heroTitleLength))
+    }, delay)
+
+    return () => window.clearTimeout(typingTimer)
+  }, [typedTitleLength])
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 24)
@@ -105,14 +140,30 @@ export default function LandingPage() {
 
       <main>
         <section id="home" className="landing-hero">
-          <div className="landing-hero-background" style={{ backgroundImage: `url(${campusPhoto})` }} aria-hidden="true" />
+          {heroBackgrounds.map((image, index) => (
+            <div
+              key={image}
+              className={`landing-hero-background${index === activeBackground ? ' is-active' : ''}`}
+              style={{ backgroundImage: `url(${image})` }}
+              aria-hidden="true"
+            />
+          ))}
+          <div className="landing-cloud-drift" aria-hidden="true">
+            <span className="landing-cloud landing-cloud-one" />
+            <span className="landing-cloud landing-cloud-two" />
+          </div>
           <div className="landing-hero-inner landing-shell">
             <div className="landing-hero-copy">
               <p className="landing-eyebrow">
                 <Sparkles size={15} /> CAMPUS MAINTENANCE, REIMAGINED
               </p>
-              <motion.h1 initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.75 }}>
-                SMART CAMPUS.<br /><span>BETTER LIVING.</span>
+              <motion.h1 aria-label={`${heroTitleFirstLine} ${heroTitleSecondLine}`} initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.75 }}>
+                <span className="landing-typing-text" aria-hidden="true">
+                  {heroTitleFirstLine.slice(0, typedTitleLength)}
+                  <br />
+                  <span>{heroTitleSecondLine.slice(0, Math.max(0, typedTitleLength - heroTitleFirstLine.length))}
+                  </span>
+                </span>
               </motion.h1>
               <p className="landing-hero-description">
                 Making campus maintenance smarter, faster and more transparent. Report issues, track progress and keep your campus running smoothly.

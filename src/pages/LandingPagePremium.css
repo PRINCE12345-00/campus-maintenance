@@ -205,14 +205,64 @@
   inset: 0;
   background-position: center 48%;
   background-size: cover;
-  animation: hero-drift 28s ease-in-out infinite alternate;
+  opacity: 0;
   transform: scale(1.025);
+  transition: opacity 550ms ease-in-out;
+}
+
+.landing-hero-background.is-active {
+  opacity: 1;
+}
+
+.landing-cloud-drift {
+  position: absolute;
+  z-index: 1;
+  top: 3%;
+  right: 0;
+  left: 0;
+  height: 23%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.landing-cloud {
+  position: absolute;
+  top: 0;
+  display: block;
+  width: clamp(280px, 38vw, 560px);
+  height: clamp(75px, 10vw, 145px);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 82%, rgb(226 242 255 / 27%) 0%, rgb(205 229 250 / 18%) 32%, rgb(190 220 246 / 9%) 52%, transparent 74%);
+  filter: blur(13px);
+  opacity: .9;
   will-change: transform;
 }
 
-@keyframes hero-drift {
-  from { transform: scale(1.025) translate3d(0, 0, 0); }
-  to { transform: scale(1.09) translate3d(-.5%, -.4%, 0); }
+.landing-cloud-one {
+  left: -12%;
+  animation: cloud-drift-one 32s ease-in-out infinite alternate;
+}
+
+.landing-cloud-two {
+  top: 28%;
+  right: -15%;
+  width: clamp(240px, 32vw, 470px);
+  opacity: .72;
+  animation: cloud-drift-two 27s ease-in-out infinite alternate;
+}
+
+@keyframes cloud-drift-one {
+  from { transform: translate3d(-2%, 0, 0); }
+  to { transform: translate3d(28%, 8px, 0); }
+}
+
+@keyframes cloud-drift-two {
+  from { transform: translate3d(2%, 0, 0); }
+  to { transform: translate3d(-30%, -7px, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-cloud { animation: none; }
 }
 
 .landing-hero::before,
@@ -225,16 +275,20 @@
 }
 
 .landing-hero::before {
-  background: linear-gradient(90deg, rgb(5 15 31 / 94%) 0%, rgb(7 20 38 / 81%) 48%, rgb(8 20 38 / 50%) 100%),
-    linear-gradient(0deg, #081426 0%, transparent 32%, rgb(8 20 38 / 32%) 100%);
+  z-index: 0;
+  background: linear-gradient(90deg, rgb(5 15 31 / 72%) 0%, rgb(7 20 38 / 56%) 48%, rgb(8 20 38 / 28%) 100%),
+    linear-gradient(0deg, rgb(8 20 38 / 72%) 0%, transparent 38%, rgb(8 20 38 / 14%) 100%);
 }
 
 .landing-hero::after {
+  z-index: 2;
   background: radial-gradient(360px circle at var(--pointer-x, 72%) var(--pointer-y, 40%), rgb(69 173 255 / 12%), transparent 72%);
 }
 
 .landing-hero-inner {
   display: grid;
+  position: relative;
+  z-index: 3;
   min-height: max(720px, 100svh);
   grid-template-columns: minmax(0, 1.05fr) minmax(340px, .75fr);
   align-items: center;
