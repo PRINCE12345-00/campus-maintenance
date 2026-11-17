@@ -1,5 +1,61 @@
 [
   {
+    "id": "CMP-1001",
+    "category": "Electrical",
+    "location": "Academic Block A",
+    "title": "Street light flickering near main gate",
+    "description": "The lights near the main gate are flickering intermittently after 8 PM and create unsafe conditions for students returning late.",
+    "status": "Assigned",
+    "progress": 25,
+    "priority": "High",
+    "submittedBy": "Aarav Sharma",
+    "submittedByEmail": "aarav@student.dcrust.in",
+    "assignedTo": "Maintenance Team",
+    "submissionDate": "2026-10-02",
+    "lastUpdated": "2026-11-17",
+    "attachments": [
+      "gate-light.png"
+    ],
+    "timeline": [
+      {
+        "status": "Submitted",
+        "progress": 10,
+        "date": "2026-10-02",
+        "note": "Complaint filed by student."
+      },
+      {
+        "status": "Assigned",
+        "progress": 25,
+        "date": "2026-10-03",
+        "note": "Assigned to electrical team."
+      },
+      {
+        "status": "Assigned",
+        "progress": 25,
+        "date": "2026-11-17",
+        "note": "Evidence reviewed & verified by Admin. Technician dispatched to inspect issue.",
+        "emailSent": true
+      }
+    ],
+    "emailUpdates": [
+      {
+        "id": "EML-1001-1",
+        "date": "2026-10-03T09:30:00Z",
+        "sender": "Admin Office (Prince Chahal)",
+        "recipient": "aarav@student.dcrust.in",
+        "subject": "[Progress: 25% Assigned] Street light flickering near main gate",
+        "message": "Dear Aarav, your complaint has been reviewed and assigned to the campus Electrical Maintenance Unit. A technician will inspect the main gate light today.",
+        "status": "Assigned",
+        "progress": 25,
+        "delivered": true,
+        "mode": "email"
+      }
+    ],
+    "rating": 4,
+    "feedback": "Fast response and good repair.",
+    "evidenceStatus": "Approved"
+  },
+  {
     "id": "CMP-1794936753571",
     "category": "Electrical",
     "location": "Computer Lab 3",
@@ -166,62 +222,6 @@
     "rating": null,
     "feedback": "",
     "mlPrediction": null
-  },
-  {
-    "id": "CMP-1001",
-    "category": "Electrical",
-    "location": "Academic Block A",
-    "title": "Street light flickering near main gate",
-    "description": "The lights near the main gate are flickering intermittently after 8 PM and create unsafe conditions for students returning late.",
-    "status": "Assigned",
-    "progress": 25,
-    "priority": "High",
-    "submittedBy": "Aarav Sharma",
-    "submittedByEmail": "aarav@student.dcrust.in",
-    "assignedTo": "Maintenance Team",
-    "submissionDate": "2026-10-02",
-    "lastUpdated": "2026-11-17",
-    "attachments": [
-      "gate-light.png"
-    ],
-    "timeline": [
-      {
-        "status": "Submitted",
-        "progress": 10,
-        "date": "2026-10-02",
-        "note": "Complaint filed by student."
-      },
-      {
-        "status": "Assigned",
-        "progress": 25,
-        "date": "2026-10-03",
-        "note": "Assigned to electrical team."
-      },
-      {
-        "status": "Assigned",
-        "progress": 25,
-        "date": "2026-11-17",
-        "note": "Evidence reviewed & verified by Admin. Technician dispatched to inspect issue.",
-        "emailSent": true
-      }
-    ],
-    "emailUpdates": [
-      {
-        "id": "EML-1001-1",
-        "date": "2026-10-03T09:30:00Z",
-        "sender": "Admin Office (Prince Chahal)",
-        "recipient": "aarav@student.dcrust.in",
-        "subject": "[Progress: 25% Assigned] Street light flickering near main gate",
-        "message": "Dear Aarav, your complaint has been reviewed and assigned to the campus Electrical Maintenance Unit. A technician will inspect the main gate light today.",
-        "status": "Assigned",
-        "progress": 25,
-        "delivered": true,
-        "mode": "email"
-      }
-    ],
-    "rating": 4,
-    "feedback": "Fast response and good repair.",
-    "evidenceStatus": "Approved"
   },
   {
     "id": "CMP-1002",

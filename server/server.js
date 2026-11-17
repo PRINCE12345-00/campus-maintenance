@@ -223,6 +223,28 @@ const complaints = loadJson('complaints.json', initialComplaints)
 const permissions = loadJson('permissions.json', initialPermissions)
 const notifications = loadJson('notifications.json', initialNotifications)
 
+const priorityRank = {
+  Emergency: 0,
+  Critical: 0,
+  High: 1,
+  Medium: 2,
+  Low: 3,
+}
+
+const sortComplaintsByPriority = (list) => {
+  return list.sort((a, b) => {
+    const pA = priorityRank[a.priority] ?? 2
+    const pB = priorityRank[b.priority] ?? 2
+    if (pA !== pB) return pA - pB
+    const tA = new Date(a.submissionDate || a.lastUpdated || a.createdAt || 0).getTime()
+    const tB = new Date(b.submissionDate || b.lastUpdated || b.createdAt || 0).getTime()
+    return tB - tA
+  })
+}
+
+// Ensure complaints are sorted High -> Medium -> Low on initial boot
+sortComplaintsByPriority(complaints)
+
 const permissionStages = (type) => [
   'Department Head',
   type === 'Cultural' ? 'Cultural Coordinator' : 'Technical Coordinator',
@@ -605,7 +627,7 @@ app.post('/api/vision/analyze', async (req, res) => {
 })
 
 app.get('/api/complaints', (req, res) => {
-  res.json(complaints)
+  res.json(sortComplaintsByPriority(complaints))
 })
 
 app.post('/api/complaints', async (req, res) => {
@@ -694,6 +716,7 @@ app.post('/api/complaints', async (req, res) => {
   }
 
   complaints.unshift(newComplaint)
+  sortComplaintsByPriority(complaints)
   saveJson('complaints.json', complaints)
 
   const submittedEmail = String(

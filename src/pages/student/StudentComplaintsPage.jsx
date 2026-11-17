@@ -36,12 +36,22 @@ export default function StudentComplaintsPage() {
   }, [successMessage])
 
   const filteredComplaints = useMemo(() => {
-    return getStudentComplaints(complaints, user).filter((c) => {
-      const matchQuery = !query || [c.title, c.location, c.category].join(' ').toLowerCase().includes(query.toLowerCase())
-      const matchStatus = statusFilter === 'All' || c.status === statusFilter
-      const matchCategory = categoryFilter === 'All' || c.category === categoryFilter
-      return matchQuery && matchStatus && matchCategory
-    })
+    const priorityRank = { Emergency: 0, Critical: 0, High: 1, Medium: 2, Low: 3 }
+    return getStudentComplaints(complaints, user)
+      .filter((c) => {
+        const matchQuery = !query || [c.title, c.location, c.category].join(' ').toLowerCase().includes(query.toLowerCase())
+        const matchStatus = statusFilter === 'All' || c.status === statusFilter
+        const matchCategory = categoryFilter === 'All' || c.category === categoryFilter
+        return matchQuery && matchStatus && matchCategory
+      })
+      .sort((a, b) => {
+        const rA = priorityRank[a.priority] ?? 2
+        const rB = priorityRank[b.priority] ?? 2
+        if (rA !== rB) return rA - rB
+        const dateA = new Date(a.submissionDate || a.lastUpdated || a.createdAt || 0).getTime()
+        const dateB = new Date(b.submissionDate || b.lastUpdated || b.createdAt || 0).getTime()
+        return dateB - dateA
+      })
   }, [complaints, user, query, statusFilter, categoryFilter])
 
   const pageSize = 4
