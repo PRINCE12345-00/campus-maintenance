@@ -1,10 +1,35 @@
+import { useMemo } from 'react'
 import { Bell, Menu, UserCircle2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAppContext } from '../context/AppContext'
+import { notificationsApi } from '../services/api'
+import { getStudentNotifications } from '../utils/studentRecords'
 
 export default function Navbar({ role = 'student', onToggleSidebar, showSidebarButton = false }) {
-  const { notifications, user } = useAppContext()
-  const unreadCount = notifications.filter((item) => !item.isRead).length
+  const { notifications, setNotifications, user } = useAppContext()
+  const isAdmin = role === 'admin'
+
+  const unreadCount = useMemo(() => {
+    if (isAdmin) {
+      return (notifications || []).filter((item) => !item.isRead).length
+    }
+    const studentNotifs = getStudentNotifications(notifications, user)
+    return studentNotifs.filter((item) => !item.isRead).length
+  }, [isAdmin, notifications, user])
+
+  const handleBellClick = () => {
+    // Immediately clear unread badge in context so the number badge drops to 0 instantly!
+    setNotifications((prev) =>
+      prev.map((item) => {
+        if (isAdmin || (user?.email && item.userEmail?.toLowerCase() === user.email.toLowerCase())) {
+          return { ...item, isRead: true }
+        }
+        return item
+      })
+    )
+    notificationsApi.markAllRead(isAdmin ? '' : user?.email).catch(() => {})
+  }
+
   const roleLabel = role === 'department_head' ? 'Department' : role.replaceAll('_', ' ')
 
   return (
@@ -30,6 +55,7 @@ export default function Navbar({ role = 'student', onToggleSidebar, showSidebarB
         <div className="flex items-center gap-3">
           <Link
             to={role === 'admin' ? '/admin/notifications' : role === 'department_head' ? '/department-head' : ['cultural_coordinator', 'technical_coordinator', 'dsw', 'registrar', 'vice_chancellor'].includes(role) ? `/${role === 'vice_chancellor' ? 'vice-chancellor' : role.replaceAll('_', '-')}` : '/student/notifications'}
+            onClick={handleBellClick}
             className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-200 transition hover:bg-white/10"
           >
             <Bell size={18} />

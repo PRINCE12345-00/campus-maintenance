@@ -91,7 +91,22 @@ export default function AdminComplaintsPage() {
                     <td className="py-4 pr-4">
                       <div>
                         <p className="font-semibold text-slate-100">{item.title}</p>
-                        <p className="text-xs text-slate-500">{item.id} • {item.category}</p>
+                        <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                          <span className="text-xs text-slate-500">{item.id} • {item.category}</span>
+                          {item.evidenceStatus === 'Approved' ? (
+                            <span className="rounded-md bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-300 border border-emerald-500/30">
+                              Photo: Verified ✓
+                            </span>
+                          ) : item.evidenceStatus === 'Rejected' ? (
+                            <span className="rounded-md bg-rose-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-rose-300 border border-rose-500/30">
+                              Photo: Rejected ✕
+                            </span>
+                          ) : item.attachments?.length ? (
+                            <span className="rounded-md bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-amber-300 border border-amber-500/30">
+                              Photo: Review ⏳
+                            </span>
+                          ) : null}
+                        </div>
                       </div>
                     </td>
                     <td className="py-4 pr-4">

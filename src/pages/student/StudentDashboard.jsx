@@ -18,7 +18,7 @@ export default function StudentDashboard() {
 
   const complaintCounts = {
     total: studentComplaints.length,
-    pending: studentComplaints.filter((c) => ['Submitted', 'Assigned', 'In Progress'].includes(c.status)).length,
+    pending: studentComplaints.filter((c) => ['Submitted', 'Assigned', 'In Progress', 'On Hold'].includes(c.status)).length,
     resolved: studentComplaints.filter((c) => ['Resolved', 'Closed'].includes(c.status)).length,
   }
 
