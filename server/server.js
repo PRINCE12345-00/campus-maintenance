@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
+import crypto from 'crypto'
 import { isEmailConfigured, notifyStudent } from './notifications.js'
 
 const app = express()
@@ -45,6 +46,52 @@ const demoUsers = [
   { id: 'REG-01', name: 'Registrar', email: 'registrar@dcrust.in', role: 'registrar', department: 'Registrar Office', password: 'registrar123' },
   { id: 'VC-01', name: 'Vice Chancellor', email: 'vc@dcrust.in', role: 'vice_chancellor', department: 'Vice Chancellor Office', password: 'vc123456' },
 ]
+
+// Secure password hashing and verification using Node.js built-in scrypt
+function hashPassword(password) {
+  if (!password) return ''
+  const salt = crypto.randomBytes(16).toString('hex')
+  const derivedKey = crypto.scryptSync(String(password), salt, 64).toString('hex')
+  return `scrypt$${salt}$${derivedKey}`
+}
+
+function verifyPassword(candidate, stored) {
+  if (!candidate || !stored || typeof stored !== 'string') return false
+  if (!stored.startsWith('scrypt$')) {
+    // Reject legacy plaintext passwords or unhashed formats
+    return false
+  }
+
+  try {
+    const parts = stored.split('$')
+    if (parts.length !== 3) return false
+    const [, salt, hash] = parts
+
+    // Validate salt (16 bytes = 32 hex chars) and hash (64 bytes = 128 hex chars)
+    if (!/^[0-9a-fA-F]{32}$/.test(salt) || !/^[0-9a-fA-F]{128}$/.test(hash)) {
+      return false
+    }
+
+    const candidateBuf = crypto.scryptSync(String(candidate), salt, 64)
+    const storedBuf = Buffer.from(hash, 'hex')
+
+    if (candidateBuf.length !== storedBuf.length) {
+      return false
+    }
+
+    return crypto.timingSafeEqual(candidateBuf, storedBuf)
+  } catch (err) {
+    console.error('Password verification error:', err.message)
+    return false
+  }
+}
+
+// Convert any initial in-memory passwords to scrypt hashes on startup so plaintext passwords are never retained
+demoUsers.forEach((u) => {
+  if (u.password && !u.password.startsWith('scrypt$')) {
+    u.password = hashPassword(u.password)
+  }
+})
 
 const complaints = [
   {
@@ -235,19 +282,25 @@ app.get('/api/health', (req, res) => {
 })
 
 app.post('/api/auth/login', (req, res) => {
-  const { email, password } = req.body || {}
-  const normalizedEmail = String(email || '').trim().toLowerCase()
+  const { email, identifier, password } = req.body || {}
+  const rawId = String(identifier || email || '').trim()
+  const normalizedId = rawId.toLowerCase()
 
-  if (!normalizedEmail || !password) {
-    return res.status(400).json({ message: 'Email and password are required.' })
+  if (!rawId || !password) {
+    return res.status(400).json({ message: 'Email/Roll Number and password are required.' })
   }
 
-  const user = demoUsers.find(
-    (entry) => entry.email.toLowerCase() === normalizedEmail && entry.password === String(password),
-  )
+  const user = demoUsers.find((entry) => {
+    const entryEmail = String(entry.email || '').toLowerCase()
+    const entryRoll = String(entry.rollNumber || entry.id || '').toLowerCase()
+    const entryName = String(entry.name || '').toLowerCase()
+
+    const idMatches = entryEmail === normalizedId || entryRoll === normalizedId || entryName === normalizedId
+    return idMatches && verifyPassword(password, entry.password)
+  })
 
   if (!user) {
-    return res.status(401).json({ message: 'Invalid email or password.' })
+    return res.status(401).json({ message: 'Invalid credentials. Please check your email or roll number and password.' })
   }
 
   return res.json({
@@ -264,20 +317,21 @@ app.post('/api/auth/register', (req, res) => {
   }
 
   const normalizedEmail = String(email).trim().toLowerCase()
+  const trimmedRoll = String(rollNumber).trim()
 
-  if (demoUsers.some((entry) => entry.email.toLowerCase() === normalizedEmail)) {
-    return res.status(409).json({ message: 'An account with this email already exists.' })
+  if (demoUsers.some((entry) => entry.email.toLowerCase() === normalizedEmail || String(entry.rollNumber || entry.id).toLowerCase() === trimmedRoll.toLowerCase())) {
+    return res.status(409).json({ message: 'An account with this email or roll number already exists.' })
   }
 
   const newUser = {
-    id: String(rollNumber).trim(),
-    rollNumber: String(rollNumber).trim(),
+    id: trimmedRoll,
+    rollNumber: trimmedRoll,
     name: String(name).trim(),
     email: normalizedEmail,
     role: 'student',
     department: String(department).trim(),
     batch: '2026',
-    password: String(password),
+    password: hashPassword(password),
   }
 
   demoUsers.push(newUser)
@@ -288,6 +342,176 @@ app.post('/api/auth/register', (req, res) => {
   })
 })
 
+// Unverified / direct password reset is disabled for security (HTTP 501 Not Implemented)
+app.post('/api/auth/direct-reset-password', (req, res) => {
+  return res.status(501).json({
+    message: 'Verified password reset is not implemented. Direct unverified password reset has been disabled for security.',
+  })
+})
+
+app.post('/api/auth/reset-password', (req, res) => {
+  return res.status(501).json({
+    message: 'Verified password reset is not implemented. A verified reset flow (such as verified email token) is required.',
+  })
+})
+
+app.post('/api/auth/forgot-password', (req, res) => {
+  return res.status(501).json({
+    message: 'Verified password reset is not implemented. Email verification flow requires a configured identity verification provider.',
+  })
+})
+
+// User Management Endpoints
+app.get('/api/users', (req, res) => {
+  const usersWithStats = demoUsers.map((user) => {
+    const userEmail = (user.email || '').toLowerCase()
+    const userId = (user.id || user.rollNumber || '').toLowerCase()
+    const userName = (user.name || '').toLowerCase()
+
+    const userComplaints = complaints.filter((c) => {
+      const cEmail = (c.submittedByEmail || '').toLowerCase()
+      const cName = (c.submittedBy || '').toLowerCase()
+      const cId = (c.submittedById || '').toLowerCase()
+      return (userEmail && cEmail === userEmail) || (userId && cId === userId) || (userName && cName === userName)
+    })
+
+    const userPermissions = permissions.filter((p) => {
+      const pEmail = (p.submittedByEmail || '').toLowerCase()
+      const pName = (p.submittedBy || '').toLowerCase()
+      const pId = (p.submittedById || '').toLowerCase()
+      return (userEmail && pEmail === userEmail) || (userId && pId === userId) || (userName && pName === userName)
+    })
+
+    return {
+      ...getSafeUser(user),
+      status: user.status || 'Active',
+      hostel: user.hostel || 'Hostel Block A',
+      batch: user.batch || '2026',
+      complaintsCount: userComplaints.length,
+      permissionsCount: userPermissions.length,
+      createdAt: user.createdAt || '2026-08-01T10:00:00.000Z',
+    }
+  })
+
+  res.json(usersWithStats)
+})
+
+app.post('/api/users', (req, res) => {
+  const { name, rollNumber, email, role = 'student', department, batch = '2026', hostel = '', phone = '', password } = req.body || {}
+  if (!name || !email || !department) {
+    return res.status(400).json({ message: 'Name, email, and department are required.' })
+  }
+
+  if (!password || String(password).trim().length < 6) {
+    return res.status(400).json({
+      message: 'A secure password of at least 6 characters is required. Default or empty passwords are not permitted.',
+    })
+  }
+
+  const normalizedEmail = String(email).trim().toLowerCase()
+  if (demoUsers.some((u) => u.email.toLowerCase() === normalizedEmail)) {
+    return res.status(409).json({ message: 'User with this email already exists.' })
+  }
+
+  const newUser = {
+    id: rollNumber ? String(rollNumber).trim() : `USR-${Date.now()}`,
+    rollNumber: rollNumber ? String(rollNumber).trim() : '',
+    name: String(name).trim(),
+    email: normalizedEmail,
+    role: String(role).trim(),
+    department: String(department).trim(),
+    batch: String(batch).trim(),
+    hostel: String(hostel).trim() || 'Hostel Block A',
+    phone: String(phone).trim(),
+    password: hashPassword(password),
+    status: 'Active',
+    createdAt: new Date().toISOString(),
+  }
+
+  demoUsers.unshift(newUser)
+
+  res.status(201).json({
+    message: 'User created successfully',
+    user: getSafeUser(newUser),
+  })
+})
+
+app.patch('/api/users/:id', (req, res) => {
+  const { id } = req.params
+  const { status, hostel, department, phone, password, role, name, oldPassword } = req.body || {}
+  const target = String(id).toLowerCase()
+  const user = demoUsers.find((u) => String(u.id || '').toLowerCase() === target || String(u.rollNumber || '').toLowerCase() === target || String(u.email || '').toLowerCase() === target)
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' })
+  }
+
+  if (oldPassword && user.password && !verifyPassword(oldPassword, user.password)) {
+    return res.status(400).json({ message: 'Current password does not match.' })
+  }
+
+  if (name) user.name = name
+  if (status) user.status = status
+  if (hostel !== undefined) user.hostel = hostel
+  if (department) user.department = department
+  if (phone !== undefined) user.phone = phone
+  if (role) user.role = role
+  if (password) user.password = hashPassword(password)
+
+  res.json({ message: 'Profile updated successfully', user: getSafeUser(user) })
+})
+
+app.delete('/api/users/:id', (req, res) => {
+  const { id } = req.params
+  const index = demoUsers.findIndex((u) => u.id === id || u.rollNumber === id)
+  if (index === -1) {
+    return res.status(404).json({ message: 'User not found' })
+  }
+  const removed = demoUsers.splice(index, 1)[0]
+  res.json({ message: `User ${removed.name} deleted successfully` })
+})
+
+app.post('/api/users/broadcast', (req, res) => {
+  const { title, message } = req.body || {}
+  if (!title || !message) {
+    return res.status(400).json({ message: 'Title and message are required.' })
+  }
+
+  const broadcastNotif = {
+    id: `NOT-BC-${Date.now()}`,
+    title: `📢 Campus Announcement: ${title}`,
+    message: String(message).trim(),
+    type: 'announcement',
+    isRead: false,
+    createdAt: new Date().toISOString(),
+  }
+
+  notifications.unshift(broadcastNotif)
+
+  res.json({ message: 'Broadcast announcement published successfully', notification: broadcastNotif })
+})
+
+app.post('/api/users/:id/message', async (req, res) => {
+  const { id } = req.params
+  const { subject, message } = req.body || {}
+  const targetUser = demoUsers.find((u) => u.id === id || u.rollNumber === id)
+  if (!targetUser) {
+    return res.status(404).json({ message: 'User not found' })
+  }
+
+  const finalSubject = subject || 'Notice from Administration'
+  const notifObj = createNotification('direct_message', finalSubject, message)
+  notifObj.userEmail = targetUser.email
+  notifications.unshift(notifObj)
+
+  await notifyStudent({
+    student: targetUser,
+    type: 'Administrative Notice',
+    title: finalSubject,
+    message: `${message}\n\nFrom: Campus Maintenance Cell & Administration`,
+  })
+
+  res.json({ message: `Message sent to ${targetUser.name} (${targetUser.email})` })
+})
 app.get('/api/analytics', (req, res) => {
   const countBy = (key) => Object.entries(complaints.reduce((acc, item) => {
     const value = item[key] || 'Unspecified'

@@ -11,6 +11,7 @@ const api = axios.create({
 export const authApi = {
   login: (payload) => api.post('/auth/login', payload),
   register: (payload) => api.post('/auth/register', payload),
+  directResetPassword: (payload) => api.post('/auth/direct-reset-password', payload),
 }
 
 export const analyticsApi = {

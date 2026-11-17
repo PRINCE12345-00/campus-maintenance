@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ArrowLeft, Mail, ShieldCheck, UserRound } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { authApi } from '../../services/api'
+import { saveLocalUser } from '../../utils/authStorage'
 
 export default function RegisterPage() {
   const navigate = useNavigate()
@@ -40,20 +41,30 @@ export default function RegisterPage() {
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length) return
 
-    try {
-      await authApi.register({
-        name: form.name,
-        rollNumber: form.rollNumber,
-        email: form.email,
-        department: form.department,
-        password: form.password,
-      })
-
-      navigate('/login', { state: { email: form.email.trim().toLowerCase() } })
-    } catch (error) {
-      const message = error?.response?.data?.message || 'Registration failed. Please try again.'
-      setErrors({ email: message })
+    const studentRecord = {
+      name: form.name.trim(),
+      rollNumber: form.rollNumber.trim(),
+      email: form.email.trim().toLowerCase(),
+      department: form.department.trim(),
+      password: form.password,
+      role: 'student',
+      batch: '2026',
     }
+
+    try {
+      await authApi.register(studentRecord)
+    } catch (error) {
+      if (error?.response?.status === 409) {
+        setErrors({ email: error.response.data.message })
+        return
+      }
+      console.warn('Backend server unreachable, syncing user account locally:', error?.message)
+    }
+
+    // Always persist to local browser storage so the student can log in anytime (even offline or days later)
+    saveLocalUser(studentRecord)
+
+    navigate('/login', { state: { email: studentRecord.email } })
   }
 
   return (
