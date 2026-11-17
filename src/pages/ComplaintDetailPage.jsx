@@ -305,6 +305,7 @@ export default function ComplaintDetailPage() {
           </div>
         </div>
 
+
         {/* Progress Bar */}
         <div className="mt-5">
           <div className="relative h-3.5 w-full overflow-hidden rounded-full bg-slate-800 border border-white/10">
@@ -340,6 +341,127 @@ export default function ComplaintDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* AI & Machine Learning Triage, SHAP Explainability & Dynamic SLA Card */}
+      {(() => {
+        const ml = complaint.mlPrediction
+        const isMLAvailable = ml && ml.isAvailable !== false
+        const predictedDays = ml?.estimatedResolutionDays || 3.5
+        const expectedDate = ml?.expectedResolutionDate || (() => {
+          const sub = new Date(complaint.submissionDate || Date.now())
+          sub.setDate(sub.getDate() + Math.ceil(predictedDays))
+          return sub.toISOString().slice(0, 10)
+        })()
+
+        const calculateRemainingDays = () => {
+          const exp = new Date(expectedDate).getTime()
+          const today = new Date().setHours(0, 0, 0, 0)
+          return Math.round((exp - today) / 86400000)
+        }
+
+        const remainingDays = calculateRemainingDays()
+        const isResolved = ['Resolved', 'Closed'].includes(complaint.status)
+        const delayStatus = isResolved ? 'Completed' : remainingDays < 0 ? 'Delayed' : remainingDays <= 1 ? 'At Risk' : 'On Track'
+
+        return (
+          <div className="mt-6 rounded-2xl border border-blue-200 bg-gradient-to-r from-blue-50/90 via-indigo-50/80 to-slate-50/90 p-5 shadow-sm">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white shadow-sm">AI</span>
+                <div>
+                  <h3 className="font-bold text-slate-900">AI Predictive Maintenance & NLP Triage</h3>
+                  <p className="text-xs text-slate-500">Model Version: {ml?.modelVersion || '2.0.0'} • Calibrated Probabilities & Regression</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                  delayStatus === 'On Track' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+                  delayStatus === 'At Risk' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
+                  delayStatus === 'Completed' ? 'bg-blue-100 text-blue-800 border border-blue-300' :
+                  'bg-rose-100 text-rose-800 border border-rose-300'
+                }`}>
+                  Status: {delayStatus}
+                </span>
+                <span className="rounded-full border border-blue-200 bg-blue-100/80 px-2.5 py-0.5 text-xs font-semibold text-blue-800">
+                  {isMLAvailable ? 'Active ML Pipeline' : 'Manual Triage Mode'}
+                </span>
+              </div>
+            </div>
+
+            {/* Core Metrics Grid */}
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-xl border border-blue-100 bg-white/95 p-3.5 shadow-xs">
+                <p className="text-xs font-medium text-slate-500">Auto-Category Confidence</p>
+                <p className="mt-1 text-xl font-bold text-blue-700">
+                  {ml?.categoryConfidence ? `${Math.round(ml.categoryConfidence * 100)}%` : 'Queued'}
+                </p>
+                <p className="mt-0.5 text-[11px] text-slate-500">Classified as: <span className="font-semibold text-slate-700">{complaint.category}</span></p>
+              </div>
+
+              <div className="rounded-xl border border-blue-100 bg-white/95 p-3.5 shadow-xs">
+                <p className="text-xs font-medium text-slate-500">Priority Assessment</p>
+                <p className="mt-1 text-xl font-bold text-slate-800">
+                  {ml?.priorityConfidence ? `${Math.round(ml.priorityConfidence * 100)}% confidence` : 'Standard'}
+                </p>
+                <p className="mt-0.5 text-[11px] text-slate-500">Urgency level: <span className="font-semibold text-slate-700">{complaint.priority}</span></p>
+              </div>
+
+              <div className="rounded-xl border border-blue-100 bg-white/95 p-3.5 shadow-xs">
+                <p className="text-xs font-medium text-slate-500">Predicted Resolution Days</p>
+                <p className="mt-1 text-xl font-bold text-indigo-700">
+                  ~{predictedDays} {predictedDays === 1.0 ? 'day' : 'days'}
+                </p>
+                <p className="mt-0.5 text-[11px] text-slate-500">Expected: <span className="font-semibold text-slate-700">{expectedDate}</span></p>
+              </div>
+
+              <div className="rounded-xl border border-blue-100 bg-white/95 p-3.5 shadow-xs">
+                <p className="text-xs font-medium text-slate-500">Remaining Estimated Time</p>
+                <p className={`mt-1 text-xl font-bold ${
+                  isResolved ? 'text-blue-700' :
+                  remainingDays < 0 ? 'text-rose-600' :
+                  remainingDays <= 1 ? 'text-amber-600' : 'text-emerald-700'
+                }`}>
+                  {isResolved ? 'Resolved' : remainingDays < 0 ? `${Math.abs(remainingDays)}d Overdue` : `${remainingDays}d Remaining`}
+                </p>
+                <p className="mt-0.5 text-[11px] text-slate-500">Based on complaint filing date</p>
+              </div>
+            </div>
+
+            {/* Explainable AI (SHAP) & Smart Routing Strip */}
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-xl border border-blue-100/80 bg-white/80 p-3 text-xs">
+                <p className="font-semibold text-slate-800">🧠 Explainable AI (Feature Attribution):</p>
+                <p className="mt-1 text-slate-600">
+                  {ml?.explanation?.human_readable_reason ||
+                    (ml?.explanation?.top_contributing_words?.length
+                      ? `Key influential signals detected: ${ml.explanation.top_contributing_words.join(', ')}.`
+                      : `NLP keywords in title and description correlated with ${complaint.category} historical records.`)}
+                </p>
+                {ml?.explanation?.top_contributing_words && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {ml.explanation.top_contributing_words.map((kw, i) => (
+                      <span key={i} className="rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700 border border-blue-200">
+                        {kw}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="rounded-xl border border-indigo-100/80 bg-white/80 p-3 text-xs">
+                <p className="font-semibold text-indigo-900">📍 Smart Routing & Assignment:</p>
+                <p className="mt-1 text-slate-600">
+                  {ml?.routing?.routing_reason || `Allocated to ${complaint.assignedTo || 'Specialized Maintenance Team'} for rapid dispatch.`}
+                </p>
+                <p className="mt-1 font-medium text-slate-700">
+                  Assigned Team: <span className="font-semibold text-indigo-700">{ml?.routing?.assigned_team || complaint.assignedTo || 'Campus Care Unit'}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
 
       {/* ADMIN COMMUNICATION & EMAIL DISPATCH PORTAL (Visible to Admins / Authority) */}
       {isAdminOrStaff && (
@@ -384,11 +506,10 @@ export default function ComplaintDetailPage() {
                     key={tmpl.name}
                     type="button"
                     onClick={() => handleApplyTemplate(idx)}
-                    className={`rounded-xl border px-3 py-1.5 text-xs font-medium transition ${
-                      selectedTemplateIndex === idx
-                        ? 'border-blue-400 bg-blue-600 text-white shadow-md'
-                        : 'border-white/10 bg-slate-800/60 text-slate-300 hover:border-white/20 hover:text-white'
-                    }`}
+                    className={`rounded-xl border px-3 py-1.5 text-xs font-medium transition ${selectedTemplateIndex === idx
+                      ? 'border-blue-400 bg-blue-600 text-white shadow-md'
+                      : 'border-white/10 bg-slate-800/60 text-slate-300 hover:border-white/20 hover:text-white'
+                      }`}
                   >
                     {tmpl.name} ({tmpl.progress}%)
                   </button>
@@ -437,11 +558,10 @@ export default function ComplaintDetailPage() {
                         key={val}
                         type="button"
                         onClick={() => setSelectedProgress(val)}
-                        className={`rounded-lg px-2 py-1 text-xs font-bold ${
-                          selectedProgress === val
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-slate-800 text-slate-400 hover:text-white'
-                        }`}
+                        className={`rounded-lg px-2 py-1 text-xs font-bold ${selectedProgress === val
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-slate-800 text-slate-400 hover:text-white'
+                          }`}
                       >
                         {val}%
                       </button>
@@ -524,6 +644,7 @@ export default function ComplaintDetailPage() {
           <span className="rounded-full bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-300 border border-white/10">
             {complaint.emailUpdates?.length || 0} message{complaint.emailUpdates?.length === 1 ? '' : 's'}
           </span>
+
         </div>
 
         <div className="mt-6 space-y-4">

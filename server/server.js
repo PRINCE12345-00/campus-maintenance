@@ -1,3 +1,4 @@
+
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
@@ -497,13 +498,21 @@ app.get('/api/analytics', (req, res) => {
     }
     return acc
   }, {})
-  const monthlyTrend = Object.entries(monthlyMap).sort(([a], [b]) => a.localeCompare(b)).map(([month, complaintsCount]) => ({ month, complaints: complaintsCount }))
+
+  const monthlyTrend = Object.entries(monthlyMap)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([month, complaintsCount]) => ({ month, complaints: complaintsCount }))
+
   const resolved = complaints.filter((item) => ['Resolved', 'Closed'].includes(item.status))
+
   const resolutionDays = resolved.map((item) => {
     const start = new Date(item.submissionDate)
     const end = new Date(item.lastUpdated || item.submissionDate)
-    return !Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime()) ? Math.max(0, (end - start) / 86400000) : null
+    return !Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())
+      ? Math.max(0, (end - start) / 86400000)
+      : null
   }).filter((value) => value !== null)
+
   const averageResolutionTime = resolutionDays.length
     ? Number((resolutionDays.reduce((sum, value) => sum + value, 0) / resolutionDays.length).toFixed(1))
     : null
@@ -515,7 +524,7 @@ app.get('/api/analytics', (req, res) => {
   const recurringIssues = categoryDistribution.filter((item) => item.value > 1).map((item) => item.name)
 
   res.json({
-    source: 'live-in-memory-complaints',
+    source: 'persistent-campus-db',
     totalComplaints: complaints.length,
     openComplaints: complaints.filter((item) => ['Submitted', 'Assigned', 'In Progress'].includes(item.status)).length,
     resolvedComplaints: resolved.length,
@@ -526,8 +535,73 @@ app.get('/api/analytics', (req, res) => {
     statusSummary,
     averageResolutionTime,
     recurringIssues,
-    note: 'Analytics are calculated from the complaints currently held by the Node.js server. The current demo backend stores records in memory, so data resets when the server restarts.',
+    mlMetrics,
+    note: 'Live analytics dynamically synchronized with ML Service and persistent storage.',
   })
+})
+
+// Phase 7: Predictive Maintenance API
+app.get('/api/analytics/predictive-maintenance', async (req, res) => {
+  try {
+    const mlRes = await fetch(`${mlServiceUrl}/analytics/predictive-maintenance`, {
+      signal: AbortSignal.timeout(6000),
+    })
+    if (!mlRes.ok) throw new Error(`ML service returned status ${mlRes.status}`)
+    const data = await mlRes.json()
+    return res.json(data)
+  } catch (error) {
+    return res.status(503).json({
+      message: 'Predictive maintenance service unavailable. Ensure Python ML service is running on port 8000.',
+      error: error.message,
+    })
+  }
+})
+
+// Phase 10: RAG Campus AI Chatbot API
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { query } = req.body || {}
+    if (!query) return res.status(400).json({ message: 'Query is required.' })
+
+    const mlRes = await fetch(`${mlServiceUrl}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, live_complaints: complaints }),
+      signal: AbortSignal.timeout(10000),
+    })
+    if (!mlRes.ok) throw new Error(`Chat service returned ${mlRes.status}`)
+    const data = await mlRes.json()
+    return res.json(data)
+  } catch (error) {
+    return res.status(503).json({
+      answer: 'The Campus AI Assistant service is temporarily offline. Please verify that the Python ML service is running on port 8000.',
+      source: 'System Fallback',
+      confidence: 0.0,
+    })
+  }
+})
+
+// Phase 11: Computer Vision Analysis API
+app.post('/api/vision/analyze', async (req, res) => {
+  try {
+    const { image_base64, filename } = req.body || {}
+    if (!image_base64) return res.status(400).json({ message: 'image_base64 is required.' })
+
+    const mlRes = await fetch(`${mlServiceUrl}/vision/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image_base64, filename: filename || 'upload.jpg' }),
+      signal: AbortSignal.timeout(10000),
+    })
+    if (!mlRes.ok) throw new Error(`Vision service returned ${mlRes.status}`)
+    const data = await mlRes.json()
+    return res.json(data)
+  } catch (error) {
+    return res.status(503).json({
+      success: false,
+      error: `Vision service error: ${error.message}`,
+    })
+  }
 })
 
 app.get('/api/complaints', (req, res) => {
@@ -545,6 +619,7 @@ app.post('/api/complaints', async (req, res) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        title: complaint.title || '',
         description: complaint.description,
         location: complaint.location,
       }),
@@ -561,24 +636,46 @@ app.post('/api/complaints', async (req, res) => {
   }
 
   if (!complaint?.title || !complaint?.description || !complaint?.location) {
-    return res.status(400).json({ message: 'Complaint title, description, and location are required.' })
+    return res.status(400).json({
+      message: 'Complaint title, description, and location are required.',
+    })
+  }
+
+  const categoryFinal = mlPrediction?.success
+    ? mlPrediction.category
+    : (complaint.category || 'Other')
+
+  const priorityFinal = mlPrediction?.success
+    ? mlPrediction.priority
+    : (complaint.priority || 'Medium')
+
+  const activePrediction = mlPrediction?.success ? {
+    isAvailable: true,
+    categoryConfidence: mlPrediction.category_confidence,
+    priorityConfidence: mlPrediction.priority_confidence,
+    manualReviewRequired: mlPrediction.manual_review_required,
+    estimatedResolutionDays: mlPrediction.estimated_resolution_days,
+    expectedResolutionDate: mlPrediction.expected_resolution_date || null,
+    delayRisk: mlPrediction.delay_risk || 'On Track',
+    explanation: mlPrediction.explanation || null,
+    modelVersion: mlPrediction.model_version || '2.0.0',
+  } : {
+    isAvailable: false,
+    categoryConfidence: null,
+    priorityConfidence: null,
+    manualReviewRequired: true,
+    estimatedResolutionDays: null,
+    expectedResolutionDate: null,
+    delayRisk: 'Manual Review Required',
+    explanation: 'ML prediction unavailable at submission time. Queued for manual triage.',
+    modelVersion: null,
   }
 
   const newComplaint = {
     ...complaint,
-    category: mlPrediction?.success
-      ? mlPrediction.category
-      : (complaint.category || 'Uncategorized'),
-
-    priority: mlPrediction?.success
-      ? mlPrediction.priority
-      : (complaint.priority || 'Medium'),
-
-    mlPrediction: mlPrediction ? {
-      categoryConfidence: mlPrediction.category_confidence,
-      priorityConfidence: mlPrediction.priority_confidence,
-      manualReviewRequired: mlPrediction.manual_review_required,
-    } : null,
+    category: categoryFinal,
+    priority: priorityFinal,
+    mlPrediction: activePrediction,
     id: complaint.id || `CMP-${Date.now()}`,
     status: complaint.status || 'Submitted',
     progress: Number(complaint.progress) || 10,
@@ -599,9 +696,13 @@ app.post('/api/complaints', async (req, res) => {
   complaints.unshift(newComplaint)
   saveJson('complaints.json', complaints)
 
-  const submittedEmail = String(complaint.submittedByEmail || newComplaint.submittedByEmail || '').trim()
-  const student = demoUsers.find((entry) => entry.email?.toLowerCase() === submittedEmail.toLowerCase())
-    || demoUsers.find((entry) => entry.name === complaint.submittedBy)
+  const submittedEmail = String(
+    complaint.submittedByEmail || newComplaint.submittedByEmail || '',
+  ).trim()
+
+  const student = demoUsers.find(
+    (entry) => entry.email?.toLowerCase() === submittedEmail.toLowerCase(),
+  ) || demoUsers.find((entry) => entry.name === complaint.submittedBy)
 
   const notificationResults = await notifyStudent({
     student: { ...student, name: student?.name || complaint.submittedBy || 'Student', email: submittedEmail || student?.email },
@@ -614,7 +715,10 @@ app.post('/api/complaints', async (req, res) => {
     saveJson('notifications.json', notifications)
   }
 
-  return res.status(201).json({ complaint: newComplaint, notifications: notificationResults })
+  return res.status(201).json({
+    complaint: newComplaint,
+    notifications: notificationResults,
+  })
 })
 
 app.patch('/api/complaints/:id/status', async (req, res) => {
@@ -671,6 +775,7 @@ app.patch('/api/complaints/:id/status', async (req, res) => {
   const finalMessage = String(emailMessage || comment || `Status updated to ${complaint.status}. Progress is now ${complaint.progress}%.`).trim()
 
   let emailResult = { sent: false, mode: 'skipped' }
+
   if (sendEmail) {
     emailResult = await notifyStudent({
       student: {
@@ -698,6 +803,7 @@ app.patch('/api/complaints/:id/status', async (req, res) => {
     delivered: Boolean(emailResult?.sent || emailResult?.mode === 'dry-run'),
     mode: emailResult?.mode || 'email',
   }
+
   complaint.emailUpdates.unshift(emailRecord)
 
   complaint.timeline.push({
@@ -719,6 +825,7 @@ app.patch('/api/complaints/:id/status', async (req, res) => {
     isRead: false,
     createdAt: new Date().toISOString(),
   }
+
   notifications.unshift(inAppNotif)
   saveJson('complaints.json', complaints)
   saveJson('notifications.json', notifications)
@@ -791,11 +898,13 @@ app.post('/api/complaints/:id/notify', async (req, res) => {
   } = req.body || {}
 
   const complaint = complaints.find((item) => item.id === id)
+
   if (!complaint) {
     return res.status(404).json({ message: 'Complaint not found.' })
   }
 
   if (status) complaint.status = status
+
   if (progress !== undefined && progress !== null && !Number.isNaN(Number(progress))) {
     complaint.progress = Math.min(100, Math.max(0, Number(progress)))
   }
@@ -806,12 +915,14 @@ app.post('/api/complaints/:id/notify', async (req, res) => {
 
   const student = demoUsers.find((entry) => entry.name === complaint.submittedBy)
     || demoUsers.find((entry) => entry.email?.toLowerCase() === String(complaint.submittedByEmail || '').toLowerCase())
+
   const studentEmail = complaint.submittedByEmail || student?.email || 'aarav@student.dcrust.in'
 
   const finalSubject = emailSubject || `[Update: ${complaint.progress}% - ${complaint.status}] ${complaint.title}`
   const finalMessage = String(emailMessage || `Your complaint has reached ${complaint.progress}% resolution stage.`).trim()
 
   let emailResult = { sent: false, mode: 'skipped' }
+
   if (sendEmail) {
     emailResult = await notifyStudent({
       student: {
@@ -838,6 +949,7 @@ app.post('/api/complaints/:id/notify', async (req, res) => {
     delivered: Boolean(emailResult?.sent || emailResult?.mode === 'dry-run'),
     mode: emailResult?.mode || 'email',
   }
+
   complaint.emailUpdates.unshift(emailRecord)
 
   complaint.timeline.push({
@@ -881,7 +993,12 @@ app.post('/api/permissions', async (req, res) => {
     status: 'Pending Approval',
     approvalChain: buildApprovalChain(permission.type),
     currentStage: 'Department Head',
-    approvalHistory: [{ stage: 'Submission', status: 'Submitted', date: new Date().toISOString(), note: 'Request submitted for approval.' }],
+    approvalHistory: [{
+      stage: 'Submission',
+      status: 'Submitted',
+      date: new Date().toISOString(),
+      note: 'Request submitted for approval.',
+    }],
     submittedBy: permission.submittedBy || 'Student',
     department: permission.department || '',
     faculty: permission.faculty || 'Department Faculty',
@@ -915,6 +1032,7 @@ app.post('/api/permissions', async (req, res) => {
 app.patch('/api/permissions/:id/status', async (req, res) => {
   const { id } = req.params
   const { status, decision, comment = '', reviewerRole = 'admin' } = req.body || {}
+
   const permission = permissions.find((item) => item.id === id)
 
   if (!permission) {
@@ -922,10 +1040,12 @@ app.patch('/api/permissions/:id/status', async (req, res) => {
   }
 
   ensureApprovalWorkflow(permission)
+
   const reviewDecision = decision || (status === 'Approved' ? 'approve' : status === 'Rejected' ? 'reject' : null)
   if (!['approve', 'final_approve', 'reject', 'return'].includes(reviewDecision)) {
     return res.status(400).json({ message: 'Choose approve, final_approve, reject, or return for the permission request.' })
   }
+
   if (permission.status === 'Approved' || permission.status === 'Rejected') {
     return res.status(409).json({ message: 'This permission workflow is already complete.' })
   }
@@ -1075,20 +1195,32 @@ app.patch('/api/permissions/:id/status', async (req, res) => {
 
 app.patch('/api/permissions/:id/resubmit', (req, res) => {
   const permission = permissions.find((item) => item.id === req.params.id)
-  if (!permission) return res.status(404).json({ message: 'Permission request not found.' })
+
+  if (!permission) {
+    return res.status(404).json({ message: 'Permission request not found.' })
+  }
+
   if (permission.status !== 'Changes Requested' || permission.currentStage !== null) {
     return res.status(409).json({ message: 'This request is not waiting for student changes.' })
   }
 
   const studentResponse = String(req.body?.studentResponse || '').trim()
-  if (!studentResponse) return res.status(400).json({ message: 'Add a response describing the changes or clarification.' })
+
+  if (!studentResponse) {
+    return res.status(400).json({ message: 'Add a response describing the changes or clarification.' })
+  }
 
   const now = new Date().toISOString()
-  permission.details = req.body?.details ? String(req.body.details).trim() : permission.details
+
+  permission.details = req.body?.details
+    ? String(req.body.details).trim()
+    : permission.details
+
   permission.studentResponse = studentResponse
   permission.status = 'Pending Approval'
   permission.currentStage = 'Department Head'
   permission.approvalChain = buildApprovalChain(permission.type)
+
   permission.approvalHistory = [
     ...(permission.approvalHistory || []),
     { stage: 'Student', status: 'Resubmitted', date: now, note: studentResponse },

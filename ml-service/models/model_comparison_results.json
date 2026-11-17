@@ -1,0 +1,91 @@
+{
+  "evaluation_timestamp": "2026-11-17T23:31:06Z",
+  "dataset_records": 5000,
+  "resolved_records": 3550,
+  "category_classification": {
+    "Calibrated Logistic Regression": {
+      "accuracy": 100.0,
+      "macro_f1": 100.0,
+      "weighted_f1": 100.0,
+      "weighted_precision": 100.0,
+      "weighted_recall": 100.0,
+      "train_time_sec": 0.119
+    },
+    "Calibrated Linear SVM": {
+      "accuracy": 100.0,
+      "macro_f1": 100.0,
+      "weighted_f1": 100.0,
+      "weighted_precision": 100.0,
+      "weighted_recall": 100.0,
+      "train_time_sec": 0.089
+    },
+    "Random Forest Classifier": {
+      "accuracy": 100.0,
+      "macro_f1": 100.0,
+      "weighted_f1": 100.0,
+      "weighted_precision": 100.0,
+      "weighted_recall": 100.0,
+      "train_time_sec": 0.236
+    },
+    "XGBoost Classifier": {
+      "accuracy": 100.0,
+      "macro_f1": 100.0,
+      "weighted_f1": 100.0,
+      "weighted_precision": 100.0,
+      "weighted_recall": 100.0,
+      "train_time_sec": 2.471
+    }
+  },
+  "priority_classification": {
+    "Calibrated Logistic Regression (Balanced)": {
+      "accuracy": 70.2,
+      "macro_f1": 49.62,
+      "weighted_f1": 64.54,
+      "weighted_precision": 67.7,
+      "weighted_recall": 70.2,
+      "train_time_sec": 0.123
+    },
+    "Random Forest (Balanced)": {
+      "accuracy": 62.4,
+      "macro_f1": 52.96,
+      "weighted_f1": 63.46,
+      "weighted_precision": 70.0,
+      "weighted_recall": 62.4,
+      "train_time_sec": 0.328
+    },
+    "XGBoost Classifier": {
+      "accuracy": 67.1,
+      "macro_f1": 49.26,
+      "weighted_f1": 62.95,
+      "weighted_precision": 65.22,
+      "weighted_recall": 67.1,
+      "train_time_sec": 0.923
+    }
+  },
+  "resolution_regression": {
+    "Random Forest Regressor": {
+      "mae_days": 3.84,
+      "rmse_days": 4.54,
+      "r2_score": -0.043,
+      "train_time_sec": 0.256
+    },
+    "Gradient Boosting Regressor": {
+      "mae_days": 3.86,
+      "rmse_days": 4.62,
+      "r2_score": -0.08,
+      "train_time_sec": 0.581
+    },
+    "HistGradientBoosting Regressor": {
+      "mae_days": 3.91,
+      "rmse_days": 4.69,
+      "r2_score": -0.117,
+      "train_time_sec": 0.307
+    },
+    "XGBoost Regressor": {
+      "mae_days": 3.91,
+      "rmse_days": 4.64,
+      "r2_score": -0.09,
+      "train_time_sec": 0.079
+    }
+  }
+}

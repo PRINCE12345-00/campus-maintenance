@@ -15,6 +15,15 @@ export const authApi = {
 
 export const analyticsApi = {
   get: () => api.get('/analytics'),
+  getPredictiveMaintenance: () => api.get('/analytics/predictive-maintenance'),
+}
+
+export const chatbotApi = {
+  sendQuery: (query) => api.post('/chat', { query }),
+}
+
+export const visionApi = {
+  analyzeImage: (image_base64, filename) => api.post('/vision/analyze', { image_base64, filename }),
 }
 
 export const complaintsApi = {
