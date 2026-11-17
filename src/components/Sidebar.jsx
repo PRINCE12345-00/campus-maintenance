@@ -1,4 +1,4 @@
-import { Bell, Building2, ClipboardCheck, Gauge, LogOut, ShieldCheck, UserRound } from 'lucide-react'
+import { Bell, Building2, ClipboardCheck, Gauge, LogOut, ShieldCheck, UserRound, Users } from 'lucide-react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAppContext } from '../context/AppContext'
 import logo from '../../pictures/logo.jpeg'
@@ -15,6 +15,7 @@ const adminLinks = [
   { to: '/admin', label: 'Overview', icon: Gauge },
   { to: '/admin/complaints', label: 'Complaints', icon: ClipboardCheck },
   { to: '/admin/permissions', label: 'Permissions', icon: ShieldCheck },
+  { to: '/admin/users', label: 'Users & Students', icon: Users },
   { to: '/admin/analytics', label: 'Analytics', icon: Building2 },
   { to: '/admin/profile', label: 'Profile', icon: UserRound },
 ]
@@ -53,10 +54,9 @@ export default function Sidebar({ role = 'student', onNavigate }) {
               to={to}
               onClick={onNavigate}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium transition-all duration-200 ${
-                  isActive
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-500 text-white shadow-[0_14px_30px_rgba(37,99,235,0.4)] ring-1 ring-blue-400/40'
-                    : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                `flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium transition-all duration-200 ${isActive
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-500 text-white shadow-[0_14px_30px_rgba(37,99,235,0.4)] ring-1 ring-blue-400/40'
+                  : 'text-slate-300 hover:bg-white/5 hover:text-white'
                 }`
               }
             >

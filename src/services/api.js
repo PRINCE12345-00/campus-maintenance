@@ -24,6 +24,7 @@ export const complaintsApi = {
     api.patch(`/complaints/${id}/status`, { status, reviewerRole, ...extra }),
   sendUpdate: (id, payload) => api.patch(`/complaints/${id}/status`, payload),
   notify: (id, payload) => api.post(`/complaints/${id}/notify`, payload),
+  reviewEvidence: (id, decision, reason) => api.patch(`/complaints/${id}/evidence-review`, { decision, reason }),
 }
 
 export const permissionsApi = {
@@ -36,6 +37,23 @@ export const permissionsApi = {
 
 export const notificationsApi = {
   getAll: () => api.get('/notifications'),
+  markRead: (id) => api.patch(`/notifications/${id}/read`),
+  markAllRead: (userEmail) => api.patch('/notifications/read-all', { userEmail }),
+  clearAll: (userEmail) => api.delete('/notifications/clear', { data: { userEmail } }),
+}
+
+export const usersApi = {
+  getAll: () => api.get('/users'),
+  create: (payload) => api.post('/users', payload),
+  update: (id, payload) => api.patch(`/users/${id}`, payload),
+  delete: (id) => api.delete(`/users/${id}`),
+  broadcast: (payload) => api.post('/users/broadcast', payload),
+  sendMessage: (id, payload) => api.post(`/users/${id}/message`, payload),
+}
+
+export const newsletterApi = {
+  subscribe: (email) => api.post('/newsletter/subscribe', { email }),
+  getSubscribers: () => api.get('/newsletter/subscribers'),
 }
 
 export default api

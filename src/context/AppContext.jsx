@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react'
 import { demoUsers, initialComplaints, initialNotifications, initialPermissions } from '../data/mockData'
 import {
   getNotificationState,
@@ -6,6 +6,7 @@ import {
   requestMobilePermission as requestMobilePermissionUtil,
   triggerMobileNotification,
 } from '../utils/mobileNotifications'
+import { complaintsApi, notificationsApi, permissionsApi } from '../services/api'
 
 const AppContext = createContext(null)
 
@@ -29,6 +30,33 @@ export function AppProvider({ children }) {
   const [notifications, setNotifications] = useState(() => safeParse(localStorage.getItem('scms-notifications'), initialNotifications))
   const [profile, setProfile] = useState(() => safeParse(localStorage.getItem('scms-profile'), demoUsers.student))
   const [mobilePermission, setMobilePermission] = useState(() => getNotificationState().permission)
+
+  // Auto-sync fresh data from backend on load and when user changes
+  const refreshData = useCallback(async () => {
+    try {
+      const [complaintsRes, permissionsRes, notificationsRes] = await Promise.allSettled([
+        complaintsApi.getAll(),
+        permissionsApi.getAll(),
+        notificationsApi.getAll(),
+      ])
+
+      if (complaintsRes.status === 'fulfilled' && Array.isArray(complaintsRes.value?.data)) {
+        setComplaints(complaintsRes.value.data)
+      }
+      if (permissionsRes.status === 'fulfilled' && Array.isArray(permissionsRes.value?.data)) {
+        setPermissions(permissionsRes.value.data)
+      }
+      if (notificationsRes.status === 'fulfilled' && Array.isArray(notificationsRes.value?.data)) {
+        setNotifications(notificationsRes.value.data)
+      }
+    } catch {
+      // Fallback silently to localStorage
+    }
+  }, [])
+
+  useEffect(() => {
+    refreshData()
+  }, [refreshData, user?.id, user?.email])
 
   // Initialize service worker on mount
   useEffect(() => {
@@ -108,7 +136,8 @@ export function AppProvider({ children }) {
     mobilePermission,
     requestMobilePermission,
     notifyDevice,
-  }), [user, complaints, permissions, notifications, profile, mobilePermission])
+    refreshData,
+  }), [user, complaints, permissions, notifications, profile, mobilePermission, refreshData])
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
 }

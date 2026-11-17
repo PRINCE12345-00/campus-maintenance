@@ -1,0 +1,133 @@
+[
+  {
+    "id": "NOT-1794936837290",
+    "userEmail": "pankajsulekh255@gmail.com",
+    "title": "[Progress: 50% - In Progress] Fan not Working",
+    "message": "Dear Pankaj Kumar,\n\nMaintenance team is on-site and actively fixing the issue. We are working to restore normal operation as quickly as possible.\n\nLocation: Computer Lab 3\nComplaint ID: CMP-1794936753571\nCampus Maintenance Cell",
+    "type": "complaint",
+    "complaintId": "CMP-1794936753571",
+    "isRead": true,
+    "createdAt": "2026-11-17T17:33:57.290Z"
+  },
+  {
+    "id": "NOT-1794936822233-28adee843de3a",
+    "title": "Evidence Verified & Technician Assigned",
+    "message": "Your photo evidence for \"Fan not Working\" has been verified by the maintenance office. Work assigned.",
+    "type": "complaint",
+    "isRead": true,
+    "createdAt": "2026-11-17T17:33:42.233Z",
+    "userEmail": "pankajsulekh255@gmail.com"
+  },
+  {
+    "id": "NOT-1794936753766-fa8b86b5b9484",
+    "title": "Complaint submitted",
+    "message": "Your complaint \"Fan not Working\" has been received and is now under review.",
+    "type": "complaint",
+    "isRead": true,
+    "createdAt": "2026-11-17T17:32:33.766Z"
+  },
+  {
+    "id": "NOT-1794931047792-ad2924f0341c5",
+    "title": "Permission Update: Innovtaion Expo 2026",
+    "message": "Your permission request for \"Innovtaion Expo 2026\" was approved by University Administration. It is now awaiting review from: Technical Coordinator. Note: Stage (Department) approved by Administration. Advanced to next office.",
+    "type": "permission",
+    "isRead": true,
+    "createdAt": "2026-11-17T15:57:27.792Z",
+    "userEmail": "pankajsulekh255@gmail.com"
+  },
+  {
+    "id": "NOT-1794930999131-78f5fdb8e654",
+    "title": "Permission Update: Industrial Visit to NHPC",
+    "message": "Your permission request for \"Industrial Visit to NHPC\" was approved by University Administration. It is now awaiting review from: Technical Coordinator. Note: Stage (Department) approved by Administration. Advanced to next office.",
+    "type": "permission",
+    "isRead": true,
+    "createdAt": "2026-11-17T15:56:39.131Z",
+    "userEmail": "aarav@student.dcrust.in"
+  },
+  {
+    "id": "NOT-1794929411475-f859b8f58f0d1",
+    "title": "Permission Update: Annual Cultural Fest",
+    "message": "Your permission request for \"Annual Cultural Fest\" was approved by University Administration. It is now awaiting review from: DSW. Note: Stage (Cultural Coordinator) approved by Administration. Advanced to next office.",
+    "type": "permission",
+    "isRead": true,
+    "createdAt": "2026-11-17T15:30:11.475Z",
+    "userEmail": "pankajsulekh255@gmail.com"
+  },
+  {
+    "id": "NOT-1794923565730-489422eb8b522",
+    "title": "Permission Approved: Annual Cultural Fest",
+    "message": "Your permission request for \"Annual Cultural Fest\" was approved by University Administration. It is now with Cultural Coordinator. Reviewer note: Approved by University Administration",
+    "type": "permission",
+    "isRead": true,
+    "createdAt": "2026-11-17T13:52:45.730Z",
+    "userEmail": "pankajsulekh255@gmail.com"
+  },
+  {
+    "id": "NOT-1794919546080-7ecbba8d316e1",
+    "title": "Permission request submitted",
+    "message": "Your permission request for \"Annual Cultural Fest\" has been submitted for review.",
+    "type": "permission",
+    "isRead": true,
+    "createdAt": "2026-11-17T12:45:46.080Z"
+  },
+  {
+    "id": "NOT-1794919374233-f4c5786932cb8",
+    "title": "Permission request submitted",
+    "message": "Your permission request for \"Innovtaion Expo 2026\" has been submitted for review.",
+    "type": "permission",
+    "isRead": true,
+    "createdAt": "2026-11-17T12:42:54.233Z"
+  },
+  {
+    "id": "NOT-1794918008243",
+    "userEmail": "pankajsulekh255@gmail.com",
+    "title": "[Progress: 50% - In Progress] Water Leaking Issue",
+    "message": "Dear Pankaj Kumar,\n\nMaintenance team is on-site and actively fixing the issue. We are working to restore normal operation as quickly as possible.\n\nLocation: Boys Hostel\nComplaint ID: CMP-1794917959983\nCampus Maintenance Cell",
+    "type": "complaint",
+    "complaintId": "CMP-1794917959983",
+    "isRead": true,
+    "createdAt": "2026-11-17T12:20:08.243Z"
+  },
+  {
+    "id": "NOT-1794917960078-580d6ee5f8c63",
+    "title": "Complaint submitted",
+    "message": "Your complaint \"Water Leaking Issue\" has been received and is now under review.",
+    "type": "complaint",
+    "isRead": true,
+    "createdAt": "2026-11-17T12:19:20.078Z"
+  },
+  {
+    "id": "NOT-1794917749284",
+    "userEmail": "pankajsulekh255@gmail.com",
+    "title": "[Progress: 75% - In Progress] Broken fan in Lab.",
+    "message": "Dear Pankaj Kumar,\n\nThe physical repairs have been executed. The maintenance supervisor is now testing and verifying safety standards before sign-off.\n\nLocation: Academic Block A\nComplaint ID: CMP-1794917708929\nCampus Maintenance Cell",
+    "type": "complaint",
+    "complaintId": "CMP-1794917708929",
+    "isRead": true,
+    "createdAt": "2026-11-17T12:15:49.284Z"
+  },
+  {
+    "id": "NOT-1794917709003-3f33094adfd19",
+    "title": "Complaint submitted",
+    "message": "Your complaint \"Broken fan in Lab.\" has been received and is now under review.",
+    "type": "complaint",
+    "isRead": true,
+    "createdAt": "2026-11-17T12:15:09.003Z"
+  },
+  {
+    "id": "NOT-1",
+    "title": "Complaint assigned",
+    "message": "Your electrical complaint at Academic Block A has been assigned to the maintenance team.",
+    "type": "complaint",
+    "isRead": true,
+    "createdAt": "2026-10-03T09:15:00"
+  },
+  {
+    "id": "NOT-2",
+    "title": "Permission approved",
+    "message": "Your cultural permission application has been approved by the administration.",
+    "type": "permission",
+    "isRead": true,
+    "createdAt": "2026-10-02T16:45:00"
+  }
+]

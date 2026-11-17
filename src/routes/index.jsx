@@ -13,6 +13,7 @@ import StudentProfilePage from '../pages/student/StudentProfilePage'
 import AdminDashboard from '../pages/admin/AdminDashboard'
 import AdminComplaintsPage from '../pages/admin/AdminComplaintsPage'
 import AdminPermissionsPage from '../pages/admin/AdminPermissionsPage'
+import AdminUsersPage from '../pages/admin/AdminUsersPage'
 import AdminAnalyticsPage from '../pages/admin/AdminAnalyticsPage'
 import AdminProfilePage from '../pages/admin/AdminProfilePage'
 import ComplaintDetailPage from '../pages/ComplaintDetailPage'
@@ -97,6 +98,7 @@ export const router = createBrowserRouter([
           { index: true, element: <AdminDashboard /> },
           { path: 'complaints', element: <AdminComplaintsPage /> },
           { path: 'permissions', element: <AdminPermissionsPage /> },
+          { path: 'users', element: <AdminUsersPage /> },
           { path: 'analytics', element: <AdminAnalyticsPage /> },
           { path: 'profile', element: <AdminProfilePage /> },
           { path: 'notifications', element: <StudentNotificationsPage /> },
