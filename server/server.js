@@ -1,8 +1,44 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import crypto from 'crypto'
-import { isEmailConfigured, notifyStudent } from './notifications.js'
+import { isEmailConfigured, notifyStudent, sendEmailNotification } from './notifications.js'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const dataDir = path.join(__dirname, 'data')
+
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true })
+}
+
+function loadJson(fileName, fallback) {
+  const filePath = path.join(dataDir, fileName)
+  try {
+    if (fs.existsSync(filePath)) {
+      const parsed = JSON.parse(fs.readFileSync(filePath, 'utf-8'))
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed
+      }
+    }
+    fs.writeFileSync(filePath, JSON.stringify(fallback, null, 2), 'utf-8')
+  } catch (err) {
+    console.error(`Error loading ${fileName}:`, err.message)
+  }
+  return fallback
+}
+
+function saveJson(fileName, data) {
+  const filePath = path.join(dataDir, fileName)
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8')
+  } catch (err) {
+    console.error(`Error saving ${fileName}:`, err.message)
+  }
+}
 
 const app = express()
 const port = process.env.PORT || 5000
@@ -11,7 +47,7 @@ const mlServiceUrl = process.env.ML_SERVICE_URL || 'http://127.0.0.1:8000'
 app.use(cors())
 app.use(express.json())
 
-const demoUsers = [
+const initialDemoUsers = [
   {
     id: 'STU-202401',
     name: 'Aarav Sharma',
@@ -86,14 +122,7 @@ function verifyPassword(candidate, stored) {
   }
 }
 
-// Convert any initial in-memory passwords to scrypt hashes on startup so plaintext passwords are never retained
-demoUsers.forEach((u) => {
-  if (u.password && !u.password.startsWith('scrypt$')) {
-    u.password = hashPassword(u.password)
-  }
-})
-
-const complaints = [
+const initialComplaints = [
   {
     id: 'CMP-1001',
     category: 'Electrical',
@@ -181,7 +210,7 @@ const complaints = [
   },
 ]
 
-const permissions = [
+const initialPermissions = [
   {
     id: 'PER-2001',
     type: 'Educational',
@@ -208,7 +237,7 @@ const permissions = [
   },
 ]
 
-const notifications = [
+const initialNotifications = [
   {
     id: 'NOT-1',
     title: 'Complaint assigned',
@@ -226,6 +255,25 @@ const notifications = [
     createdAt: '2026-10-02T16:45:00',
   },
 ]
+
+// Load persistent collections from disk
+const demoUsers = loadJson('users.json', initialDemoUsers)
+
+// Migrate any legacy plaintext passwords in users.json to scrypt hashes on startup and persist immediately
+let usersMigrated = false
+demoUsers.forEach((u) => {
+  if (u.password && !u.password.startsWith('scrypt$')) {
+    u.password = hashPassword(u.password)
+    usersMigrated = true
+  }
+})
+if (usersMigrated) {
+  saveJson('users.json', demoUsers)
+}
+
+const complaints = loadJson('complaints.json', initialComplaints)
+const permissions = loadJson('permissions.json', initialPermissions)
+const notifications = loadJson('notifications.json', initialNotifications)
 
 const permissionStages = (type) => [
   'Department Head',
@@ -273,7 +321,7 @@ const createNotification = (type, title, message) => ({
 
 const getSafeUser = (user) => {
   if (!user) return null
-  const { password, ...safeUser } = user
+  const { password: _password, passwordHash: _passwordHash, ...safeUser } = user
   return safeUser
 }
 
@@ -335,6 +383,7 @@ app.post('/api/auth/register', (req, res) => {
   }
 
   demoUsers.push(newUser)
+  saveJson('users.json', demoUsers)
 
   return res.status(201).json({
     message: 'Registration successful.',
@@ -342,22 +391,163 @@ app.post('/api/auth/register', (req, res) => {
   })
 })
 
+// Secure OTP store for verified password reset (in-memory map with 10-minute expiry)
+const passwordResetOtps = new Map()
+
+// 1. Request OTP for password reset
+app.post('/api/auth/forgot-password', async (req, res) => {
+  const { identifier } = req.body || {}
+  const rawId = String(identifier || '').trim().toLowerCase()
+
+  if (!rawId) {
+    return res.status(400).json({ message: 'Please provide your registered email or university roll number.' })
+  }
+
+  // Find user by email, roll number, or ID
+  const user = demoUsers.find((u) => {
+    const e = String(u.email || '').toLowerCase()
+    const r = String(u.rollNumber || u.id || '').toLowerCase()
+    return e === rawId || r === rawId
+  })
+
+  if (!user) {
+    return res.status(404).json({ message: 'No registered account found with that email or roll number.' })
+  }
+
+  if (!user.email) {
+    return res.status(400).json({ message: 'This account does not have a registered email address for password reset.' })
+  }
+
+  // Generate 6-digit cryptographic OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString()
+  const expiresAt = Date.now() + 10 * 60 * 1000 // 10 minutes
+
+  passwordResetOtps.set(user.email.toLowerCase(), {
+    otp,
+    expiresAt,
+    attempts: 0,
+    userId: user.id || user.rollNumber,
+  })
+
+  // Format masked email for UI (e.g. p***5@gmail.com)
+  const [localPart, domain] = user.email.split('@')
+  const maskedLocal = localPart.length > 2
+    ? `${localPart[0]}${'*'.repeat(Math.min(localPart.length - 2, 5))}${localPart[localPart.length - 1]}`
+    : `${localPart[0]}*`
+  const maskedEmail = `${maskedLocal}@${domain}`
+
+  try {
+    const emailResult = await sendEmailNotification({
+      to: user.email,
+      subject: '🔐 Smart Campus Portal - Password Reset OTP',
+      text: `Hello ${user.name},\n\nYour 6-digit verification code to reset your password is: ${otp}\n\nThis code will expire in 10 minutes.\n\nIf you did not request a password reset, please ignore this email or notify campus administration.\n\nRegards,\nSmart Campus Maintenance & Security Team`,
+      html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 540px; margin: 0 auto; background: #0f172a; color: #f8fafc; border-radius: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+          <div style="background: linear-gradient(135deg, #2563eb, #4f46e5); padding: 28px 32px; text-align: center;">
+            <h1 style="color: #ffffff; font-size: 22px; margin: 0; font-weight: 700; letter-spacing: 0.5px;">Smart Campus Portal</h1>
+            <p style="color: #e0e7ff; font-size: 13px; margin: 6px 0 0; opacity: 0.9;">DCRUST Murthal • Automated Security System</p>
+          </div>
+          <div style="padding: 32px;">
+            <p style="font-size: 15px; color: #cbd5e1; margin-top: 0;">Hello <strong>${user.name}</strong>,</p>
+            <p style="font-size: 14px; color: #94a3b8; line-height: 1.6;">We received a request to reset your Smart Campus account password. Please use the verification code (OTP) below to complete your reset:</p>
+            <div style="margin: 28px 0; text-align: center;">
+              <span style="display: inline-block; font-size: 34px; font-weight: 800; letter-spacing: 8px; color: #38bdf8; background: #1e293b; padding: 14px 28px; border-radius: 14px; border: 1px solid #38bdf8; font-family: monospace;">
+                ${otp}
+              </span>
+            </div>
+            <p style="font-size: 13px; color: #94a3b8; text-align: center; margin-bottom: 24px;">
+              ⏱️ This OTP is valid for <strong>10 minutes</strong>.
+            </p>
+            <div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 12px 16px; border-radius: 6px; margin-bottom: 24px;">
+              <p style="font-size: 12px; color: #fca5a5; margin: 0;">
+                <strong>Security Alert:</strong> Never share this OTP with anyone, including university staff.
+              </p>
+            </div>
+            <p style="font-size: 12px; color: #64748b; line-height: 1.5; margin-bottom: 0;">If you did not request this password reset, you can safely ignore this email. Your current password remains secure.</p>
+          </div>
+        </div>
+      `,
+    })
+
+    console.log(`[Password Reset] OTP sent to ${user.email}. Result: ${emailResult.mode}`)
+
+    return res.json({
+      success: true,
+      message: `Verification code sent to ${maskedEmail}`,
+      email: user.email,
+      maskedEmail,
+      expiresInMinutes: 10,
+    })
+  } catch (err) {
+    console.error('Failed to send password reset email:', err)
+    return res.status(500).json({ message: 'Failed to send OTP email. Please try again in a few moments.' })
+  }
+})
+
+// 2. Verify OTP and securely reset password
+app.post('/api/auth/reset-password', (req, res) => {
+  const { identifier, otp, newPassword } = req.body || {}
+  const rawId = String(identifier || '').trim().toLowerCase()
+  const cleanOtp = String(otp || '').trim()
+
+  if (!rawId || !cleanOtp || !newPassword) {
+    return res.status(400).json({ message: 'Roll number/email, OTP, and new password are required.' })
+  }
+
+  if (String(newPassword).length < 6) {
+    return res.status(400).json({ message: 'New password must be at least 6 characters long.' })
+  }
+
+  const user = demoUsers.find((u) => {
+    const e = String(u.email || '').toLowerCase()
+    const r = String(u.rollNumber || u.id || '').toLowerCase()
+    return e === rawId || r === rawId
+  })
+
+  if (!user) {
+    return res.status(404).json({ message: 'User not found.' })
+  }
+
+  const emailKey = user.email.toLowerCase()
+  const record = passwordResetOtps.get(emailKey)
+
+  if (!record) {
+    return res.status(400).json({ message: 'No OTP requested or code has expired. Please request a new verification code.' })
+  }
+
+  if (Date.now() > record.expiresAt) {
+    passwordResetOtps.delete(emailKey)
+    return res.status(400).json({ message: 'Verification code has expired. Please request a new one.' })
+  }
+
+  if (record.attempts >= 5) {
+    passwordResetOtps.delete(emailKey)
+    return res.status(429).json({ message: 'Too many incorrect attempts. Please request a new verification code.' })
+  }
+
+  if (record.otp !== cleanOtp) {
+    record.attempts += 1
+    return res.status(400).json({ message: 'Invalid verification code. Please check your email and try again.' })
+  }
+
+  // OTP is verified! Securely hash and update password
+  user.password = hashPassword(newPassword)
+  saveJson('users.json', demoUsers)
+  passwordResetOtps.delete(emailKey)
+
+  console.log(`[Password Reset] Password successfully updated for user ${user.name} (${user.email})`)
+
+  return res.json({
+    success: true,
+    message: 'Password reset successful! You can now log in with your new password.',
+    email: user.email,
+  })
+})
+
 // Unverified / direct password reset is disabled for security (HTTP 501 Not Implemented)
 app.post('/api/auth/direct-reset-password', (req, res) => {
   return res.status(501).json({
-    message: 'Verified password reset is not implemented. Direct unverified password reset has been disabled for security.',
-  })
-})
-
-app.post('/api/auth/reset-password', (req, res) => {
-  return res.status(501).json({
-    message: 'Verified password reset is not implemented. A verified reset flow (such as verified email token) is required.',
-  })
-})
-
-app.post('/api/auth/forgot-password', (req, res) => {
-  return res.status(501).json({
-    message: 'Verified password reset is not implemented. Email verification flow requires a configured identity verification provider.',
+    message: 'Direct unverified reset is disabled for security. Please use the verified OTP reset flow at /api/auth/forgot-password.',
   })
 })
 
@@ -429,6 +619,7 @@ app.post('/api/users', (req, res) => {
   }
 
   demoUsers.unshift(newUser)
+  saveJson('users.json', demoUsers)
 
   res.status(201).json({
     message: 'User created successfully',
@@ -457,6 +648,7 @@ app.patch('/api/users/:id', (req, res) => {
   if (role) user.role = role
   if (password) user.password = hashPassword(password)
 
+  saveJson('users.json', demoUsers)
   res.json({ message: 'Profile updated successfully', user: getSafeUser(user) })
 })
 
@@ -467,6 +659,7 @@ app.delete('/api/users/:id', (req, res) => {
     return res.status(404).json({ message: 'User not found' })
   }
   const removed = demoUsers.splice(index, 1)[0]
+  saveJson('users.json', demoUsers)
   res.json({ message: `User ${removed.name} deleted successfully` })
 })
 
@@ -486,6 +679,7 @@ app.post('/api/users/broadcast', (req, res) => {
   }
 
   notifications.unshift(broadcastNotif)
+  saveJson('notifications.json', notifications)
 
   res.json({ message: 'Broadcast announcement published successfully', notification: broadcastNotif })
 })
@@ -502,6 +696,7 @@ app.post('/api/users/:id/message', async (req, res) => {
   const notifObj = createNotification('direct_message', finalSubject, message)
   notifObj.userEmail = targetUser.email
   notifications.unshift(notifObj)
+  saveJson('notifications.json', notifications)
 
   await notifyStudent({
     student: targetUser,
@@ -566,7 +761,7 @@ app.get('/api/complaints', (req, res) => {
 
 app.post('/api/complaints', async (req, res) => {
   const complaint = req.body
-    let mlPrediction = null
+  let mlPrediction = null
 
   try {
     const mlResponse = await fetch(`${mlServiceUrl}/predict`, {
@@ -618,6 +813,7 @@ app.post('/api/complaints', async (req, res) => {
     submissionDate: complaint.submissionDate || new Date().toISOString().slice(0, 10),
     lastUpdated: complaint.lastUpdated || new Date().toISOString().slice(0, 10),
     timeline: complaint.timeline || [{ status: 'Submitted', progress: 10, date: new Date().toISOString().slice(0, 10), note: `Complaint filed by student and routed to ${complaint.destination || complaint.department || 'Department'}.` }],
+    evidenceStatus: complaint.evidenceStatus || (complaint.attachments?.length ? 'Pending Verification' : 'No Evidence'),
     emailUpdates: complaint.emailUpdates || [],
     attachments: complaint.attachments || [],
     rating: complaint.rating ?? null,
@@ -626,19 +822,21 @@ app.post('/api/complaints', async (req, res) => {
   }
 
   complaints.unshift(newComplaint)
+  saveJson('complaints.json', complaints)
 
   const submittedEmail = String(complaint.submittedByEmail || newComplaint.submittedByEmail || '').trim()
   const student = demoUsers.find((entry) => entry.email?.toLowerCase() === submittedEmail.toLowerCase())
     || demoUsers.find((entry) => entry.name === complaint.submittedBy)
 
   const notificationResults = await notifyStudent({
-      student: { ...student, name: student?.name || complaint.submittedBy || 'Student', email: submittedEmail || student?.email },
-      type: 'Complaint',
-      title: 'Complaint Submitted',
-      message: `Your complaint "${newComplaint.title}" has been received and is now under review. Initial progress: 10%.`,
-    })
+    student: { ...student, name: student?.name || complaint.submittedBy || 'Student', email: submittedEmail || student?.email },
+    type: 'Complaint',
+    title: 'Complaint Submitted',
+    message: `Your complaint "${newComplaint.title}" has been received and is now under review. Initial progress: 10%.`,
+  })
   if (student || submittedEmail) {
     notifications.unshift(createNotification('complaint', 'Complaint submitted', `Your complaint "${newComplaint.title}" has been received and is now under review.`))
+    saveJson('notifications.json', notifications)
   }
 
   return res.status(201).json({ complaint: newComplaint, notifications: notificationResults })
@@ -747,8 +945,63 @@ app.patch('/api/complaints/:id/status', async (req, res) => {
     createdAt: new Date().toISOString(),
   }
   notifications.unshift(inAppNotif)
+  saveJson('complaints.json', complaints)
+  saveJson('notifications.json', notifications)
 
   return res.json({ complaint, emailResult, emailRecord })
+})
+
+app.patch('/api/complaints/:id/evidence-review', async (req, res) => {
+  const { id } = req.params
+  const { decision, reason = '' } = req.body || {}
+  const complaint = complaints.find((c) => c.id === id)
+  if (!complaint) return res.status(404).json({ message: 'Complaint not found.' })
+
+  const today = new Date().toISOString().slice(0, 10)
+  complaint.lastUpdated = today
+  complaint.timeline = complaint.timeline || []
+  complaint.emailUpdates = complaint.emailUpdates || []
+
+  const isApproved = decision === 'approve'
+  complaint.evidenceStatus = isApproved ? 'Approved' : 'Rejected'
+
+  if (isApproved) {
+    complaint.status = 'Assigned'
+    complaint.progress = Math.max(complaint.progress || 10, 25)
+    complaint.timeline.push({
+      status: 'Assigned',
+      progress: complaint.progress,
+      date: today,
+      note: 'Evidence reviewed & verified by Admin. Technician dispatched to inspect issue.',
+      emailSent: true,
+    })
+  } else {
+    complaint.status = 'Rejected'
+    complaint.timeline.push({
+      status: 'Rejected',
+      progress: complaint.progress || 10,
+      date: today,
+      note: `Evidence rejected by Admin: ${reason || 'Uploaded photo does not show the reported issue.'}`,
+      emailSent: true,
+    })
+  }
+
+  saveJson('complaints.json', complaints)
+
+  // Notify student
+  const studentEmail = complaint.submittedByEmail || 'aarav@student.dcrust.in'
+  const notifObj = createNotification(
+    'complaint',
+    isApproved ? 'Evidence Verified & Technician Assigned' : 'Evidence Photo Rejected',
+    isApproved
+      ? `Your photo evidence for "${complaint.title}" has been verified by the maintenance office. Work assigned.`
+      : `Your photo evidence for "${complaint.title}" was rejected: ${reason || 'Photo does not show the reported defect. Please re-submit with actual damage photo.'}`
+  )
+  notifObj.userEmail = studentEmail
+  notifications.unshift(notifObj)
+  saveJson('notifications.json', notifications)
+
+  return res.json({ message: `Evidence ${isApproved ? 'approved' : 'rejected'} successfully`, complaint })
 })
 
 app.post('/api/complaints/:id/notify', async (req, res) => {
@@ -830,6 +1083,8 @@ app.post('/api/complaints/:id/notify', async (req, res) => {
     isRead: false,
     createdAt: new Date().toISOString(),
   })
+  saveJson('complaints.json', complaints)
+  saveJson('notifications.json', notifications)
 
   return res.json({ complaint, emailResult, emailRecord })
 })
@@ -859,14 +1114,20 @@ app.post('/api/permissions', async (req, res) => {
   }
 
   permissions.unshift(newPermission)
+  saveJson('permissions.json', permissions)
 
-  const student = demoUsers.find((entry) => entry.email?.toLowerCase() === String(permission.submittedByEmail || '').toLowerCase())
+  const submittedEmail = String(permission.submittedByEmail || '').trim()
+  const student = demoUsers.find((entry) => entry.email?.toLowerCase() === submittedEmail.toLowerCase())
     || demoUsers.find((entry) => entry.name === permission.submittedBy)
+  const targetEmail = submittedEmail || student?.email
 
-  if (student) {
-    notifications.unshift(createNotification('permission', 'Permission request submitted', `Your permission request for "${newPermission.title}" has been submitted for review.`))
+  if (student || targetEmail) {
+    const notif = createNotification('permission', 'Permission request submitted', `Your permission request for "${newPermission.title}" has been submitted for review.`)
+    notif.userEmail = targetEmail
+    notifications.unshift(notif)
+    saveJson('notifications.json', notifications)
     await notifyStudent({
-      student,
+      student: { ...student, name: student?.name || permission.submittedBy || 'Student', email: targetEmail },
       type: 'Permission',
       title: 'Permission Request Submitted',
       message: `Your permission request for "${newPermission.title}" has been submitted for review.`,
@@ -887,93 +1148,152 @@ app.patch('/api/permissions/:id/status', async (req, res) => {
 
   ensureApprovalWorkflow(permission)
   const reviewDecision = decision || (status === 'Approved' ? 'approve' : status === 'Rejected' ? 'reject' : null)
-  if (!['approve', 'reject', 'return'].includes(reviewDecision)) {
-    return res.status(400).json({ message: 'Choose approve, reject, or return for the current stage.' })
+  if (!['approve', 'final_approve', 'reject', 'return'].includes(reviewDecision)) {
+    return res.status(400).json({ message: 'Choose approve, final_approve, reject, or return for the permission request.' })
   }
   if (permission.status === 'Approved' || permission.status === 'Rejected') {
     return res.status(409).json({ message: 'This permission workflow is already complete.' })
   }
 
-  const currentIndex = permission.approvalChain.findIndex((stage) => stage.stage === permission.currentStage)
-  const current = permission.approvalChain[currentIndex]
-  if (!current || current.status !== 'Pending') {
-    return res.status(409).json({ message: 'No approval stage is currently awaiting review.' })
-  }
-  if (current.stage === 'Department Head' && reviewerRole !== 'department_head') {
-    return res.status(403).json({ message: 'This request must be reviewed by the Department Head first.' })
-  }
-  const expectedReviewer = {
-    'Cultural Coordinator': 'cultural_coordinator',
-    'Technical Coordinator': 'technical_coordinator',
-    DSW: 'dsw',
-    Registrar: 'registrar',
-    'Vice Chancellor': 'vice_chancellor',
-  }[current.stage]
-  if (current.stage !== 'Department Head' && reviewerRole !== expectedReviewer) {
-    return res.status(403).json({ message: `This request is awaiting ${current.stage} review.` })
-  }
-  if (current.stage === 'Cultural Coordinator' && permission.type !== 'Cultural') {
-    return res.status(403).json({ message: 'Only cultural requests can be reviewed by the Cultural Coordinator.' })
-  }
-  if (current.stage === 'Technical Coordinator' && permission.type === 'Cultural') {
-    return res.status(403).json({ message: 'Cultural requests must be reviewed by the Cultural Coordinator.' })
-  }
-  if (['return', 'reject'].includes(reviewDecision) && !String(comment).trim()) {
-    return res.status(400).json({ message: 'Add a comment explaining the requested changes or rejection.' })
-  }
-
+  const isSuperAdmin = reviewerRole === 'admin'
   const now = new Date().toISOString()
-  current.status = reviewDecision === 'approve' ? 'Approved' : reviewDecision === 'return' ? 'Returned' : 'Rejected'
-  current.decidedAt = now
-  current.comment = String(comment).trim()
-  permission.approvalHistory = [
-    ...(permission.approvalHistory || []),
-    { stage: current.stage, status: current.status, date: now, note: current.comment },
-  ]
+  const reviewComment = String(comment || '').trim()
 
-  if (reviewDecision === 'return') {
-    const previous = permission.approvalChain[currentIndex - 1]
-    if (previous) {
-      previous.status = 'Pending'
-      previous.decidedAt = null
-      permission.currentStage = previous.stage
-      permission.status = 'Pending Approval'
-      current.status = 'Returned'
-      permission.approvalHistory.push({ stage: previous.stage, status: 'Returned for revision', date: now, note: current.comment, returnedBy: current.stage })
-    } else {
-      permission.currentStage = null
-      permission.status = 'Changes Requested'
-    }
-  } else if (reviewDecision === 'reject') {
-    permission.status = 'Rejected'
+  if (reviewDecision === 'final_approve') {
+    // Super Admin one-click full clearance
+    permission.approvalChain.forEach((stage) => {
+      if (stage.status !== 'Approved') {
+        stage.status = 'Approved'
+        stage.decidedAt = now
+        stage.comment = reviewComment || 'Final approval granted by University Administration'
+      }
+    })
+    permission.status = 'Approved'
     permission.currentStage = null
+    permission.approvalHistory = [
+      ...(permission.approvalHistory || []),
+      {
+        stage: 'University Administration',
+        status: 'Approved',
+        date: now,
+        note: reviewComment || 'Full final approval granted by University Administration',
+      },
+    ]
   } else {
-    const next = permission.approvalChain[currentIndex + 1]
-    if (next) {
-      next.status = 'Pending'
-      permission.currentStage = next.stage
-      permission.status = 'Pending Approval'
-    } else {
+    const currentIndex = permission.approvalChain.findIndex((stage) => stage.stage === permission.currentStage)
+    const current = permission.approvalChain[currentIndex]
+    if (!current || current.status !== 'Pending') {
+      return res.status(409).json({ message: 'No approval stage is currently awaiting review.' })
+    }
+
+    if (!isSuperAdmin) {
+      if (current.stage === 'Department Head' && reviewerRole !== 'department_head') {
+        return res.status(403).json({ message: 'This request must be reviewed by the Department Head first.' })
+      }
+      const expectedReviewer = {
+        'Cultural Coordinator': 'cultural_coordinator',
+        'Technical Coordinator': 'technical_coordinator',
+        DSW: 'dsw',
+        Registrar: 'registrar',
+        'Vice Chancellor': 'vice_chancellor',
+      }[current.stage]
+      if (current.stage !== 'Department Head' && reviewerRole !== expectedReviewer) {
+        return res.status(403).json({ message: `This request is awaiting ${current.stage} review.` })
+      }
+      if (current.stage === 'Cultural Coordinator' && permission.type !== 'Cultural') {
+        return res.status(403).json({ message: 'Only cultural requests can be reviewed by the Cultural Coordinator.' })
+      }
+      if (current.stage === 'Technical Coordinator' && permission.type === 'Cultural') {
+        return res.status(403).json({ message: 'Cultural requests must be reviewed by the Cultural Coordinator.' })
+      }
+    }
+
+    if (['return', 'reject'].includes(reviewDecision) && !reviewComment) {
+      return res.status(400).json({ message: 'Add a comment explaining the requested changes or rejection.' })
+    }
+
+    current.status = reviewDecision === 'approve' ? 'Approved' : reviewDecision === 'return' ? 'Returned' : 'Rejected'
+    current.decidedAt = now
+    current.comment = reviewComment || (reviewDecision === 'approve' ? 'Approved by University Administration' : '')
+    permission.approvalHistory = [
+      ...(permission.approvalHistory || []),
+      { stage: current.stage, status: current.status, date: now, note: current.comment },
+    ]
+
+    if (reviewDecision === 'return') {
+      const previous = permission.approvalChain[currentIndex - 1]
+      if (previous) {
+        previous.status = 'Pending'
+        previous.decidedAt = null
+        permission.currentStage = previous.stage
+        permission.status = 'Pending Approval'
+        current.status = 'Returned'
+        permission.approvalHistory.push({ stage: previous.stage, status: 'Returned for revision', date: now, note: current.comment, returnedBy: current.stage })
+      } else {
+        permission.currentStage = null
+        permission.status = 'Changes Requested'
+      }
+    } else if (reviewDecision === 'reject') {
+      permission.status = 'Rejected'
       permission.currentStage = null
-      permission.status = 'Approved'
+    } else {
+      const next = permission.approvalChain[currentIndex + 1]
+      if (next) {
+        next.status = 'Pending'
+        permission.currentStage = next.stage
+        permission.status = 'Pending Approval'
+      } else {
+        permission.currentStage = null
+        permission.status = 'Approved'
+      }
     }
   }
 
   const student = demoUsers.find((entry) => entry.name === permission.submittedBy)
     || demoUsers.find((entry) => entry.email?.toLowerCase() === String(permission.submittedByEmail || '').toLowerCase())
+  const studentEmail = permission.submittedByEmail || student?.email
 
-  if (student) {
-    const statusMessage = reviewDecision === 'return'
-      ? `Your permission request for "${permission.title}" needs changes. ${permission.currentStage ? `It has been returned to ${permission.currentStage}.` : 'Please revise it and contact your Department Head.'} Reviewer note: ${current.comment}`
-      : `Your permission request for "${permission.title}" was ${current.status.toLowerCase()} at ${current.stage}.${permission.currentStage ? ` It is now with ${permission.currentStage}.` : ` Final status: ${permission.status}.`}${current.comment ? ` Reviewer note: ${current.comment}` : ''}`
-    notifications.unshift(createNotification('permission', `Permission update: ${reviewDecision === 'return' ? 'Changes requested' : current.status}`, statusMessage))
-    await notifyStudent({
-      student,
+  if (student || studentEmail) {
+    let statusMessage = ''
+    let notifTitle = `Permission ${permission.status}: ${permission.title}`
+
+    if (reviewDecision === 'final_approve') {
+      statusMessage = `Great news! Your permission request for "${permission.title}" has been granted FULL & FINAL APPROVAL by the University Administration. You may proceed with the activity.${reviewComment ? ` Note: ${reviewComment}` : ''}`
+      notifTitle = `Permission Fully Approved: ${permission.title}`
+    } else if (reviewDecision === 'return') {
+      statusMessage = `Your permission request for "${permission.title}" needs changes. ${permission.currentStage ? `It has been returned to ${permission.currentStage}.` : 'Please revise it and contact your Department Head.'} Reviewer note: ${reviewComment}`
+      notifTitle = `Changes Requested: ${permission.title}`
+    } else {
+      statusMessage = `Your permission request for "${permission.title}" was approved by ${reviewerRole === 'admin' ? 'University Administration' : (permission.approvalHistory[permission.approvalHistory.length - 1]?.stage || 'Reviewer')}.${permission.currentStage ? ` It is now awaiting review from: ${permission.currentStage}.` : ` Final status: ${permission.status}.`}${reviewComment ? ` Note: ${reviewComment}` : ''}`
+      notifTitle = `Permission Update: ${permission.title}`
+    }
+
+    const notifObj = createNotification('permission', notifTitle, statusMessage)
+    notifObj.userEmail = studentEmail
+    notifications.unshift(notifObj)
+
+    const emailResult = await notifyStudent({
+      student: { ...student, name: student?.name || permission.submittedBy, email: studentEmail },
       type: 'Permission Update',
-      title: `Permission update: ${reviewDecision === 'return' ? 'Changes requested' : current.status}`,
+      title: notifTitle,
       message: statusMessage,
     })
+
+    permission.emailUpdates = permission.emailUpdates || []
+    permission.emailUpdates.unshift({
+      id: `EML-PER-${Date.now()}`,
+      date: now,
+      sender: reviewerRole === 'admin' ? 'Campus Admin (Prince Chahal)' : 'University Administration',
+      recipient: studentEmail,
+      subject: notifTitle,
+      message: statusMessage,
+      status: permission.status,
+      delivered: Boolean(emailResult?.email?.sent || emailResult?.email?.mode === 'dry-run'),
+    })
   }
+
+  saveJson('permissions.json', permissions)
+  saveJson('notifications.json', notifications)
 
   return res.json(permission)
 })
@@ -998,11 +1318,130 @@ app.patch('/api/permissions/:id/resubmit', (req, res) => {
     ...(permission.approvalHistory || []),
     { stage: 'Student', status: 'Resubmitted', date: now, note: studentResponse },
   ]
+  saveJson('permissions.json', permissions)
   return res.json(permission)
 })
 
 app.get('/api/notifications', (req, res) => {
   res.json(notifications)
+})
+
+app.patch('/api/notifications/read-all', (req, res) => {
+  const { userEmail } = req.body || {}
+  const targetEmail = String(userEmail || '').trim().toLowerCase()
+
+  notifications.forEach((item) => {
+    if (!targetEmail || (item.userEmail && item.userEmail.toLowerCase() === targetEmail)) {
+      item.isRead = true
+    }
+  })
+  saveJson('notifications.json', notifications)
+  res.json({ message: 'All notifications marked as read', notifications })
+})
+
+app.patch('/api/notifications/:id/read', (req, res) => {
+  const { id } = req.params
+  const item = notifications.find((n) => n.id === id)
+  if (item) {
+    item.isRead = true
+    saveJson('notifications.json', notifications)
+  }
+  res.json({ message: 'Notification marked as read', notification: item })
+})
+
+app.delete('/api/notifications/clear', (req, res) => {
+  const { userEmail } = req.body || {}
+  const targetEmail = String(userEmail || '').trim().toLowerCase()
+
+  if (targetEmail) {
+    const remaining = notifications.filter((item) => item.userEmail && item.userEmail.toLowerCase() !== targetEmail)
+    notifications.length = 0
+    notifications.push(...remaining)
+  } else {
+    notifications.length = 0
+  }
+  saveJson('notifications.json', notifications)
+  res.json({ message: 'Notifications cleared', notifications })
+})
+
+const newsletterSubscribers = loadJson('subscribers.json', [
+  { email: 'aarav@student.dcrust.in', subscribedAt: '2026-10-02T10:00:00Z' },
+])
+
+app.get('/api/newsletter/subscribers', (req, res) => {
+  res.json({
+    total: newsletterSubscribers.length,
+    subscribers: newsletterSubscribers,
+  })
+})
+
+app.post('/api/newsletter/subscribe', async (req, res) => {
+  const { email } = req.body || {}
+  const normalizedEmail = String(email || '').trim().toLowerCase()
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!normalizedEmail || !emailRegex.test(normalizedEmail)) {
+    return res.status(400).json({ message: 'Please provide a valid email address.' })
+  }
+
+  const existing = newsletterSubscribers.find((s) => s.email.toLowerCase() === normalizedEmail)
+  if (existing) {
+    return res.status(200).json({
+      success: true,
+      alreadySubscribed: true,
+      message: 'You are already subscribed to DCRUST Smart Campus updates!',
+      email: normalizedEmail,
+    })
+  }
+
+  const newSubscriber = {
+    email: normalizedEmail,
+    subscribedAt: new Date().toISOString(),
+  }
+  newsletterSubscribers.unshift(newSubscriber)
+  saveJson('subscribers.json', newsletterSubscribers)
+
+  const welcomeHtml = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff;">
+      <div style="background-color: #142B4A; padding: 18px 24px; border-radius: 12px; color: #ffffff; text-align: center;">
+        <h2 style="margin: 0; font-size: 22px; letter-spacing: 0.5px;">DCRUST Smart Campus</h2>
+        <p style="margin: 4px 0 0; font-size: 13px; color: #14B8A6;">Campus Maintenance & Services Portal</p>
+      </div>
+      <div style="padding: 24px 8px; color: #334155;">
+        <h3 style="color: #0f172a; margin-top: 0; font-size: 18px;">Welcome to Smart Campus Updates! 🎉</h3>
+        <p style="font-size: 14px; line-height: 1.6;">
+          Thank you for subscribing with <strong>${normalizedEmail}</strong>. You will now receive:
+        </p>
+        <ul style="font-size: 14px; line-height: 1.8; color: #475569;">
+          <li>⚡ Campus utility & maintenance updates (Power, Water, Wi-Fi)</li>
+          <li>📢 Important administrative notices & service schedules</li>
+          <li>📅 Upcoming campus events & safety advisories</li>
+        </ul>
+        <p style="font-size: 14px; line-height: 1.6; margin-top: 20px;">
+          You can track complaints and submit service requests at any time by visiting the portal.
+        </p>
+      </div>
+      <div style="border-top: 1px solid #f1f5f9; padding-top: 16px; text-align: center; font-size: 12px; color: #94a3b8;">
+        Deenbandhu Chhotu Ram University of Science and Technology, Murthal (DCRUST)<br/>
+        &copy; 2026 DCRUST Smart Campus Services
+      </div>
+    </div>
+  `
+
+  const emailResult = await sendEmailNotification({
+    to: normalizedEmail,
+    subject: 'Welcome to DCRUST Smart Campus Updates! 📢',
+    text: `Welcome to DCRUST Smart Campus Updates! Thank you for subscribing with ${normalizedEmail}. You will now receive campus maintenance notices, utility schedules, and event announcements directly in your inbox.`,
+    html: welcomeHtml,
+  })
+
+  return res.status(201).json({
+    success: true,
+    alreadySubscribed: false,
+    message: 'Subscribed successfully! A confirmation email has been sent to your inbox.',
+    email: normalizedEmail,
+    emailResult,
+  })
 })
 
 app.listen(port, () => {

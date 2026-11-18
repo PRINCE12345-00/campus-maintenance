@@ -1,0 +1,82 @@
+[
+  {
+    "id": "STU-202401",
+    "name": "Aarav Sharma",
+    "email": "aarav@student.dcrust.in",
+    "role": "student",
+    "department": "Computer Science & Engineering",
+    "batch": "2026",
+    "phone": "+91 98765 43210",
+    "hostel": "Boys Hostel Block A",
+    "password": "student123"
+  },
+  {
+    "id": "ADM-9001",
+    "name": "Prince Chahal",
+    "email": "chahalprince0481@gmail.com",
+    "role": "admin",
+    "department": "Administrative Office",
+    "phone": "",
+    "password": "prince@123"
+  },
+  {
+    "id": "HOD-CSE-01",
+    "name": "CSE Department Head",
+    "email": "hod.cse@dcrust.in",
+    "role": "department_head",
+    "department": "Computer Science & Engineering",
+    "password": "hod12345"
+  },
+  {
+    "id": "COORD-CULT-01",
+    "name": "Cultural Coordinator",
+    "email": "cultural.coordinator@dcrust.in",
+    "role": "cultural_coordinator",
+    "department": "Student Affairs",
+    "password": "culture123"
+  },
+  {
+    "id": "COORD-TECH-01",
+    "name": "Technical Coordinator",
+    "email": "technical.coordinator@dcrust.in",
+    "role": "technical_coordinator",
+    "department": "Student Affairs",
+    "password": "tech12345"
+  },
+  {
+    "id": "DSW-01",
+    "name": "Dean of Student Welfare",
+    "email": "dsw@dcrust.in",
+    "role": "dsw",
+    "department": "Student Welfare",
+    "password": "dsw12345"
+  },
+  {
+    "id": "REG-01",
+    "name": "Registrar",
+    "email": "registrar@dcrust.in",
+    "role": "registrar",
+    "department": "Registrar Office",
+    "password": "registrar123"
+  },
+  {
+    "id": "VC-01",
+    "name": "Vice Chancellor",
+    "email": "vc@dcrust.in",
+    "role": "vice_chancellor",
+    "department": "Vice Chancellor Office",
+    "password": "vc123456"
+  },
+  {
+    "id": "23001001076",
+    "rollNumber": "23001001076",
+    "name": "Pankaj Kumar",
+    "email": "pankajsulekh255@gmail.com",
+    "role": "student",
+    "department": "CSE",
+    "batch": "2026",
+    "password": "chd@2004",
+    "hostel": "BH-1 Room No. 366",
+    "phone": "+91 9306817255"
+  }
+]

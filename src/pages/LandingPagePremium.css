@@ -1221,6 +1221,25 @@
   color: #00d2ff;
   margin: 10px 0 0 0;
   text-align: center;
+  transition: opacity 0.2s ease;
+}
+
+.newsletter-status-msg.status-success {
+  color: #34d399;
+}
+
+.newsletter-status-msg.status-already {
+  color: #38bdf8;
+}
+
+.newsletter-status-msg.status-error {
+  color: #f87171;
+}
+
+.newsletter-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+  transform: none;
 }
 
 /* Bottom Bar */

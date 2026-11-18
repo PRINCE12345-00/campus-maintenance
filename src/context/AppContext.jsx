@@ -138,7 +138,8 @@ export function AppProvider({ children }) {
     mobilePermission,
     requestMobilePermission,
     notifyDevice,
-  }), [user, complaints, permissions, notifications, profile, mobilePermission])
+    refreshData,
+  }), [user, complaints, permissions, notifications, profile, mobilePermission, refreshData])
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
 }
