@@ -30,6 +30,26 @@ export const demoUsers = {
   dsw: { id: 'DSW-01', name: 'Dean of Student Welfare', email: 'dsw@dcrust.in', role: 'dsw', department: 'Student Welfare', phone: '' },
   registrar: { id: 'REG-01', name: 'Registrar', email: 'registrar@dcrust.in', role: 'registrar', department: 'Registrar Office', phone: '' },
   viceChancellor: { id: 'VC-01', name: 'Vice Chancellor', email: 'vc@dcrust.in', role: 'vice_chancellor', department: 'Vice Chancellor Office', phone: '' },
+  pankaj: {
+    id: '23001001076',
+    rollNumber: '23001001076',
+    name: 'Pankaj Kumar',
+    email: 'pankajsulekh255@gmail.com',
+    role: 'student',
+    department: 'CSE',
+    batch: '2026',
+    phone: '+91 9306817255',
+    hostel: 'BH-1 Room No. 366',
+  },
+  pinku: {
+    id: '23001002075',
+    rollNumber: '23001002075',
+    name: 'Pinku',
+    email: 'pinkusulekh@gmail.com',
+    role: 'student',
+    department: 'EE',
+    batch: '2026',
+  },
 }
 
 export const initialComplaints = [

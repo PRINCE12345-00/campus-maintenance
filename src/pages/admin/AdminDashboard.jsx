@@ -84,17 +84,31 @@ export default function AdminDashboard() {
         </div>
 
         <div className="glass-panel rounded-3xl p-5 shadow-[0_24px_60px_rgba(2,6,23,0.38)]">
-          <h2 className="mb-4 text-xl font-bold text-white">Priority actions</h2>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-bold text-white">Priority actions</h2>
+            <span className="text-xs font-semibold text-rose-400">High severity first</span>
+          </div>
           <div className="space-y-3">
-            {complaints.slice(0, 4).map((complaint) => (
-              <div key={complaint.id} className="rounded-2xl border border-white/8 bg-slate-900/40 p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <p className="font-semibold text-slate-100">{complaint.title}</p>
-                  <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-bold uppercase ${complaint.priority === 'High' ? 'bg-rose-500/20 text-rose-300' : complaint.priority === 'Medium' ? 'bg-amber-500/20 text-amber-300' : 'bg-slate-500/20 text-slate-300'}`}>{complaint.priority}</span>
-                </div>
-                <p className="mt-1 text-sm text-slate-400">{complaint.location} • {complaint.status}</p>
-              </div>
-            ))}
+            {[...complaints]
+              .sort((a, b) => {
+                const priorityRank = { Emergency: 0, Critical: 0, High: 1, Medium: 2, Low: 3 }
+                const rA = priorityRank[a.priority] ?? 2
+                const rB = priorityRank[b.priority] ?? 2
+                if (rA !== rB) return rA - rB
+                const dateA = new Date(a.submissionDate || a.lastUpdated || a.createdAt || 0).getTime()
+                const dateB = new Date(b.submissionDate || b.lastUpdated || b.createdAt || 0).getTime()
+                return dateB - dateA
+              })
+              .slice(0, 4)
+              .map((complaint) => (
+                <Link to={`/admin/complaint/${complaint.id}`} key={complaint.id} className="block rounded-2xl border border-white/8 bg-slate-900/40 p-4 hover:border-white/20 transition-all">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-semibold text-slate-100 hover:text-blue-400">{complaint.title}</p>
+                    <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-bold uppercase ${complaint.priority === 'High' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : complaint.priority === 'Medium' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-slate-500/20 text-slate-300'}`}>{complaint.priority}</span>
+                  </div>
+                  <p className="mt-1 text-sm text-slate-400">{complaint.location} • {complaint.status}</p>
+                </Link>
+              ))}
           </div>
         </div>
       </div>

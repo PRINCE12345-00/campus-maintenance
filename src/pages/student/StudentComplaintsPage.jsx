@@ -1,11 +1,11 @@
 import { motion } from 'framer-motion'
 import { useEffect, useMemo, useState } from 'react'
-import { AlertCircle, CheckCircle2, Download, Filter, Mail, Search, Send } from 'lucide-react'
+import { AlertCircle, Camera, CheckCircle2, Download, Filter, Mail, Search, Send, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import FileUpload from '../../components/FileUpload'
 import StatusBadge from '../../components/StatusBadge'
 import { useAppContext } from '../../context/AppContext'
-import { complaintsApi } from '../../services/api'
+import { complaintsApi, visionApi } from '../../services/api'
 import { campusLocations, categoryOptions, formatDate } from '../../utils/formatters'
 import { getStudentComplaints } from '../../utils/studentRecords'
 import { compressImageForStorage } from '../../utils/evidence'
@@ -20,6 +20,34 @@ export default function StudentComplaintsPage() {
   const [uploadResetKey, setUploadResetKey] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
+  const [visionCheck, setVisionCheck] = useState(null)
+  const [isCheckingVision, setIsCheckingVision] = useState(false)
+
+  const handleEvidenceChange = async (files) => {
+    setEvidenceFiles(files)
+    if (!files || files.length === 0) {
+      setVisionCheck(null)
+      return
+    }
+
+    const firstImage = files.find((f) => f.type?.startsWith('image/'))
+    if (!firstImage) return
+
+    setIsCheckingVision(true)
+    try {
+      const dataUrl = await compressImageForStorage(firstImage)
+      if (dataUrl) {
+        const res = await visionApi.analyzeImage(dataUrl, firstImage.name, form.category)
+        if (res.data?.success) {
+          setVisionCheck(res.data)
+        }
+      }
+    } catch (e) {
+      console.log('Instant vision check error:', e)
+    } finally {
+      setIsCheckingVision(false)
+    }
+  }
   const [form, setForm] = useState({
     category: 'Electrical',
     location: 'Academic Block A',
@@ -36,12 +64,22 @@ export default function StudentComplaintsPage() {
   }, [successMessage])
 
   const filteredComplaints = useMemo(() => {
-    return getStudentComplaints(complaints, user).filter((c) => {
-      const matchQuery = !query || [c.title, c.location, c.category].join(' ').toLowerCase().includes(query.toLowerCase())
-      const matchStatus = statusFilter === 'All' || c.status === statusFilter
-      const matchCategory = categoryFilter === 'All' || c.category === categoryFilter
-      return matchQuery && matchStatus && matchCategory
-    })
+    const priorityRank = { Emergency: 0, Critical: 0, High: 1, Medium: 2, Low: 3 }
+    return getStudentComplaints(complaints, user)
+      .filter((c) => {
+        const matchQuery = !query || [c.title, c.location, c.category].join(' ').toLowerCase().includes(query.toLowerCase())
+        const matchStatus = statusFilter === 'All' || c.status === statusFilter
+        const matchCategory = categoryFilter === 'All' || c.category === categoryFilter
+        return matchQuery && matchStatus && matchCategory
+      })
+      .sort((a, b) => {
+        const rA = priorityRank[a.priority] ?? 2
+        const rB = priorityRank[b.priority] ?? 2
+        if (rA !== rB) return rA - rB
+        const dateA = new Date(a.submissionDate || a.lastUpdated || a.createdAt || 0).getTime()
+        const dateB = new Date(b.submissionDate || b.lastUpdated || b.createdAt || 0).getTime()
+        return dateB - dateA
+      })
   }, [complaints, user, query, statusFilter, categoryFilter])
 
   const pageSize = 4
@@ -96,6 +134,7 @@ export default function StudentComplaintsPage() {
         submissionDate: today,
         lastUpdated: today,
         attachments,
+        aiVisionResult: visionCheck,
         timeline: [{ status: 'Submitted', progress: 10, date: today, note: 'Complaint filed by student.' }],
         emailUpdates: [],
         rating: null,
@@ -106,6 +145,7 @@ export default function StudentComplaintsPage() {
       setComplaints((prev) => [data.complaint, ...prev])
       setForm({ category: 'Electrical', location: 'Academic Block A', destination: 'Department', title: '', description: '' })
       setEvidenceFiles([])
+      setVisionCheck(null)
       setUploadResetKey((key) => key + 1)
       const emailResult = data.notifications?.email
       if (emailResult?.sent) {
@@ -179,7 +219,45 @@ export default function StudentComplaintsPage() {
               {errors.description && <p className="mt-2 text-sm text-red-400">{errors.description}</p>}
             </div>
 
-            <FileUpload key={uploadResetKey} label="Upload evidence" onChange={setEvidenceFiles} />
+            <FileUpload key={uploadResetKey} label="Upload evidence" onChange={handleEvidenceChange} />
+
+            {/* Instant AI Computer Vision Verification Feedback */}
+            {isCheckingVision && (
+              <div className="flex items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-300 animate-pulse">
+                <Camera size={15} /> Scanning photo with AI Computer Vision for defect authenticity...
+              </div>
+            )}
+
+            {visionCheck && !isCheckingVision && (
+              <div className={`rounded-xl border p-3.5 text-xs transition-all ${
+                visionCheck.is_genuine
+                  ? 'border-emerald-500/30 bg-emerald-950/20 text-emerald-200'
+                  : visionCheck.authenticity_score < 45
+                  ? 'border-rose-500/30 bg-rose-950/20 text-rose-200'
+                  : 'border-amber-500/30 bg-amber-950/20 text-amber-200'
+              }`}>
+                <div className="flex items-center justify-between font-bold mb-1">
+                  <span className="flex items-center gap-1.5">
+                    <Camera size={14} /> AI Evidence Status: {visionCheck.authenticity_status}
+                  </span>
+                  <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase ${
+                    visionCheck.is_genuine
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                      : visionCheck.authenticity_score < 45
+                      ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                      : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                  }`}>
+                    {visionCheck.authenticity_score}% Authenticity
+                  </span>
+                </div>
+                <p className="text-[11px] leading-relaxed text-slate-200 mt-1">{visionCheck.admin_alert}</p>
+                {visionCheck.defect_class && (
+                  <p className="mt-1.5 text-[11px] text-slate-400">
+                    Detected Visual Pattern: <span className="font-semibold text-white">{visionCheck.defect_class}</span> ({visionCheck.quality?.status})
+                  </p>
+                )}
+              </div>
+            )}
 
             {errors.submit && <p role="alert" className="text-sm text-red-400">{errors.submit}</p>}
 

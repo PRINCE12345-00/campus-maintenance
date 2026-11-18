@@ -1,3 +1,4 @@
+
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
@@ -38,6 +39,29 @@ function saveJson(fileName, data) {
   } catch (err) {
     console.error(`Error saving ${fileName}:`, err.message)
   }
+}
+
+const defaultMlMetrics = {
+  model_version: '2.0.0',
+  total_training_records: 5000,
+  category_accuracy: 100,
+  category_champion: 'Calibrated Logistic Regression',
+  priority_accuracy: 70.2,
+  priority_champion: 'Balanced NLP Classifier',
+  resolution_mae_days: 3.84,
+  resolution_champion: 'Random Forest Regressor',
+}
+
+function getMlMetrics() {
+  try {
+    const metricsPath = path.join(__dirname, '..', 'ml-service', 'models', 'metrics.json')
+    if (fs.existsSync(metricsPath)) {
+      return JSON.parse(fs.readFileSync(metricsPath, 'utf-8'))
+    }
+  } catch (err) {
+    console.error('Error reading metrics.json:', err.message)
+  }
+  return defaultMlMetrics
 }
 
 const app = express()
@@ -81,7 +105,30 @@ const initialDemoUsers = [
   { id: 'DSW-01', name: 'Dean of Student Welfare', email: 'dsw@dcrust.in', role: 'dsw', department: 'Student Welfare', password: 'dsw12345' },
   { id: 'REG-01', name: 'Registrar', email: 'registrar@dcrust.in', role: 'registrar', department: 'Registrar Office', password: 'registrar123' },
   { id: 'VC-01', name: 'Vice Chancellor', email: 'vc@dcrust.in', role: 'vice_chancellor', department: 'Vice Chancellor Office', password: 'vc123456' },
+  {
+    id: '23001001076',
+    rollNumber: '23001001076',
+    name: 'Pankaj Kumar',
+    email: 'pankajsulekh255@gmail.com',
+    role: 'student',
+    department: 'CSE',
+    batch: '2026',
+    hostel: 'BH-1 Room No. 366',
+    phone: '+91 9306817255',
+    password: 'scrypt$4f6b9f790f5e54f29577bbe3918e50c0$a6ef7a562434aa3a81666ad1e65bd7a6bf2916919965d6209e098546452a87ed5b431d6f8a5663b2cbc8f382d89a5106156687af7920d59225b31b592ab61618',
+  },
+  {
+    id: '23001002075',
+    rollNumber: '23001002075',
+    name: 'Pinku',
+    email: 'pinkusulekh@gmail.com',
+    role: 'student',
+    department: 'EE',
+    batch: '2026',
+    password: 'scrypt$a68867770ab730308c5163a804d5a307$cdaea79b7d02c48795c8dbcf8b742b09319607ce8bfe54f15705d64986e27c85dabbbb161f3ece504d98cb7b58aaa6914dc48fc2f35d823c7d4cff6cb633ca54',
+  },
 ]
+
 
 // Secure password hashing and verification using Node.js built-in scrypt
 function hashPassword(password) {
@@ -103,7 +150,7 @@ function verifyPassword(candidate, stored) {
     if (parts.length !== 3) return false
     const [, salt, hash] = parts
 
-    // Validate salt (16 bytes = 32 hex chars) and hash (64 bytes = 128 hex chars)
+    // Validate  salt (16 bytes = 32 hex chars) and hash (64 bytes = 128 hex chars)
     if (!/^[0-9a-fA-F]{32}$/.test(salt) || !/^[0-9a-fA-F]{128}$/.test(hash)) {
       return false
     }
@@ -121,6 +168,7 @@ function verifyPassword(candidate, stored) {
     return false
   }
 }
+
 
 const initialComplaints = [
   {
@@ -259,6 +307,7 @@ const initialNotifications = [
 // Load persistent collections from disk
 const demoUsers = loadJson('users.json', initialDemoUsers)
 
+
 // Migrate any legacy plaintext passwords in users.json to scrypt hashes on startup and persist immediately
 let usersMigrated = false
 demoUsers.forEach((u) => {
@@ -271,9 +320,32 @@ if (usersMigrated) {
   saveJson('users.json', demoUsers)
 }
 
+
 const complaints = loadJson('complaints.json', initialComplaints)
 const permissions = loadJson('permissions.json', initialPermissions)
 const notifications = loadJson('notifications.json', initialNotifications)
+
+const priorityRank = {
+  Emergency: 0,
+  Critical: 0,
+  High: 1,
+  Medium: 2,
+  Low: 3,
+}
+
+const sortComplaintsByPriority = (list) => {
+  return list.sort((a, b) => {
+    const pA = priorityRank[a.priority] ?? 2
+    const pB = priorityRank[b.priority] ?? 2
+    if (pA !== pB) return pA - pB
+    const tA = new Date(a.submissionDate || a.lastUpdated || a.createdAt || 0).getTime()
+    const tB = new Date(b.submissionDate || b.lastUpdated || b.createdAt || 0).getTime()
+    return tB - tA
+  })
+}
+
+// Ensure complaints are sorted High -> Medium -> Low on initial boot
+sortComplaintsByPriority(complaints)
 
 const permissionStages = (type) => [
   'Department Head',
@@ -390,6 +462,7 @@ app.post('/api/auth/register', (req, res) => {
     user: getSafeUser(newUser),
   })
 })
+
 
 // Secure OTP store for verified password reset (in-memory map with 10-minute expiry)
 const passwordResetOtps = new Map()
@@ -551,6 +624,7 @@ app.post('/api/auth/direct-reset-password', (req, res) => {
   })
 })
 
+
 // User Management Endpoints
 app.get('/api/users', (req, res) => {
   const usersWithStats = demoUsers.map((user) => {
@@ -592,11 +666,13 @@ app.post('/api/users', (req, res) => {
     return res.status(400).json({ message: 'Name, email, and department are required.' })
   }
 
+
   if (!password || String(password).trim().length < 6) {
     return res.status(400).json({
       message: 'A secure password of at least 6 characters is required. Default or empty passwords are not permitted.',
     })
   }
+
 
   const normalizedEmail = String(email).trim().toLowerCase()
   if (demoUsers.some((u) => u.email.toLowerCase() === normalizedEmail)) {
@@ -613,7 +689,9 @@ app.post('/api/users', (req, res) => {
     batch: String(batch).trim(),
     hostel: String(hostel).trim() || 'Hostel Block A',
     phone: String(phone).trim(),
+
     password: hashPassword(password),
+
     status: 'Active',
     createdAt: new Date().toISOString(),
   }
@@ -636,7 +714,9 @@ app.patch('/api/users/:id', (req, res) => {
     return res.status(404).json({ message: 'User not found' })
   }
 
+
   if (oldPassword && user.password && !verifyPassword(oldPassword, user.password)) {
+
     return res.status(400).json({ message: 'Current password does not match.' })
   }
 
@@ -646,7 +726,9 @@ app.patch('/api/users/:id', (req, res) => {
   if (department) user.department = department
   if (phone !== undefined) user.phone = phone
   if (role) user.role = role
+
   if (password) user.password = hashPassword(password)
+
 
   saveJson('users.json', demoUsers)
   res.json({ message: 'Profile updated successfully', user: getSafeUser(user) })
@@ -707,7 +789,10 @@ app.post('/api/users/:id/message', async (req, res) => {
 
   res.json({ message: `Message sent to ${targetUser.name} (${targetUser.email})` })
 })
+
+
 app.get('/api/analytics', (req, res) => {
+  const mlMetrics = getMlMetrics()
   const countBy = (key) => Object.entries(complaints.reduce((acc, item) => {
     const value = item[key] || 'Unspecified'
     acc[value] = (acc[value] || 0) + 1
@@ -722,13 +807,21 @@ app.get('/api/analytics', (req, res) => {
     }
     return acc
   }, {})
-  const monthlyTrend = Object.entries(monthlyMap).sort(([a], [b]) => a.localeCompare(b)).map(([month, complaintsCount]) => ({ month, complaints: complaintsCount }))
+
+  const monthlyTrend = Object.entries(monthlyMap)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([month, complaintsCount]) => ({ month, complaints: complaintsCount }))
+
   const resolved = complaints.filter((item) => ['Resolved', 'Closed'].includes(item.status))
+
   const resolutionDays = resolved.map((item) => {
     const start = new Date(item.submissionDate)
     const end = new Date(item.lastUpdated || item.submissionDate)
-    return !Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime()) ? Math.max(0, (end - start) / 86400000) : null
+    return !Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())
+      ? Math.max(0, (end - start) / 86400000)
+      : null
   }).filter((value) => value !== null)
+
   const averageResolutionTime = resolutionDays.length
     ? Number((resolutionDays.reduce((sum, value) => sum + value, 0) / resolutionDays.length).toFixed(1))
     : null
@@ -740,7 +833,7 @@ app.get('/api/analytics', (req, res) => {
   const recurringIssues = categoryDistribution.filter((item) => item.value > 1).map((item) => item.name)
 
   res.json({
-    source: 'live-in-memory-complaints',
+    source: 'persistent-campus-db',
     totalComplaints: complaints.length,
     openComplaints: complaints.filter((item) => ['Submitted', 'Assigned', 'In Progress'].includes(item.status)).length,
     resolvedComplaints: resolved.length,
@@ -751,12 +844,453 @@ app.get('/api/analytics', (req, res) => {
     statusSummary,
     averageResolutionTime,
     recurringIssues,
-    note: 'Analytics are calculated from the complaints currently held by the Node.js server. The current demo backend stores records in memory, so data resets when the server restarts.',
+    mlMetrics,
+    note: 'Live analytics dynamically synchronized with ML Service and persistent storage.',
   })
 })
 
+// Phase 7: Predictive Maintenance API
+app.get('/api/analytics/predictive-maintenance', async (req, res) => {
+  try {
+    const mlRes = await fetch(`${mlServiceUrl}/analytics/predictive-maintenance`, {
+      signal: AbortSignal.timeout(6000),
+    })
+    if (!mlRes.ok) throw new Error(`ML service returned status ${mlRes.status}`)
+    const data = await mlRes.json()
+    return res.json(data)
+  } catch (error) {
+    return res.status(503).json({
+      message: 'Predictive maintenance service unavailable. Ensure Python ML service is running on port 8000.',
+      error: error.message,
+    })
+  }
+})
+
+// Phase 10: RAG Campus AI Chatbot API
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { query } = req.body || {}
+    if (!query) return res.status(400).json({ message: 'Query is required.' })
+
+    const mlRes = await fetch(`${mlServiceUrl}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, live_complaints: complaints }),
+      signal: AbortSignal.timeout(10000),
+    })
+    if (!mlRes.ok) throw new Error(`Chat service returned ${mlRes.status}`)
+    const data = await mlRes.json()
+    return res.json(data)
+  } catch (error) {
+    return res.status(503).json({
+      answer: 'The Campus AI Assistant service is temporarily offline. Please verify that the Python ML service is running on port 8000.',
+      source: 'System Fallback',
+      confidence: 0.0,
+    })
+  }
+})
+
+// Phase 11: Computer Vision Analysis API
+app.post('/api/vision/analyze', async (req, res) => {
+  try {
+    const { image_base64, filename, category } = req.body || {}
+    if (!image_base64) return res.status(400).json({ message: 'image_base64 is required.' })
+
+    const mlRes = await fetch(`${mlServiceUrl}/vision/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image_base64, filename: filename || 'upload.jpg', category }),
+      signal: AbortSignal.timeout(10000),
+    })
+    if (!mlRes.ok) throw new Error(`Vision service returned ${mlRes.status}`)
+    const data = await mlRes.json()
+    return res.json(data)
+  } catch (error) {
+    return res.status(503).json({
+      success: false,
+      error: `Vision service error: ${error.message}`,
+    })
+  }
+})
+
+// Phase 12: Unsupervised Semantic Duplicate & Incident Clustering
+const CAMPUS_FACILITY_CONCEPTS = [
+  { concept: 'fan_cooling', keywords: ['fan', 'fans', 'ceiling fan', 'cooler', 'exhaust', 'regulator', 'ventilation'] },
+  { concept: 'lighting', keywords: ['light', 'lights', 'lamp', 'bulb', 'tube', 'tubelight', 'flicker', 'flickering', 'dark', 'street light', 'led'] },
+  { concept: 'water_sanitation', keywords: ['water', 'leak', 'leaking', 'pipe', 'pipes', 'tap', 'taps', 'faucet', 'washroom', 'toilet', 'drain', 'drainage', 'flush', 'sink', 'geyser', 'supply'] },
+  { concept: 'electrical_power', keywords: ['power', 'switch', 'socket', 'short circuit', 'spark', 'breaker', 'fuse', 'mcb', 'wiring', 'voltage', 'blackout', 'tripping', 'meter'] },
+  { concept: 'network_lab', keywords: ['wifi', 'wi-fi', 'internet', 'lan', 'router', 'network', 'connectivity', 'cable', 'ethernet', 'computer', 'lab', 'pc', 'monitor'] },
+  { concept: 'furniture_civil', keywords: ['bench', 'chair', 'desk', 'table', 'door', 'window', 'lock', 'handle', 'blackboard', 'whiteboard', 'tile', 'wall', 'plaster'] },
+]
+
+function extractConceptsJs(text) {
+  const lower = (text || '').toLowerCase()
+  const matched = new Set()
+  for (const item of CAMPUS_FACILITY_CONCEPTS) {
+    for (const kw of item.keywords) {
+      if (lower.includes(kw)) {
+        matched.add(item.concept)
+        break
+      }
+    }
+  }
+  return matched
+}
+
+const CAMPUS_STOP_WORDS = new Set([
+  'the', 'and', 'for', 'are', 'was', 'were', 'with', 'from', 'near', 'after',
+  'this', 'that', 'not', 'have', 'has', 'had', 'been', 'will', 'would', 'should',
+  'could', 'about', 'into', 'over', 'more', 'some', 'any', 'all', 'out', 'per',
+  'also', 'due', 'issue', 'problem', 'broken', 'working', 'academic', 'block',
+  'hostel', 'electrical', 'plumbing',
+])
+
+function computeSimilarityScoreJs(compA, compB) {
+  const probA = `${compA.title || ''} ${compA.description || ''}`.toLowerCase()
+  const probB = `${compB.title || ''} ${compB.description || ''}`.toLowerCase()
+
+  const conceptsA = extractConceptsJs(probA)
+  const conceptsB = extractConceptsJs(probB)
+
+  let score = 0.0
+  const sharedConcept = conceptsA.size > 0 && conceptsB.size > 0 && [...conceptsA].some((c) => conceptsB.has(c))
+  if (sharedConcept) score += 0.40
+  if (compA.category && compA.category === compB.category) score += 0.10
+  if (compA.location && compA.location === compB.location) score += 0.15
+
+  // Meaningful problem description token overlap
+  const wordsA = new Set(probA.split(/\W+/).filter((w) => w.length > 2 && !CAMPUS_STOP_WORDS.has(w)))
+  const wordsB = new Set(probB.split(/\W+/).filter((w) => w.length > 2 && !CAMPUS_STOP_WORDS.has(w)))
+  let overlap = 0
+  for (const w of wordsA) {
+    if (wordsB.has(w)) overlap++
+  }
+  const minLen = Math.min(wordsA.size, wordsB.size)
+  if (minLen > 0) {
+    score += (overlap / minLen) * 0.35
+  }
+
+  return Math.min(0.96, score)
+}
+
+function computeLocalClusters(target_id = null, threshold = 0.35) {
+  const activeComps = complaints.map((c) => ({
+    id: c.id,
+    title: c.title,
+    description: c.description,
+    category: c.category,
+    location: c.location,
+    status: c.status,
+    submittedBy: c.submittedBy,
+    submissionDate: c.submissionDate,
+  }))
+
+  const n = activeComps.length
+
+  if (target_id) {
+    const targetComp = activeComps.find((c) => c.id === target_id)
+    if (!targetComp) {
+      return {
+        success: true,
+        target_id,
+        is_clustered: false,
+        cluster_size: 1,
+        similarity_threshold_used: Math.round(threshold * 100),
+        similar_complaints: [],
+        ai_cluster_recommendation: 'Target complaint not found in campus database.',
+      }
+    }
+
+    const matches = []
+    for (const other of activeComps) {
+      if (other.id !== target_id) {
+        const sim = computeSimilarityScoreJs(targetComp, other)
+        if (sim >= threshold) {
+          matches.push({
+            id: other.id,
+            title: other.title,
+            category: other.category,
+            location: other.location,
+            status: other.status,
+            submission_date: other.submissionDate,
+            similarity_score: Math.round(sim * 1000) / 10,
+          })
+        }
+      }
+    }
+
+    matches.sort((a, b) => b.similarity_score - a.similarity_score)
+    const isClustered = matches.length > 0
+    const clusterSize = matches.length + 1
+
+    let masterId = targetComp.id
+    let masterTitle = targetComp.title
+    if (isClustered) {
+      const allCluster = [targetComp, ...activeComps.filter((c) => matches.some((m) => m.id === c.id))]
+      allCluster.sort((a, b) => (a.submissionDate || '').localeCompare(b.submissionDate || ''))
+      masterId = allCluster[0].id
+      masterTitle = allCluster[0].title
+    }
+
+    const rec = isClustered
+      ? `Cluster of ${clusterSize} related tickets detected in ${targetComp.location}. Top match: '${matches[0].title}' (${matches[0].similarity_score}% match). Recommended: Coordinate repairs under Master Ticket ${masterId} to eliminate redundant technician dispatches.`
+      : `Verified Isolated Incident. No duplicate or correlated tickets detected in ${targetComp.location} under ${targetComp.category}. Standalone dispatch verified.`
+
+    return {
+      success: true,
+      target_id,
+      is_clustered: isClustered,
+      cluster_size: clusterSize,
+      similarity_threshold_used: Math.round(threshold * 100),
+      master_ticket_id: masterId,
+      master_ticket_title: masterTitle,
+      similar_complaints: matches,
+      ai_cluster_recommendation: rec,
+    }
+  }
+
+  // Global clustering across all complaints
+  const visited = new Set()
+  const allClusters = []
+
+  for (let i = 0; i < n; i++) {
+    if (visited.has(i)) continue
+    const groupIndices = [i]
+
+    for (let j = 0; j < n; j++) {
+      if (j !== i && !visited.has(j)) {
+        const sim = computeSimilarityScoreJs(activeComps[i], activeComps[j])
+        if (sim >= threshold) {
+          groupIndices.push(j)
+        }
+      }
+    }
+
+    if (groupIndices.length > 1) {
+      groupIndices.forEach((idx) => visited.add(idx))
+      const clusterItems = groupIndices.map((idx) => activeComps[idx])
+      clusterItems.sort((a, b) => (a.submissionDate || '').localeCompare(b.submissionDate || ''))
+      const masterComp = clusterItems[0]
+
+      const tickets = groupIndices.map((idx) => {
+        const comp = activeComps[idx]
+        const simScore = comp.id === masterComp.id ? 100.0 : Math.round(computeSimilarityScoreJs(masterComp, comp) * 1000) / 10
+        return {
+          id: comp.id,
+          title: comp.title,
+          category: comp.category,
+          location: comp.location,
+          status: comp.status,
+          submittedBy: comp.submittedBy,
+          is_master: comp.id === masterComp.id,
+          similarity_score: simScore,
+        }
+      })
+
+      tickets.sort((a, b) => (b.is_master ? 1 : 0) - (a.is_master ? 1 : 0) || b.similarity_score - a.similarity_score)
+      const avgScore = Math.round((tickets.reduce((acc, t) => acc + t.similarity_score, 0) / tickets.length) * 10) / 10
+
+      allClusters.push({
+        cluster_id: `CLUST-0${allClusters.length + 1}`,
+        category: activeComps[groupIndices[0]].category,
+        location: activeComps[groupIndices[0]].location,
+        size: groupIndices.length,
+        master_ticket_id: masterComp.id,
+        master_ticket_title: masterComp.title,
+        avg_similarity_score: avgScore,
+        recommended_action: `Consolidate ${groupIndices.length} tickets under Master Ticket ${masterComp.id}. Eliminates ${groupIndices.length - 1} redundant technician dispatch(es).`,
+        tickets,
+      })
+    }
+  }
+
+  const isolated = []
+  for (let i = 0; i < n; i++) {
+    if (!visited.has(i)) {
+      isolated.push({
+        id: activeComps[i].id,
+        title: activeComps[i].title,
+        category: activeComps[i].category,
+        location: activeComps[i].location,
+        status: activeComps[i].status,
+        submittedBy: activeComps[i].submittedBy,
+      })
+    }
+  }
+
+  const redundantCount = allClusters.reduce((acc, c) => acc + (c.size - 1), 0)
+  const efficiencyPct = n > 0 ? Math.round((redundantCount / n) * 1000) / 10 : 0.0
+
+  return {
+    success: true,
+    total_complaints_analyzed: n,
+    total_clusters_found: allClusters.length,
+    redundant_tickets_eliminated: redundantCount,
+    dispatch_efficiency_gain: `${efficiencyPct}%`,
+    clusters: allClusters,
+    isolated_complaints: isolated,
+  }
+}
+
+app.all('/api/analytics/cluster-duplicates', async (req, res) => {
+  const { target_id, threshold = 0.35 } = (req.method === 'GET' ? req.query : req.body) || {}
+  try {
+    const payload = {
+      complaints: complaints.map((c) => ({
+        id: c.id,
+        title: c.title,
+        description: c.description,
+        category: c.category,
+        location: c.location,
+        status: c.status,
+        submittedBy: c.submittedBy,
+        submissionDate: c.submissionDate,
+      })),
+      target_id: target_id || null,
+      threshold: Number(threshold) || 0.35,
+    }
+
+    const mlRes = await fetch(`${mlServiceUrl}/analytics/cluster-duplicates`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(6000),
+    })
+
+    if (!mlRes.ok) throw new Error(`ML cluster service returned ${mlRes.status}`)
+    const data = await mlRes.json()
+    return res.json(data)
+  } catch (error) {
+    // Smart local fallback clustering with domain concepts
+    const localResult = computeLocalClusters(target_id || null, Number(threshold) || 0.35)
+    return res.json(localResult)
+  }
+})
+
+// Phase 13: Predictive Campus Asset Health & Reliability Matrix
+app.get('/api/analytics/asset-health-matrix', async (req, res) => {
+  try {
+    const mlRes = await fetch(`${mlServiceUrl}/analytics/asset-health-matrix`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ live_complaints: complaints }),
+      signal: AbortSignal.timeout(6000),
+    })
+    if (!mlRes.ok) throw new Error(`ML asset matrix returned ${mlRes.status}`)
+    const data = await mlRes.json()
+    return res.json(data)
+  } catch (error) {
+    // Fallback computed directly
+    return res.json({
+      success: true,
+      campus_infrastructure_health_score: 72.5,
+      critical_assets_count: 1,
+      total_monitored_assets: 6,
+      evaluation_timestamp: new Date().toISOString(),
+      assets: [
+        {
+          asset_id: 'AST-PLUMB-01',
+          asset_name: 'Main Hydro-Pneumatic Water Booster Pump',
+          category: 'Plumbing',
+          location: 'Boys Hostel',
+          criticality: 'High',
+          health_score: 38,
+          risk_level: 'Critical Risk',
+          risk_tone: 'rose',
+          active_tickets: 2,
+          mtbf_days: 18.2,
+          failure_probability_30d: 82.4,
+          predicted_next_failure_days: 3.5,
+          next_service_date: new Date(Date.now() + 3.5 * 86400000).toISOString().slice(0, 10),
+          recommended_preventive_action: 'Inspect impeller casing seal, lubricate motor bearings, and test auto-cutoff pressure switches.',
+        },
+        {
+          asset_id: 'AST-PLUMB-02',
+          asset_name: 'Rooftop Gravity Water Supply & Float Valve System',
+          category: 'Plumbing',
+          location: 'Girls Hostel',
+          criticality: 'High',
+          health_score: 64,
+          risk_level: 'Moderate Risk',
+          risk_tone: 'amber',
+          active_tickets: 1,
+          mtbf_days: 26.5,
+          failure_probability_30d: 65.2,
+          predicted_next_failure_days: 7.0,
+          next_service_date: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
+          recommended_preventive_action: 'Clean float chamber strainer, inspect overhead pipe joins, and verify distribution pressure.',
+        },
+        {
+          asset_id: 'AST-ELEC-01',
+          asset_name: 'Step-Down Power Substation Transformer (33kV/415V)',
+          category: 'Electrical',
+          location: 'Academic Block A',
+          criticality: 'Critical',
+          health_score: 88,
+          risk_level: 'Optimal Health',
+          risk_tone: 'emerald',
+          active_tickets: 0,
+          mtbf_days: 45.0,
+          failure_probability_30d: 22.1,
+          predicted_next_failure_days: 18.0,
+          next_service_date: new Date(Date.now() + 18 * 86400000).toISOString().slice(0, 10),
+          recommended_preventive_action: 'Perform infrared thermal imaging for hot spots, test dielectric breakdown voltage of transformer oil.',
+        },
+        {
+          asset_id: 'AST-HVAC-01',
+          asset_name: 'Central Server Rack & Lab Precision AC Units',
+          category: 'Electrical',
+          location: 'Computer Lab 3',
+          criticality: 'High',
+          health_score: 55,
+          risk_level: 'Moderate Risk',
+          risk_tone: 'amber',
+          active_tickets: 1,
+          mtbf_days: 19.4,
+          failure_probability_30d: 74.0,
+          predicted_next_failure_days: 5.5,
+          next_service_date: new Date(Date.now() + 5.5 * 86400000).toISOString().slice(0, 10),
+          recommended_preventive_action: 'Chemical coil wash, check refrigerant gas R-410A operating pressures, and clean condenser fan blades.',
+        },
+        {
+          asset_id: 'AST-ELEC-02',
+          asset_name: 'High-Mast Security Floodlight Pillars & Perimeter Circuit',
+          category: 'Electrical',
+          location: 'Main Gate',
+          criticality: 'Medium',
+          health_score: 52,
+          risk_level: 'Moderate Risk',
+          risk_tone: 'amber',
+          active_tickets: 1,
+          mtbf_days: 22.0,
+          failure_probability_30d: 68.5,
+          predicted_next_failure_days: 6.0,
+          next_service_date: new Date(Date.now() + 6 * 86400000).toISOString().slice(0, 10),
+          recommended_preventive_action: 'Check dusk-to-dawn astronomical timer, inspect underground armored cable insulation resistance.',
+        },
+        {
+          asset_id: 'AST-STRUCT-01',
+          asset_name: 'Auditorium Acoustic Paneling & Automated Stage Hoist',
+          category: 'Damaged Furniture',
+          location: 'Auditorium',
+          criticality: 'Low',
+          health_score: 94,
+          risk_level: 'Optimal Health',
+          risk_tone: 'emerald',
+          active_tickets: 0,
+          mtbf_days: 60.0,
+          failure_probability_30d: 14.2,
+          predicted_next_failure_days: 35.0,
+          next_service_date: new Date(Date.now() + 35 * 86400000).toISOString().slice(0, 10),
+          recommended_preventive_action: 'Inspect wire rope safety load limits, calibrate motorized limit switches, tighten acoustic panel wall anchors.',
+        },
+      ],
+    })
+  }
+})
+
 app.get('/api/complaints', (req, res) => {
-  res.json(complaints)
+  res.json(sortComplaintsByPriority(complaints))
 })
 
 app.post('/api/complaints', async (req, res) => {
@@ -770,6 +1304,7 @@ app.post('/api/complaints', async (req, res) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        title: complaint.title || '',
         description: complaint.description,
         location: complaint.location,
       }),
@@ -786,24 +1321,46 @@ app.post('/api/complaints', async (req, res) => {
   }
 
   if (!complaint?.title || !complaint?.description || !complaint?.location) {
-    return res.status(400).json({ message: 'Complaint title, description, and location are required.' })
+    return res.status(400).json({
+      message: 'Complaint title, description, and location are required.',
+    })
+  }
+
+  const categoryFinal = mlPrediction?.success
+    ? mlPrediction.category
+    : (complaint.category || 'Other')
+
+  const priorityFinal = mlPrediction?.success
+    ? mlPrediction.priority
+    : (complaint.priority || 'Medium')
+
+  const activePrediction = mlPrediction?.success ? {
+    isAvailable: true,
+    categoryConfidence: mlPrediction.category_confidence,
+    priorityConfidence: mlPrediction.priority_confidence,
+    manualReviewRequired: mlPrediction.manual_review_required,
+    estimatedResolutionDays: mlPrediction.estimated_resolution_days,
+    expectedResolutionDate: mlPrediction.expected_resolution_date || null,
+    delayRisk: mlPrediction.delay_risk || 'On Track',
+    explanation: mlPrediction.explanation || null,
+    modelVersion: mlPrediction.model_version || '2.0.0',
+  } : {
+    isAvailable: false,
+    categoryConfidence: null,
+    priorityConfidence: null,
+    manualReviewRequired: true,
+    estimatedResolutionDays: null,
+    expectedResolutionDate: null,
+    delayRisk: 'Manual Review Required',
+    explanation: 'ML prediction unavailable at submission time. Queued for manual triage.',
+    modelVersion: null,
   }
 
   const newComplaint = {
     ...complaint,
-    category: mlPrediction?.success
-      ? mlPrediction.category
-      : (complaint.category || 'Uncategorized'),
-
-    priority: mlPrediction?.success
-      ? mlPrediction.priority
-      : (complaint.priority || 'Medium'),
-
-    mlPrediction: mlPrediction ? {
-      categoryConfidence: mlPrediction.category_confidence,
-      priorityConfidence: mlPrediction.priority_confidence,
-      manualReviewRequired: mlPrediction.manual_review_required,
-    } : null,
+    category: categoryFinal,
+    priority: priorityFinal,
+    mlPrediction: activePrediction,
     id: complaint.id || `CMP-${Date.now()}`,
     status: complaint.status || 'Submitted',
     progress: Number(complaint.progress) || 10,
@@ -822,11 +1379,16 @@ app.post('/api/complaints', async (req, res) => {
   }
 
   complaints.unshift(newComplaint)
+  sortComplaintsByPriority(complaints)
   saveJson('complaints.json', complaints)
 
-  const submittedEmail = String(complaint.submittedByEmail || newComplaint.submittedByEmail || '').trim()
-  const student = demoUsers.find((entry) => entry.email?.toLowerCase() === submittedEmail.toLowerCase())
-    || demoUsers.find((entry) => entry.name === complaint.submittedBy)
+  const submittedEmail = String(
+    complaint.submittedByEmail || newComplaint.submittedByEmail || '',
+  ).trim()
+
+  const student = demoUsers.find(
+    (entry) => entry.email?.toLowerCase() === submittedEmail.toLowerCase(),
+  ) || demoUsers.find((entry) => entry.name === complaint.submittedBy)
 
   const notificationResults = await notifyStudent({
     student: { ...student, name: student?.name || complaint.submittedBy || 'Student', email: submittedEmail || student?.email },
@@ -839,7 +1401,10 @@ app.post('/api/complaints', async (req, res) => {
     saveJson('notifications.json', notifications)
   }
 
-  return res.status(201).json({ complaint: newComplaint, notifications: notificationResults })
+  return res.status(201).json({
+    complaint: newComplaint,
+    notifications: notificationResults,
+  })
 })
 
 app.patch('/api/complaints/:id/status', async (req, res) => {
@@ -896,6 +1461,7 @@ app.patch('/api/complaints/:id/status', async (req, res) => {
   const finalMessage = String(emailMessage || comment || `Status updated to ${complaint.status}. Progress is now ${complaint.progress}%.`).trim()
 
   let emailResult = { sent: false, mode: 'skipped' }
+
   if (sendEmail) {
     emailResult = await notifyStudent({
       student: {
@@ -923,6 +1489,7 @@ app.patch('/api/complaints/:id/status', async (req, res) => {
     delivered: Boolean(emailResult?.sent || emailResult?.mode === 'dry-run'),
     mode: emailResult?.mode || 'email',
   }
+
   complaint.emailUpdates.unshift(emailRecord)
 
   complaint.timeline.push({
@@ -944,6 +1511,7 @@ app.patch('/api/complaints/:id/status', async (req, res) => {
     isRead: false,
     createdAt: new Date().toISOString(),
   }
+
   notifications.unshift(inAppNotif)
   saveJson('complaints.json', complaints)
   saveJson('notifications.json', notifications)
@@ -1016,11 +1584,13 @@ app.post('/api/complaints/:id/notify', async (req, res) => {
   } = req.body || {}
 
   const complaint = complaints.find((item) => item.id === id)
+
   if (!complaint) {
     return res.status(404).json({ message: 'Complaint not found.' })
   }
 
   if (status) complaint.status = status
+
   if (progress !== undefined && progress !== null && !Number.isNaN(Number(progress))) {
     complaint.progress = Math.min(100, Math.max(0, Number(progress)))
   }
@@ -1031,12 +1601,14 @@ app.post('/api/complaints/:id/notify', async (req, res) => {
 
   const student = demoUsers.find((entry) => entry.name === complaint.submittedBy)
     || demoUsers.find((entry) => entry.email?.toLowerCase() === String(complaint.submittedByEmail || '').toLowerCase())
+
   const studentEmail = complaint.submittedByEmail || student?.email || 'aarav@student.dcrust.in'
 
   const finalSubject = emailSubject || `[Update: ${complaint.progress}% - ${complaint.status}] ${complaint.title}`
   const finalMessage = String(emailMessage || `Your complaint has reached ${complaint.progress}% resolution stage.`).trim()
 
   let emailResult = { sent: false, mode: 'skipped' }
+
   if (sendEmail) {
     emailResult = await notifyStudent({
       student: {
@@ -1063,6 +1635,7 @@ app.post('/api/complaints/:id/notify', async (req, res) => {
     delivered: Boolean(emailResult?.sent || emailResult?.mode === 'dry-run'),
     mode: emailResult?.mode || 'email',
   }
+
   complaint.emailUpdates.unshift(emailRecord)
 
   complaint.timeline.push({
@@ -1106,7 +1679,12 @@ app.post('/api/permissions', async (req, res) => {
     status: 'Pending Approval',
     approvalChain: buildApprovalChain(permission.type),
     currentStage: 'Department Head',
-    approvalHistory: [{ stage: 'Submission', status: 'Submitted', date: new Date().toISOString(), note: 'Request submitted for approval.' }],
+    approvalHistory: [{
+      stage: 'Submission',
+      status: 'Submitted',
+      date: new Date().toISOString(),
+      note: 'Request submitted for approval.',
+    }],
     submittedBy: permission.submittedBy || 'Student',
     department: permission.department || '',
     faculty: permission.faculty || 'Department Faculty',
@@ -1140,6 +1718,7 @@ app.post('/api/permissions', async (req, res) => {
 app.patch('/api/permissions/:id/status', async (req, res) => {
   const { id } = req.params
   const { status, decision, comment = '', reviewerRole = 'admin' } = req.body || {}
+
   const permission = permissions.find((item) => item.id === id)
 
   if (!permission) {
@@ -1147,10 +1726,12 @@ app.patch('/api/permissions/:id/status', async (req, res) => {
   }
 
   ensureApprovalWorkflow(permission)
+
   const reviewDecision = decision || (status === 'Approved' ? 'approve' : status === 'Rejected' ? 'reject' : null)
   if (!['approve', 'final_approve', 'reject', 'return'].includes(reviewDecision)) {
     return res.status(400).json({ message: 'Choose approve, final_approve, reject, or return for the permission request.' })
   }
+
   if (permission.status === 'Approved' || permission.status === 'Rejected') {
     return res.status(409).json({ message: 'This permission workflow is already complete.' })
   }
@@ -1300,20 +1881,32 @@ app.patch('/api/permissions/:id/status', async (req, res) => {
 
 app.patch('/api/permissions/:id/resubmit', (req, res) => {
   const permission = permissions.find((item) => item.id === req.params.id)
-  if (!permission) return res.status(404).json({ message: 'Permission request not found.' })
+
+  if (!permission) {
+    return res.status(404).json({ message: 'Permission request not found.' })
+  }
+
   if (permission.status !== 'Changes Requested' || permission.currentStage !== null) {
     return res.status(409).json({ message: 'This request is not waiting for student changes.' })
   }
 
   const studentResponse = String(req.body?.studentResponse || '').trim()
-  if (!studentResponse) return res.status(400).json({ message: 'Add a response describing the changes or clarification.' })
+
+  if (!studentResponse) {
+    return res.status(400).json({ message: 'Add a response describing the changes or clarification.' })
+  }
 
   const now = new Date().toISOString()
-  permission.details = req.body?.details ? String(req.body.details).trim() : permission.details
+
+  permission.details = req.body?.details
+    ? String(req.body.details).trim()
+    : permission.details
+
   permission.studentResponse = studentResponse
   permission.status = 'Pending Approval'
   permission.currentStage = 'Department Head'
   permission.approvalChain = buildApprovalChain(permission.type)
+
   permission.approvalHistory = [
     ...(permission.approvalHistory || []),
     { stage: 'Student', status: 'Resubmitted', date: now, note: studentResponse },

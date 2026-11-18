@@ -8,7 +8,7 @@
     "batch": "2026",
     "phone": "+91 98765 43210",
     "hostel": "Boys Hostel Block A",
-    "password": "scrypt$17a9a12a7521d9dbb76aad86a041f5ed$f584804d82bdd21b418189e7659da5852e9f08872bbbb0757276ea82add169ff7e2094fc8c9fec0ca222853c9e719e016ccb93f5b5e68c7b3a4a3d7e6a701b2b"
+    "password": "scrypt$2df838fe10ab4fe6dac140a4551edb69$3c31d5e2761631be95cc50bcbc7a6aa77b1e66f6d9ebf2f0e55e66bf3e31d2e23a9a00f28e7b1dd6fa244ffb0fbe248f097a2d1c9beb4307526d5468a279cfda"
   },
   {
     "id": "ADM-9001",
@@ -17,7 +17,7 @@
     "role": "admin",
     "department": "Administrative Office",
     "phone": "",
-    "password": "scrypt$50acf1f12561e91dbcc7e0fa5318cc4c$579d56e0fafb47d4ff9cbbe6fd639eda611ece59efb7b44bce20b9093358fea7d271404130834305687666f06aa0e35a4a977a6a9b0ae032b44ac6f6d7838377"
+    "password": "scrypt$303c2e37d4ac9693f5a8bd4dcd4ed5d6$07cfe515a3ba5bd04aae1a61046eed9d5ee440ce33ef53c03c1a078ef8132ec551c187c5099689f2932a8bbdadb320908cd118b007499d55a185f8391f4c10af"
   },
   {
     "id": "HOD-CSE-01",
@@ -25,7 +25,7 @@
     "email": "hod.cse@dcrust.in",
     "role": "department_head",
     "department": "Computer Science & Engineering",
-    "password": "scrypt$4d41dee92d67027747df9060e0c22f27$e7d058b5cc7fcdee8d5957bc337776564e241b533965d676aa13d4ca2623dbec59235cd3ce3de8ea2d5413c650032ddf6bb0ed950a27e4d5480d93a95264c182"
+    "password": "scrypt$421530bd53f4b4d9a8508bad9250a1df$46a6644175e03dd5aaf58e7265b40bf3bdb514ef2400d6401ef709b3a8da9a655e486e2e9abfe99a530a9330595f61a85e9b45b84cf985ae7cb81a9ee26ed0eb"
   },
   {
     "id": "COORD-CULT-01",
@@ -33,7 +33,7 @@
     "email": "cultural.coordinator@dcrust.in",
     "role": "cultural_coordinator",
     "department": "Student Affairs",
-    "password": "scrypt$cd31494a1343725103f1e639d9dee63a$e35f770ca08dcdef711b0a039b8a2a21db3711382631ea03b07f5561448c0f6efd6a9e91656c05e7bb362fc2f178a932436b7ada75c9628e6fda0fceee62c26e"
+    "password": "scrypt$b5d24bcbb95f80d3d738f98592ed08ed$bb9857e9d2e11afac7269e1f39bf5f7e0009d1da14de8856733dc390964b7a769a447cdde7f95c4dede29b22d09288159e76db8f621ac336bce162e51538b779"
   },
   {
     "id": "COORD-TECH-01",
@@ -41,7 +41,7 @@
     "email": "technical.coordinator@dcrust.in",
     "role": "technical_coordinator",
     "department": "Student Affairs",
-    "password": "scrypt$abf30b6571a005d2c9d22d3a8271d1b8$6c92f4ae7a5dc068872d25f3744400e37ce25b675859119308ac6c925750b093407b0bd0732e3676538058e76efa68af170e3c227c10f4978a71517874e7b1eb"
+    "password": "scrypt$5ea70b907e7f825bfe1efe7b222e9a87$9ee731545ec9240fb70adf0534d86a2609cb271dfd3be1945f0a9ab23a66e3ca46e7847f05e19a9ceef7a829b15e0ebe817c349fe37886d80c09aed94b16e19a"
   },
   {
     "id": "DSW-01",
@@ -49,7 +49,7 @@
     "email": "dsw@dcrust.in",
     "role": "dsw",
     "department": "Student Welfare",
-    "password": "scrypt$f9b48de85fb11c19ff7941780f44f260$214cf5b6b08dbf2e80b1adb8b7512a6ac36216e55264d447d6615a4c6f6439c5d9bad2a4deaac9d47641f8922bcfc5738039c409281c58e9a8f3df3403006862"
+    "password": "scrypt$33030263409eb24b43a9ff48fac1f653$5bb6f07a653054ca39f000e30e11d330979db5353c6555cc81dc76fe962d320e94527a389418b08439bb799966331a24cc66d9c0c9e53a45eda31e7f1ec3c6ae"
   },
   {
     "id": "REG-01",
@@ -57,7 +57,7 @@
     "email": "registrar@dcrust.in",
     "role": "registrar",
     "department": "Registrar Office",
-    "password": "scrypt$248a1fcf710f15b5e62b7db4067684a0$88e9b50350684c269198726c0b9bd52587a8db61d6bb7b32dbf531c8ad68ab29faff7bbb71f5bc01fe0c84bb2b0adaa360991f0109c898cd84555dfa8ad9bc72"
+    "password": "scrypt$2d188be2939c282135ce6f9950fb0077$882dff392bd1495292b7da9c75af92c439840a5a9a98cace8bf71b8186e21bc7ffa535105944050a8c2b7a5d2b4409a75a4f2608d6f5361cff725547229f5bce"
   },
   {
     "id": "VC-01",
@@ -65,7 +65,7 @@
     "email": "vc@dcrust.in",
     "role": "vice_chancellor",
     "department": "Vice Chancellor Office",
-    "password": "scrypt$9f732211138f4c20093ec0e9ea3e034e$29f46a92bb7798ddbd04eee440c6fca5e9ee87bf35e10c52db3ff5ae300b90f851e7e7ed9acf69064156537db54535107bd4f9f6bd90e4987ace248240e7b3ff"
+    "password": "scrypt$82ec4110f6b3745503d53d986238a370$7ce9ee110866cc4a88345cb0d76ae001ee1b28c515e597b887d2abb30701b0ef3f862f86d21c8cf6241fa0b83128295c21d2d947d1c0fd77626cf7546bb266d0"
   },
   {
     "id": "23001001076",
@@ -75,8 +75,18 @@
     "role": "student",
     "department": "CSE",
     "batch": "2026",
-    "password": "scrypt$ede758004f1e0924123d68c0566ef264$7b397c09960dcc9042048aa63c85a10a86a89832e1ffb0c13ff14ad5ad6bc1710af45c9f48550d4575c6620b8dfca1f01df28481d34dae0d3894d2aaf951307c",
+    "password": "scrypt$4f6b9f790f5e54f29577bbe3918e50c0$a6ef7a562434aa3a81666ad1e65bd7a6bf2916919965d6209e098546452a87ed5b431d6f8a5663b2cbc8f382d89a5106156687af7920d59225b31b592ab61618",
     "hostel": "BH-1 Room No. 366",
     "phone": "+91 9306817255"
+  },
+  {
+    "id": "23001002075",
+    "rollNumber": "23001002075",
+    "name": "Pinku",
+    "email": "pinkusulekh@gmail.com",
+    "role": "student",
+    "department": "EE",
+    "batch": "2026",
+    "password": "scrypt$a68867770ab730308c5163a804d5a307$cdaea79b7d02c48795c8dbcf8b742b09319607ce8bfe54f15705d64986e27c85dabbbb161f3ece504d98cb7b58aaa6914dc48fc2f35d823c7d4cff6cb633ca54"
   }
 ]

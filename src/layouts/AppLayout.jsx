@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
 import { complaintsApi, notificationsApi, permissionsApi } from '../services/api'
 import { useAppContext } from '../context/AppContext'
+import AIChatbotWidget from '../components/AIChatbotWidget'
 
 export default function AppLayout({ role = 'student' }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -50,6 +51,7 @@ export default function AppLayout({ role = 'student' }) {
           </main>
         </div>
       </div>
+      <AIChatbotWidget />
     </div>
   )
 }

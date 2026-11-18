@@ -12,10 +12,23 @@ export const authApi = {
   login: (payload) => api.post('/auth/login', payload),
   register: (payload) => api.post('/auth/register', payload),
   directResetPassword: (payload) => api.post('/auth/direct-reset-password', payload),
+  forgotPassword: (payload) => api.post('/auth/forgot-password', payload),
+  resetPassword: (payload) => api.post('/auth/reset-password', payload),
 }
 
 export const analyticsApi = {
   get: () => api.get('/analytics'),
+  getPredictiveMaintenance: () => api.get('/analytics/predictive-maintenance'),
+  getAssetHealthMatrix: () => api.get('/analytics/asset-health-matrix'),
+  clusterDuplicates: (target_id, threshold = 0.50) => api.post('/analytics/cluster-duplicates', { target_id, threshold }),
+}
+
+export const chatbotApi = {
+  sendQuery: (query) => api.post('/chat', { query }),
+}
+
+export const visionApi = {
+  analyzeImage: (image_base64, filename, category) => api.post('/vision/analyze', { image_base64, filename, category }),
 }
 
 export const complaintsApi = {

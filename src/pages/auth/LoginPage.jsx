@@ -7,6 +7,7 @@ import { authApi } from '../../services/api'
 import { authenticateLocally, saveLocalUser } from '../../utils/authStorage'
 
 const demoRoleOptions = [
+  { value: 'pankaj', label: 'Pankaj Kumar (Student)', email: 'pankajsulekh255@gmail.com' },
   { value: 'student', label: 'Student', email: 'aarav@student.dcrust.in' },
   { value: 'admin', label: 'Admin', email: 'chahalprince0481@gmail.com' },
   { value: 'department_head', label: 'Department', email: 'hod.cse@dcrust.in' },
@@ -96,6 +97,7 @@ export default function LoginPage() {
 
   const demoLogin = (role) => {
     const userByRole = {
+      pankaj: demoUsers.pankaj,
       student: demoUsers.student,
       admin: demoUsers.admin,
       department_head: demoUsers.departmentHead,
@@ -176,15 +178,15 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-300">Email or University Roll Number</label>
-                <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-slate-950/50 px-3 py-3 ring-1 ring-transparent transition focus-within:border-blue-400/60 focus-within:ring-blue-400/20">
-                  <Mail size={18} className="text-slate-400" />
+                <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-[#090e1a] px-3.5 py-3 ring-1 ring-transparent transition focus-within:border-blue-400/60 focus-within:ring-blue-400/20">
+                  <Mail size={18} className="text-slate-400 shrink-0" />
                   <input
                     type="text"
                     name="email"
                     autoComplete="username"
                     value={form.email}
                     onChange={handleChange}
-                    className="w-full border-0 bg-transparent text-slate-100 outline-none placeholder:text-slate-500"
+                    className="w-full border-0 bg-transparent text-slate-100 outline-none placeholder:text-slate-500 text-sm"
                     placeholder="name@domain.com or 23001001076"
                   />
                 </div>
@@ -195,21 +197,21 @@ export default function LoginPage() {
 
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-300">Password</label>
-                <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-slate-950/50 px-3 py-3 ring-1 ring-transparent transition focus-within:border-blue-400/60 focus-within:ring-blue-400/20">
-                  <LockKeyhole size={18} className="text-slate-400" />
+                <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-[#090e1a] px-3.5 py-3 ring-1 ring-transparent transition focus-within:border-blue-400/60 focus-within:ring-blue-400/20">
+                  <LockKeyhole size={18} className="text-slate-400 shrink-0" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     name="password"
                     autoComplete="current-password"
                     value={form.password}
                     onChange={handleChange}
-                    className="w-full border-0 bg-transparent text-slate-100 outline-none placeholder:text-slate-500"
+                    className="w-full border-0 bg-transparent text-slate-100 outline-none placeholder:text-slate-500 text-sm"
                     placeholder="Enter your password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((visible) => !visible)}
-                    className="text-slate-400 transition hover:text-slate-100"
+                    className="text-slate-400 transition hover:text-slate-100 shrink-0"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
