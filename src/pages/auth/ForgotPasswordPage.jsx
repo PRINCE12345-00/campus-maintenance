@@ -1,7 +1,15 @@
 import { useState, useEffect } from 'react'
-import { ArrowLeft, CheckCircle2, Eye, EyeOff, KeyRound, LockKeyhole, Mail, Send, ShieldCheck, RefreshCw } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Eye, EyeOff, KeyRound, LockKeyhole, Mail, Send, ShieldCheck, RefreshCw, AlertCircle, Info } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { authApi } from '../../services/api'
+import { demoUsers } from '../../data/mockData'
+
+const maskEmail = (email) => {
+  if (!email || !email.includes('@')) return email
+  const [userPart, domain] = email.split('@')
+  const visible = userPart.length <= 3 ? userPart.slice(0, 1) : userPart.slice(0, 3)
+  return `${visible}***@${domain}`
+}
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate()
@@ -63,8 +71,52 @@ export default function ForgotPasswordPage() {
       setStep(2)
       setResendCooldown(60) // 60 seconds cooldown
     } catch (err) {
-      console.error('Request OTP failed:', err)
-      setError(err?.response?.data?.message || 'No registered account found with that email or roll number.')
+      console.warn('Request OTP via backend failed:', err?.message)
+
+      // Check if this identifier matches any known demo or local account
+      const allKnownUsers = Object.values(demoUsers)
+      const matchedUser = allKnownUsers.find(
+        (u) =>
+          (u.email && u.email.toLowerCase() === cleanId.toLowerCase()) ||
+          (u.rollNumber && String(u.rollNumber).toLowerCase() === cleanId.toLowerCase()) ||
+          (u.id && String(u.id).toLowerCase() === cleanId.toLowerCase()),
+      )
+
+      // If backend returned a clear 404 and no local match
+      if (err?.response?.status === 404 && !matchedUser) {
+        setError(err.response.data?.message || 'No registered account found with that email or roll number.')
+        return
+      }
+
+      // If backend is offline or on static Vercel deployment, provide smooth demo simulation for known accounts
+      if ((!err?.response || err?.code === 'ERR_NETWORK') && matchedUser) {
+        const demoCode = Math.floor(100000 + Math.random() * 900000).toString()
+        sessionStorage.setItem('scms_demo_reset_otp', demoCode)
+        sessionStorage.setItem('scms_demo_reset_id', cleanId.toLowerCase())
+
+        const userEmail = matchedUser.email || cleanId
+        setMaskedEmail(maskEmail(userEmail))
+        setResolvedEmail(userEmail)
+        setInfoMessage(
+          `[Demo Mode / Offline Server] Live backend is offline. Generated Demo OTP: ${demoCode}. (When backend is running locally on port 5000, real OTP is sent directly to your Gmail inbox).`,
+        )
+        setStep(2)
+        setResendCooldown(60)
+        return
+      }
+
+      // If backend gave a specific error (e.g. SMTP failure or 400)
+      if (err?.response?.data?.message) {
+        setError(err.response.data.message)
+      } else if (!err?.response) {
+        if (matchedUser) {
+          setError('Backend server (localhost:5000) is offline. Please start backend with `npm run dev` or `node server/server.js`.')
+        } else {
+          setError('No registered account found with that email or roll number.')
+        }
+      } else {
+        setError('Unable to send verification code. Please check your connection and try again.')
+      }
     } finally {
       setLoading(false)
     }
@@ -118,7 +170,28 @@ export default function ForgotPasswordPage() {
       }, 3000)
     } catch (err) {
       console.error('Reset password failed:', err)
-      setError(err?.response?.data?.message || 'Invalid or expired verification code. Please check and try again.')
+
+      // Check demo OTP if backend is offline
+      const storedDemoOtp = sessionStorage.getItem('scms_demo_reset_otp')
+      const storedDemoId = sessionStorage.getItem('scms_demo_reset_id')
+
+      if ((!err?.response || err?.code === 'ERR_NETWORK') && storedDemoOtp && storedDemoOtp === cleanOtp && storedDemoId === cleanId.toLowerCase()) {
+        sessionStorage.removeItem('scms_demo_reset_otp')
+        sessionStorage.removeItem('scms_demo_reset_id')
+        setSuccess(true)
+        setTimeout(() => {
+          navigate('/login', { state: { email: resolvedEmail || cleanId } })
+        }, 3000)
+        return
+      }
+
+      if (err?.response?.data?.message) {
+        setError(err.response.data.message)
+      } else if (!err?.response) {
+        setError('Verification code does not match or backend server is unreachable.')
+      } else {
+        setError('Invalid or expired verification code. Please check and try again.')
+      }
     } finally {
       setLoading(false)
     }

@@ -105,6 +105,28 @@ const initialDemoUsers = [
   { id: 'DSW-01', name: 'Dean of Student Welfare', email: 'dsw@dcrust.in', role: 'dsw', department: 'Student Welfare', password: 'dsw12345' },
   { id: 'REG-01', name: 'Registrar', email: 'registrar@dcrust.in', role: 'registrar', department: 'Registrar Office', password: 'registrar123' },
   { id: 'VC-01', name: 'Vice Chancellor', email: 'vc@dcrust.in', role: 'vice_chancellor', department: 'Vice Chancellor Office', password: 'vc123456' },
+  {
+    id: '23001001076',
+    rollNumber: '23001001076',
+    name: 'Pankaj Kumar',
+    email: 'pankajsulekh255@gmail.com',
+    role: 'student',
+    department: 'CSE',
+    batch: '2026',
+    hostel: 'BH-1 Room No. 366',
+    phone: '+91 9306817255',
+    password: 'scrypt$4f6b9f790f5e54f29577bbe3918e50c0$a6ef7a562434aa3a81666ad1e65bd7a6bf2916919965d6209e098546452a87ed5b431d6f8a5663b2cbc8f382d89a5106156687af7920d59225b31b592ab61618',
+  },
+  {
+    id: '23001002075',
+    rollNumber: '23001002075',
+    name: 'Pinku',
+    email: 'pinkusulekh@gmail.com',
+    role: 'student',
+    department: 'EE',
+    batch: '2026',
+    password: 'scrypt$a68867770ab730308c5163a804d5a307$cdaea79b7d02c48795c8dbcf8b742b09319607ce8bfe54f15705d64986e27c85dabbbb161f3ece504d98cb7b58aaa6914dc48fc2f35d823c7d4cff6cb633ca54',
+  },
 ]
 
 
