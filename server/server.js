@@ -4,10 +4,7 @@ import cors from 'cors'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-<<<<<<< HEAD
-=======
 import crypto from 'crypto'
->>>>>>> pankaj
 import { isEmailConfigured, notifyStudent, sendEmailNotification } from './notifications.js'
 
 const __filename = fileURLToPath(import.meta.url)
