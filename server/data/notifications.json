@@ -1,5 +1,68 @@
 [
   {
+    "id": "NOT-1795008587904-d9c1486e9712b",
+    "title": "Permission Fully Approved: Innovation Expo 2026",
+    "message": "Great news! Your permission request for \"Innovation Expo 2026\" has been granted FULL & FINAL APPROVAL by the University Administration. You may proceed with the activity. Note: Full final approval granted by University Administration",
+    "type": "permission",
+    "isRead": true,
+    "createdAt": "2026-11-18T13:29:47.904Z",
+    "userEmail": "rklife00143@gmail.com"
+  },
+  {
+    "id": "NOT-1795008542057-8f4da0c9f9487",
+    "title": "Permission Update: Annual Cultural Fest 2026",
+    "message": "Your permission request for \"Annual Cultural Fest 2026\" was approved by University Administration. It is now awaiting review from: Cultural Coordinator. Note: Stage (Department) approved by Administration. Advanced to next office.",
+    "type": "permission",
+    "isRead": true,
+    "createdAt": "2026-11-18T13:29:02.057Z",
+    "userEmail": "rklife00143@gmail.com"
+  },
+  {
+    "id": "NOT-1795008502599-57819d2302949",
+    "title": "Permission request submitted",
+    "message": "Your permission request for \"Annual Cultural Fest 2026\" has been submitted for review.",
+    "type": "permission",
+    "isRead": true,
+    "createdAt": "2026-11-18T13:28:22.599Z",
+    "userEmail": "rklife00143@gmail.com"
+  },
+  {
+    "id": "NOT-1795008499497-3e695d8951b9a",
+    "title": "Permission request submitted",
+    "message": "Your permission request for \"Annual Cultural Fest 2026\" has been submitted for review.",
+    "type": "permission",
+    "isRead": true,
+    "createdAt": "2026-11-18T13:28:19.497Z",
+    "userEmail": "rklife00143@gmail.com"
+  },
+  {
+    "id": "NOT-1795008438515-d29fb2361146a",
+    "title": "Permission request submitted",
+    "message": "Your permission request for \"Innovation Expo 2026\" has been submitted for review.",
+    "type": "permission",
+    "isRead": true,
+    "createdAt": "2026-11-18T13:27:18.515Z",
+    "userEmail": "rklife00143@gmail.com"
+  },
+  {
+    "id": "NOT-1795008286097",
+    "userEmail": "rklife00143@gmail.com",
+    "title": "[Progress: 25% - Assigned] Damaged Chairs in Lab.",
+    "message": "Dear RIshabh Gupta,\n\nHello! Your complaint has been reviewed by the maintenance office and assigned to our on-duty technician for inspection today.\n\nLocation: Computer Lab 3\nComplaint ID: CMP-1795008229971\nCampus Maintenance Cell",
+    "type": "complaint",
+    "complaintId": "CMP-1795008229971",
+    "isRead": true,
+    "createdAt": "2026-11-18T13:24:46.097Z"
+  },
+  {
+    "id": "NOT-1795008236583-66a6c2251bcd2",
+    "title": "Complaint submitted",
+    "message": "Your complaint \"Damaged Chairs in Lab.\" has been received and is now under review.",
+    "type": "complaint",
+    "isRead": true,
+    "createdAt": "2026-11-18T13:23:56.583Z"
+  },
+  {
     "id": "NOT-1794977940772",
     "userEmail": "pankajsulekh255@gmail.com",
     "title": "[Progress: 75% - In Progress] Broken fan in Lab.",

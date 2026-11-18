@@ -7,7 +7,6 @@ import { authApi } from '../../services/api'
 import { authenticateLocally, saveLocalUser } from '../../utils/authStorage'
 
 const demoRoleOptions = [
-  { value: 'pankaj', label: 'Pankaj Kumar (Student)', email: 'pankajsulekh255@gmail.com' },
   { value: 'student', label: 'Student', email: 'aarav@student.dcrust.in' },
   { value: 'admin', label: 'Admin', email: 'chahalprince0481@gmail.com' },
   { value: 'department_head', label: 'Department', email: 'hod.cse@dcrust.in' },
@@ -97,7 +96,6 @@ export default function LoginPage() {
 
   const demoLogin = (role) => {
     const userByRole = {
-      pankaj: demoUsers.pankaj,
       student: demoUsers.student,
       admin: demoUsers.admin,
       department_head: demoUsers.departmentHead,

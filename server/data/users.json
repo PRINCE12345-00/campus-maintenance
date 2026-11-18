@@ -75,7 +75,7 @@
     "role": "student",
     "department": "CSE",
     "batch": "2026",
-    "password": "scrypt$4f6b9f790f5e54f29577bbe3918e50c0$a6ef7a562434aa3a81666ad1e65bd7a6bf2916919965d6209e098546452a87ed5b431d6f8a5663b2cbc8f382d89a5106156687af7920d59225b31b592ab61618",
+    "password": "scrypt$89f75b06534f67175c50e1acddb00593$6c86e0ce6a50bac15a4842fceba73fdd89b6a6f1bdb8d01249b48a7ab0454996db807cde596f16f7b33936db588a035385be6c1cc3ab54eb0cb408cb126a7633",
     "hostel": "BH-1 Room No. 366",
     "phone": "+91 9306817255"
   },
@@ -88,5 +88,17 @@
     "department": "EE",
     "batch": "2026",
     "password": "scrypt$a68867770ab730308c5163a804d5a307$cdaea79b7d02c48795c8dbcf8b742b09319607ce8bfe54f15705d64986e27c85dabbbb161f3ece504d98cb7b58aaa6914dc48fc2f35d823c7d4cff6cb633ca54"
+  },
+  {
+    "id": "23001001100",
+    "rollNumber": "23001001100",
+    "name": "Rishabh Gupta",
+    "email": "rklife00143@gmail.com",
+    "role": "student",
+    "department": "CSE",
+    "batch": "2026",
+    "password": "scrypt$37b9b7220b1d0870ad74ddf546b24e72$8853bf696119158ef58c727fdf2f31744483a876e47e99733f59a7b0153ea01654c0f72430c7127b9a76391be1ffd50162e55bfc197aabfd3769cd449ca77350",
+    "hostel": "BH - 1 Room No. 365",
+    "phone": "+91 6200679148"
   }
 ]

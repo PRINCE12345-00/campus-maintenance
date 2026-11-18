@@ -56,6 +56,76 @@
     "evidenceStatus": "Approved"
   },
   {
+    "id": "CMP-1795008229971",
+    "category": "Damaged Furniture",
+    "location": "Computer Lab 3",
+    "destination": "CSE Department",
+    "title": "Damaged Chairs in Lab.",
+    "description": "Several chairs in the college computer lab are damaged and unsafe to use. Some chairs have broken legs and loose screws. This may cause injuries to students. Kindly inspect and repair or replace the damaged chairs as soon as possible.",
+    "status": "Assigned",
+    "progress": 25,
+    "priority": "Medium",
+    "submittedBy": "RIshabh Gupta",
+    "submittedById": "23001001100",
+    "submittedByEmail": "rklife00143@gmail.com",
+    "department": "CSE",
+    "assignedTo": "Maintenance Cell",
+    "submissionDate": "2026-11-18",
+    "lastUpdated": "2026-11-18",
+    "attachments": [],
+    "aiVisionResult": null,
+    "timeline": [
+      {
+        "status": "Submitted",
+        "progress": 10,
+        "date": "2026-11-18",
+        "note": "Complaint filed by student."
+      },
+      {
+        "status": "Assigned",
+        "progress": 25,
+        "date": "2026-11-18",
+        "note": "Dear RIshabh Gupta,\n\nHello! Your complaint has been reviewed by the maintenance office and assigned to our on-duty technician for inspection today.\n\nLocation: Computer Lab 3\nComplaint ID: CMP-1795008229971\nCampus Maintenance Cell",
+        "emailSent": true
+      }
+    ],
+    "emailUpdates": [
+      {
+        "id": "EML-1795008286097-f96f",
+        "date": "2026-11-18T13:24:46.097Z",
+        "sender": "student Office",
+        "recipient": "rklife00143@gmail.com",
+        "subject": "[Progress: 25% - Assigned] Damaged Chairs in Lab.",
+        "message": "Dear RIshabh Gupta,\n\nHello! Your complaint has been reviewed by the maintenance office and assigned to our on-duty technician for inspection today.\n\nLocation: Computer Lab 3\nComplaint ID: CMP-1795008229971\nCampus Maintenance Cell",
+        "status": "Assigned",
+        "progress": 25,
+        "delivered": false,
+        "mode": "email"
+      }
+    ],
+    "rating": null,
+    "feedback": "",
+    "mlPrediction": {
+      "isAvailable": true,
+      "categoryConfidence": 0.96,
+      "priorityConfidence": 0.59,
+      "manualReviewRequired": true,
+      "estimatedResolutionDays": 3.5,
+      "expectedResolutionDate": "2026-11-22",
+      "delayRisk": "On Track",
+      "explanation": {
+        "top_contributing_words": [
+          "broken"
+        ],
+        "safety_hazard_detected": false,
+        "matched_hazard_keywords": [],
+        "human_readable_reason": "High-frequency domain keywords matched: broken."
+      },
+      "modelVersion": "2.0.0"
+    },
+    "evidenceStatus": "No Evidence"
+  },
+  {
     "id": "CMP-1794936753571",
     "category": "Electrical",
     "location": "Computer Lab 3",
