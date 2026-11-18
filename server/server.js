@@ -104,7 +104,7 @@ function verifyPassword(candidate, stored) {
     if (parts.length !== 3) return false
     const [, salt, hash] = parts
 
-    // Validate salt (16 bytes = 32 hex chars) and hash (64 bytes = 128 hex chars)
+    // Validate  salt (16 bytes = 32 hex chars) and hash (64 bytes = 128 hex chars)
     if (!/^[0-9a-fA-F]{32}$/.test(salt) || !/^[0-9a-fA-F]{128}$/.test(hash)) {
       return false
     }
