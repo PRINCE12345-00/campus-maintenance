@@ -7,6 +7,10 @@ import {
   triggerMobileNotification,
 } from '../utils/mobileNotifications'
 import { complaintsApi, notificationsApi, permissionsApi } from '../services/api'
+<<<<<<< HEAD
+=======
+import { getLocalRegisteredUsers } from '../utils/authStorage'
+>>>>>>> pankaj
 
 const AppContext = createContext(null)
 
@@ -58,9 +62,14 @@ export function AppProvider({ children }) {
     refreshData()
   }, [refreshData, user?.id, user?.email])
 
+<<<<<<< HEAD
   // Initialize service worker on mount
+=======
+  // Initialize service worker and persistent registered user registry on mount
+>>>>>>> pankaj
   useEffect(() => {
     initServiceWorker()
+    getLocalRegisteredUsers()
   }, [])
 
   // Listen for storage events (cross-tab / multi-window sync for notifications)

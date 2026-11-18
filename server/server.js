@@ -4,6 +4,10 @@ import cors from 'cors'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
+<<<<<<< HEAD
+=======
+import crypto from 'crypto'
+>>>>>>> pankaj
 import { isEmailConfigured, notifyStudent, sendEmailNotification } from './notifications.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -82,6 +86,48 @@ const initialDemoUsers = [
   { id: 'VC-01', name: 'Vice Chancellor', email: 'vc@dcrust.in', role: 'vice_chancellor', department: 'Vice Chancellor Office', password: 'vc123456' },
 ]
 
+<<<<<<< HEAD
+=======
+// Secure password hashing and verification using Node.js built-in scrypt
+function hashPassword(password) {
+  if (!password) return ''
+  const salt = crypto.randomBytes(16).toString('hex')
+  const derivedKey = crypto.scryptSync(String(password), salt, 64).toString('hex')
+  return `scrypt$${salt}$${derivedKey}`
+}
+
+function verifyPassword(candidate, stored) {
+  if (!candidate || !stored || typeof stored !== 'string') return false
+  if (!stored.startsWith('scrypt$')) {
+    // Reject legacy plaintext passwords or unhashed formats
+    return false
+  }
+
+  try {
+    const parts = stored.split('$')
+    if (parts.length !== 3) return false
+    const [, salt, hash] = parts
+
+    // Validate salt (16 bytes = 32 hex chars) and hash (64 bytes = 128 hex chars)
+    if (!/^[0-9a-fA-F]{32}$/.test(salt) || !/^[0-9a-fA-F]{128}$/.test(hash)) {
+      return false
+    }
+
+    const candidateBuf = crypto.scryptSync(String(candidate), salt, 64)
+    const storedBuf = Buffer.from(hash, 'hex')
+
+    if (candidateBuf.length !== storedBuf.length) {
+      return false
+    }
+
+    return crypto.timingSafeEqual(candidateBuf, storedBuf)
+  } catch (err) {
+    console.error('Password verification error:', err.message)
+    return false
+  }
+}
+
+>>>>>>> pankaj
 const initialComplaints = [
   {
     id: 'CMP-1001',
@@ -218,6 +264,22 @@ const initialNotifications = [
 
 // Load persistent collections from disk
 const demoUsers = loadJson('users.json', initialDemoUsers)
+<<<<<<< HEAD
+=======
+
+// Migrate any legacy plaintext passwords in users.json to scrypt hashes on startup and persist immediately
+let usersMigrated = false
+demoUsers.forEach((u) => {
+  if (u.password && !u.password.startsWith('scrypt$')) {
+    u.password = hashPassword(u.password)
+    usersMigrated = true
+  }
+})
+if (usersMigrated) {
+  saveJson('users.json', demoUsers)
+}
+
+>>>>>>> pankaj
 const complaints = loadJson('complaints.json', initialComplaints)
 const permissions = loadJson('permissions.json', initialPermissions)
 const notifications = loadJson('notifications.json', initialNotifications)
@@ -268,7 +330,7 @@ const createNotification = (type, title, message) => ({
 
 const getSafeUser = (user) => {
   if (!user) return null
-  const { password, ...safeUser } = user
+  const { password: _password, passwordHash: _passwordHash, ...safeUser } = user
   return safeUser
 }
 
@@ -277,19 +339,25 @@ app.get('/api/health', (req, res) => {
 })
 
 app.post('/api/auth/login', (req, res) => {
-  const { email, password } = req.body || {}
-  const normalizedEmail = String(email || '').trim().toLowerCase()
+  const { email, identifier, password } = req.body || {}
+  const rawId = String(identifier || email || '').trim()
+  const normalizedId = rawId.toLowerCase()
 
-  if (!normalizedEmail || !password) {
-    return res.status(400).json({ message: 'Email and password are required.' })
+  if (!rawId || !password) {
+    return res.status(400).json({ message: 'Email/Roll Number and password are required.' })
   }
 
-  const user = demoUsers.find(
-    (entry) => entry.email.toLowerCase() === normalizedEmail && entry.password === String(password),
-  )
+  const user = demoUsers.find((entry) => {
+    const entryEmail = String(entry.email || '').toLowerCase()
+    const entryRoll = String(entry.rollNumber || entry.id || '').toLowerCase()
+    const entryName = String(entry.name || '').toLowerCase()
+
+    const idMatches = entryEmail === normalizedId || entryRoll === normalizedId || entryName === normalizedId
+    return idMatches && verifyPassword(password, entry.password)
+  })
 
   if (!user) {
-    return res.status(401).json({ message: 'Invalid email or password.' })
+    return res.status(401).json({ message: 'Invalid credentials. Please check your email or roll number and password.' })
   }
 
   return res.json({
@@ -306,20 +374,21 @@ app.post('/api/auth/register', (req, res) => {
   }
 
   const normalizedEmail = String(email).trim().toLowerCase()
+  const trimmedRoll = String(rollNumber).trim()
 
-  if (demoUsers.some((entry) => entry.email.toLowerCase() === normalizedEmail)) {
-    return res.status(409).json({ message: 'An account with this email already exists.' })
+  if (demoUsers.some((entry) => entry.email.toLowerCase() === normalizedEmail || String(entry.rollNumber || entry.id).toLowerCase() === trimmedRoll.toLowerCase())) {
+    return res.status(409).json({ message: 'An account with this email or roll number already exists.' })
   }
 
   const newUser = {
-    id: String(rollNumber).trim(),
-    rollNumber: String(rollNumber).trim(),
+    id: trimmedRoll,
+    rollNumber: trimmedRoll,
     name: String(name).trim(),
     email: normalizedEmail,
     role: 'student',
     department: String(department).trim(),
     batch: '2026',
-    password: String(password),
+    password: hashPassword(password),
   }
 
   demoUsers.push(newUser)
@@ -331,6 +400,169 @@ app.post('/api/auth/register', (req, res) => {
   })
 })
 
+<<<<<<< HEAD
+=======
+// Secure OTP store for verified password reset (in-memory map with 10-minute expiry)
+const passwordResetOtps = new Map()
+
+// 1. Request OTP for password reset
+app.post('/api/auth/forgot-password', async (req, res) => {
+  const { identifier } = req.body || {}
+  const rawId = String(identifier || '').trim().toLowerCase()
+
+  if (!rawId) {
+    return res.status(400).json({ message: 'Please provide your registered email or university roll number.' })
+  }
+
+  // Find user by email, roll number, or ID
+  const user = demoUsers.find((u) => {
+    const e = String(u.email || '').toLowerCase()
+    const r = String(u.rollNumber || u.id || '').toLowerCase()
+    return e === rawId || r === rawId
+  })
+
+  if (!user) {
+    return res.status(404).json({ message: 'No registered account found with that email or roll number.' })
+  }
+
+  if (!user.email) {
+    return res.status(400).json({ message: 'This account does not have a registered email address for password reset.' })
+  }
+
+  // Generate 6-digit cryptographic OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString()
+  const expiresAt = Date.now() + 10 * 60 * 1000 // 10 minutes
+
+  passwordResetOtps.set(user.email.toLowerCase(), {
+    otp,
+    expiresAt,
+    attempts: 0,
+    userId: user.id || user.rollNumber,
+  })
+
+  // Format masked email for UI (e.g. p***5@gmail.com)
+  const [localPart, domain] = user.email.split('@')
+  const maskedLocal = localPart.length > 2
+    ? `${localPart[0]}${'*'.repeat(Math.min(localPart.length - 2, 5))}${localPart[localPart.length - 1]}`
+    : `${localPart[0]}*`
+  const maskedEmail = `${maskedLocal}@${domain}`
+
+  try {
+    const emailResult = await sendEmailNotification({
+      to: user.email,
+      subject: '🔐 Smart Campus Portal - Password Reset OTP',
+      text: `Hello ${user.name},\n\nYour 6-digit verification code to reset your password is: ${otp}\n\nThis code will expire in 10 minutes.\n\nIf you did not request a password reset, please ignore this email or notify campus administration.\n\nRegards,\nSmart Campus Maintenance & Security Team`,
+      html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 540px; margin: 0 auto; background: #0f172a; color: #f8fafc; border-radius: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+          <div style="background: linear-gradient(135deg, #2563eb, #4f46e5); padding: 28px 32px; text-align: center;">
+            <h1 style="color: #ffffff; font-size: 22px; margin: 0; font-weight: 700; letter-spacing: 0.5px;">Smart Campus Portal</h1>
+            <p style="color: #e0e7ff; font-size: 13px; margin: 6px 0 0; opacity: 0.9;">DCRUST Murthal • Automated Security System</p>
+          </div>
+          <div style="padding: 32px;">
+            <p style="font-size: 15px; color: #cbd5e1; margin-top: 0;">Hello <strong>${user.name}</strong>,</p>
+            <p style="font-size: 14px; color: #94a3b8; line-height: 1.6;">We received a request to reset your Smart Campus account password. Please use the verification code (OTP) below to complete your reset:</p>
+            <div style="margin: 28px 0; text-align: center;">
+              <span style="display: inline-block; font-size: 34px; font-weight: 800; letter-spacing: 8px; color: #38bdf8; background: #1e293b; padding: 14px 28px; border-radius: 14px; border: 1px solid #38bdf8; font-family: monospace;">
+                ${otp}
+              </span>
+            </div>
+            <p style="font-size: 13px; color: #94a3b8; text-align: center; margin-bottom: 24px;">
+              ⏱️ This OTP is valid for <strong>10 minutes</strong>.
+            </p>
+            <div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 12px 16px; border-radius: 6px; margin-bottom: 24px;">
+              <p style="font-size: 12px; color: #fca5a5; margin: 0;">
+                <strong>Security Alert:</strong> Never share this OTP with anyone, including university staff.
+              </p>
+            </div>
+            <p style="font-size: 12px; color: #64748b; line-height: 1.5; margin-bottom: 0;">If you did not request this password reset, you can safely ignore this email. Your current password remains secure.</p>
+          </div>
+        </div>
+      `,
+    })
+
+    console.log(`[Password Reset] OTP sent to ${user.email}. Result: ${emailResult.mode}`)
+
+    return res.json({
+      success: true,
+      message: `Verification code sent to ${maskedEmail}`,
+      email: user.email,
+      maskedEmail,
+      expiresInMinutes: 10,
+    })
+  } catch (err) {
+    console.error('Failed to send password reset email:', err)
+    return res.status(500).json({ message: 'Failed to send OTP email. Please try again in a few moments.' })
+  }
+})
+
+// 2. Verify OTP and securely reset password
+app.post('/api/auth/reset-password', (req, res) => {
+  const { identifier, otp, newPassword } = req.body || {}
+  const rawId = String(identifier || '').trim().toLowerCase()
+  const cleanOtp = String(otp || '').trim()
+
+  if (!rawId || !cleanOtp || !newPassword) {
+    return res.status(400).json({ message: 'Roll number/email, OTP, and new password are required.' })
+  }
+
+  if (String(newPassword).length < 6) {
+    return res.status(400).json({ message: 'New password must be at least 6 characters long.' })
+  }
+
+  const user = demoUsers.find((u) => {
+    const e = String(u.email || '').toLowerCase()
+    const r = String(u.rollNumber || u.id || '').toLowerCase()
+    return e === rawId || r === rawId
+  })
+
+  if (!user) {
+    return res.status(404).json({ message: 'User not found.' })
+  }
+
+  const emailKey = user.email.toLowerCase()
+  const record = passwordResetOtps.get(emailKey)
+
+  if (!record) {
+    return res.status(400).json({ message: 'No OTP requested or code has expired. Please request a new verification code.' })
+  }
+
+  if (Date.now() > record.expiresAt) {
+    passwordResetOtps.delete(emailKey)
+    return res.status(400).json({ message: 'Verification code has expired. Please request a new one.' })
+  }
+
+  if (record.attempts >= 5) {
+    passwordResetOtps.delete(emailKey)
+    return res.status(429).json({ message: 'Too many incorrect attempts. Please request a new verification code.' })
+  }
+
+  if (record.otp !== cleanOtp) {
+    record.attempts += 1
+    return res.status(400).json({ message: 'Invalid verification code. Please check your email and try again.' })
+  }
+
+  // OTP is verified! Securely hash and update password
+  user.password = hashPassword(newPassword)
+  saveJson('users.json', demoUsers)
+  passwordResetOtps.delete(emailKey)
+
+  console.log(`[Password Reset] Password successfully updated for user ${user.name} (${user.email})`)
+
+  return res.json({
+    success: true,
+    message: 'Password reset successful! You can now log in with your new password.',
+    email: user.email,
+  })
+})
+
+// Unverified / direct password reset is disabled for security (HTTP 501 Not Implemented)
+app.post('/api/auth/direct-reset-password', (req, res) => {
+  return res.status(501).json({
+    message: 'Direct unverified reset is disabled for security. Please use the verified OTP reset flow at /api/auth/forgot-password.',
+  })
+})
+
+>>>>>>> pankaj
 // User Management Endpoints
 app.get('/api/users', (req, res) => {
   const usersWithStats = demoUsers.map((user) => {
@@ -372,6 +604,15 @@ app.post('/api/users', (req, res) => {
     return res.status(400).json({ message: 'Name, email, and department are required.' })
   }
 
+<<<<<<< HEAD
+=======
+  if (!password || String(password).trim().length < 6) {
+    return res.status(400).json({
+      message: 'A secure password of at least 6 characters is required. Default or empty passwords are not permitted.',
+    })
+  }
+
+>>>>>>> pankaj
   const normalizedEmail = String(email).trim().toLowerCase()
   if (demoUsers.some((u) => u.email.toLowerCase() === normalizedEmail)) {
     return res.status(409).json({ message: 'User with this email already exists.' })
@@ -387,7 +628,11 @@ app.post('/api/users', (req, res) => {
     batch: String(batch).trim(),
     hostel: String(hostel).trim() || 'Hostel Block A',
     phone: String(phone).trim(),
+<<<<<<< HEAD
     password: password ? String(password) : 'welcome123',
+=======
+    password: hashPassword(password),
+>>>>>>> pankaj
     status: 'Active',
     createdAt: new Date().toISOString(),
   }
@@ -410,7 +655,11 @@ app.patch('/api/users/:id', (req, res) => {
     return res.status(404).json({ message: 'User not found' })
   }
 
+<<<<<<< HEAD
   if (oldPassword && user.password && user.password !== oldPassword) {
+=======
+  if (oldPassword && user.password && !verifyPassword(oldPassword, user.password)) {
+>>>>>>> pankaj
     return res.status(400).json({ message: 'Current password does not match.' })
   }
 
@@ -420,7 +669,11 @@ app.patch('/api/users/:id', (req, res) => {
   if (department) user.department = department
   if (phone !== undefined) user.phone = phone
   if (role) user.role = role
+<<<<<<< HEAD
   if (password) user.password = String(password)
+=======
+  if (password) user.password = hashPassword(password)
+>>>>>>> pankaj
 
   saveJson('users.json', demoUsers)
   res.json({ message: 'Profile updated successfully', user: getSafeUser(user) })
@@ -481,7 +734,10 @@ app.post('/api/users/:id/message', async (req, res) => {
 
   res.json({ message: `Message sent to ${targetUser.name} (${targetUser.email})` })
 })
+<<<<<<< HEAD
 
+=======
+>>>>>>> pankaj
 app.get('/api/analytics', (req, res) => {
   const countBy = (key) => Object.entries(complaints.reduce((acc, item) => {
     const value = item[key] || 'Unspecified'

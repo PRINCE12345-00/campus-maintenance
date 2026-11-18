@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { demoUsers } from '../../data/mockData'
 import { useAppContext } from '../../context/AppContext'
 import { authApi } from '../../services/api'
+import { authenticateLocally, saveLocalUser } from '../../utils/authStorage'
 
 const demoRoleOptions = [
   { value: 'student', label: 'Student', email: 'aarav@student.dcrust.in' },
@@ -33,9 +34,27 @@ export default function LoginPage() {
 
   const validate = () => {
     const nextErrors = {}
-    if (!form.email.trim()) nextErrors.email = 'Email is required.'
+    if (!form.email.trim()) nextErrors.email = 'Email or Roll number is required.'
     if (!form.password.trim()) nextErrors.password = 'Password is required.'
     return nextErrors
+  }
+
+  const finalizeLogin = (user) => {
+    setUser(user)
+    if (user.role === 'student') {
+      setProfile(user)
+    }
+    const routeByRole = {
+      admin: '/admin',
+      department_head: '/department-head',
+      cultural_coordinator: '/cultural-coordinator',
+      technical_coordinator: '/technical-coordinator',
+      dsw: '/dsw',
+      registrar: '/registrar',
+      vice_chancellor: '/vice-chancellor',
+      student: '/student',
+    }
+    navigate(routeByRole[user.role] || '/student')
   }
 
   const handleSubmit = async (event) => {
@@ -44,32 +63,35 @@ export default function LoginPage() {
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length) return
 
+    const identifier = form.email.trim()
+    const password = form.password
+
+    // 1. First attempt login with backend server if online
     try {
       const { data } = await authApi.login({
-        email: form.email,
-        password: form.password,
+        email: identifier,
+        identifier,
+        password,
       })
 
-      const user = data.user
-      setUser(user)
-      if (user.role === 'student') {
-        setProfile(user)
+      if (data?.user) {
+        saveLocalUser({ ...data.user, password })
+        finalizeLogin(data.user)
+        return
       }
-      const routeByRole = {
-        admin: '/admin',
-        department_head: '/department-head',
-        cultural_coordinator: '/cultural-coordinator',
-        technical_coordinator: '/technical-coordinator',
-        dsw: '/dsw',
-        registrar: '/registrar',
-        vice_chancellor: '/vice-chancellor',
-        student: '/student',
-      }
-      navigate(routeByRole[user.role] || '/student')
-    } catch (error) {
-      const message = error?.response?.data?.message || 'Email or password is incorrect. Use your registered student account or the demo credentials.'
-      setErrors({ form: message })
+    } catch (apiError) {
+      console.warn('Backend login unavailable or rejected, checking persistent storage:', apiError?.message)
     }
+
+    // 2. Seamless local/persistent storage fallback (works anytime, even 10+ days later without server)
+    const localAuth = authenticateLocally(identifier, password)
+    if (localAuth.success && localAuth.user) {
+      finalizeLogin(localAuth.user)
+      return
+    }
+
+    // If both backend and local auth failed
+    setErrors({ form: localAuth.message || 'Invalid email/roll number or password. Please verify and try again.' })
   }
 
   const demoLogin = (role) => {
@@ -153,16 +175,17 @@ export default function LoginPage() {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-300">Email address</label>
-                <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-slate-950/50 px-3 py-3 ring-1 ring-transparent transition focus-within:border-blue-400/60 focus-within:ring-blue-400/20">
-                  <Mail size={18} className="text-slate-400" />
+                <label className="mb-2 block text-sm font-medium text-slate-300">Email or University Roll Number</label>
+                <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-[#090e1a] px-3.5 py-3 ring-1 ring-transparent transition focus-within:border-blue-400/60 focus-within:ring-blue-400/20">
+                  <Mail size={18} className="text-slate-400 shrink-0" />
                   <input
-                    type="email"
+                    type="text"
                     name="email"
+                    autoComplete="username"
                     value={form.email}
                     onChange={handleChange}
-                    className="w-full border-0 bg-transparent text-slate-100 outline-none placeholder:text-slate-500"
-                    placeholder="name@domain.com"
+                    className="w-full border-0 bg-transparent text-slate-100 outline-none placeholder:text-slate-500 text-sm"
+                    placeholder="name@domain.com or 23001001076"
                   />
                 </div>
                 {errors.email && <p className="mt-2 text-sm text-red-400">{errors.email}</p>}
@@ -172,20 +195,21 @@ export default function LoginPage() {
 
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-300">Password</label>
-                <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-slate-950/50 px-3 py-3 ring-1 ring-transparent transition focus-within:border-blue-400/60 focus-within:ring-blue-400/20">
-                  <LockKeyhole size={18} className="text-slate-400" />
+                <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-[#090e1a] px-3.5 py-3 ring-1 ring-transparent transition focus-within:border-blue-400/60 focus-within:ring-blue-400/20">
+                  <LockKeyhole size={18} className="text-slate-400 shrink-0" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     name="password"
+                    autoComplete="current-password"
                     value={form.password}
                     onChange={handleChange}
-                    className="w-full border-0 bg-transparent text-slate-100 outline-none placeholder:text-slate-500"
+                    className="w-full border-0 bg-transparent text-slate-100 outline-none placeholder:text-slate-500 text-sm"
                     placeholder="Enter your password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((visible) => !visible)}
-                    className="text-slate-400 transition hover:text-slate-100"
+                    className="text-slate-400 transition hover:text-slate-100 shrink-0"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
