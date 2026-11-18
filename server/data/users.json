@@ -8,11 +8,7 @@
     "batch": "2026",
     "phone": "+91 98765 43210",
     "hostel": "Boys Hostel Block A",
-<<<<<<< HEAD
-    "password": "student123"
-=======
     "password": "scrypt$2df838fe10ab4fe6dac140a4551edb69$3c31d5e2761631be95cc50bcbc7a6aa77b1e66f6d9ebf2f0e55e66bf3e31d2e23a9a00f28e7b1dd6fa244ffb0fbe248f097a2d1c9beb4307526d5468a279cfda"
->>>>>>> pankaj
   },
   {
     "id": "ADM-9001",
@@ -21,11 +17,7 @@
     "role": "admin",
     "department": "Administrative Office",
     "phone": "",
-<<<<<<< HEAD
-    "password": "prince@123"
-=======
     "password": "scrypt$303c2e37d4ac9693f5a8bd4dcd4ed5d6$07cfe515a3ba5bd04aae1a61046eed9d5ee440ce33ef53c03c1a078ef8132ec551c187c5099689f2932a8bbdadb320908cd118b007499d55a185f8391f4c10af"
->>>>>>> pankaj
   },
   {
     "id": "HOD-CSE-01",
@@ -33,11 +25,7 @@
     "email": "hod.cse@dcrust.in",
     "role": "department_head",
     "department": "Computer Science & Engineering",
-<<<<<<< HEAD
-    "password": "hod12345"
-=======
     "password": "scrypt$421530bd53f4b4d9a8508bad9250a1df$46a6644175e03dd5aaf58e7265b40bf3bdb514ef2400d6401ef709b3a8da9a655e486e2e9abfe99a530a9330595f61a85e9b45b84cf985ae7cb81a9ee26ed0eb"
->>>>>>> pankaj
   },
   {
     "id": "COORD-CULT-01",
@@ -45,11 +33,7 @@
     "email": "cultural.coordinator@dcrust.in",
     "role": "cultural_coordinator",
     "department": "Student Affairs",
-<<<<<<< HEAD
-    "password": "culture123"
-=======
     "password": "scrypt$b5d24bcbb95f80d3d738f98592ed08ed$bb9857e9d2e11afac7269e1f39bf5f7e0009d1da14de8856733dc390964b7a769a447cdde7f95c4dede29b22d09288159e76db8f621ac336bce162e51538b779"
->>>>>>> pankaj
   },
   {
     "id": "COORD-TECH-01",
@@ -57,11 +41,7 @@
     "email": "technical.coordinator@dcrust.in",
     "role": "technical_coordinator",
     "department": "Student Affairs",
-<<<<<<< HEAD
-    "password": "tech12345"
-=======
     "password": "scrypt$5ea70b907e7f825bfe1efe7b222e9a87$9ee731545ec9240fb70adf0534d86a2609cb271dfd3be1945f0a9ab23a66e3ca46e7847f05e19a9ceef7a829b15e0ebe817c349fe37886d80c09aed94b16e19a"
->>>>>>> pankaj
   },
   {
     "id": "DSW-01",
@@ -69,11 +49,7 @@
     "email": "dsw@dcrust.in",
     "role": "dsw",
     "department": "Student Welfare",
-<<<<<<< HEAD
-    "password": "dsw12345"
-=======
     "password": "scrypt$33030263409eb24b43a9ff48fac1f653$5bb6f07a653054ca39f000e30e11d330979db5353c6555cc81dc76fe962d320e94527a389418b08439bb799966331a24cc66d9c0c9e53a45eda31e7f1ec3c6ae"
->>>>>>> pankaj
   },
   {
     "id": "REG-01",
@@ -81,11 +57,7 @@
     "email": "registrar@dcrust.in",
     "role": "registrar",
     "department": "Registrar Office",
-<<<<<<< HEAD
-    "password": "registrar123"
-=======
     "password": "scrypt$2d188be2939c282135ce6f9950fb0077$882dff392bd1495292b7da9c75af92c439840a5a9a98cace8bf71b8186e21bc7ffa535105944050a8c2b7a5d2b4409a75a4f2608d6f5361cff725547229f5bce"
->>>>>>> pankaj
   },
   {
     "id": "VC-01",
@@ -93,11 +65,7 @@
     "email": "vc@dcrust.in",
     "role": "vice_chancellor",
     "department": "Vice Chancellor Office",
-<<<<<<< HEAD
-    "password": "vc123456"
-=======
     "password": "scrypt$82ec4110f6b3745503d53d986238a370$7ce9ee110866cc4a88345cb0d76ae001ee1b28c515e597b887d2abb30701b0ef3f862f86d21c8cf6241fa0b83128295c21d2d947d1c0fd77626cf7546bb266d0"
->>>>>>> pankaj
   },
   {
     "id": "23001001076",
@@ -107,12 +75,7 @@
     "role": "student",
     "department": "CSE",
     "batch": "2026",
-<<<<<<< HEAD
-    "password": "chd@2004",
-    "hostel": "BH-1 Room No. 366",
-    "phone": "+91 9306817255"
-=======
-    "password": "scrypt$18d7909f9957dda860fabbaa31dce62a$b3486ac8deacebe7c1a44af2850c9a8edb667d0a6109c2f2f7de55a58045ce2645d42c728aa63d7bb7c660b885ccffc96b8c90baf6f0d39c9379cf25da589577",
+    "password": "scrypt$4f6b9f790f5e54f29577bbe3918e50c0$a6ef7a562434aa3a81666ad1e65bd7a6bf2916919965d6209e098546452a87ed5b431d6f8a5663b2cbc8f382d89a5106156687af7920d59225b31b592ab61618",
     "hostel": "BH-1 Room No. 366",
     "phone": "+91 9306817255"
   },
@@ -125,6 +88,5 @@
     "department": "EE",
     "batch": "2026",
     "password": "scrypt$a68867770ab730308c5163a804d5a307$cdaea79b7d02c48795c8dbcf8b742b09319607ce8bfe54f15705d64986e27c85dabbbb161f3ece504d98cb7b58aaa6914dc48fc2f35d823c7d4cff6cb633ca54"
->>>>>>> pankaj
   }
 ]

@@ -83,8 +83,7 @@ const initialDemoUsers = [
   { id: 'VC-01', name: 'Vice Chancellor', email: 'vc@dcrust.in', role: 'vice_chancellor', department: 'Vice Chancellor Office', password: 'vc123456' },
 ]
 
-<<<<<<< HEAD
-=======
+
 // Secure password hashing and verification using Node.js built-in scrypt
 function hashPassword(password) {
   if (!password) return ''
@@ -124,7 +123,7 @@ function verifyPassword(candidate, stored) {
   }
 }
 
->>>>>>> pankaj
+
 const initialComplaints = [
   {
     id: 'CMP-1001',
@@ -261,8 +260,7 @@ const initialNotifications = [
 
 // Load persistent collections from disk
 const demoUsers = loadJson('users.json', initialDemoUsers)
-<<<<<<< HEAD
-=======
+
 
 // Migrate any legacy plaintext passwords in users.json to scrypt hashes on startup and persist immediately
 let usersMigrated = false
@@ -276,7 +274,7 @@ if (usersMigrated) {
   saveJson('users.json', demoUsers)
 }
 
->>>>>>> pankaj
+
 const complaints = loadJson('complaints.json', initialComplaints)
 const permissions = loadJson('permissions.json', initialPermissions)
 const notifications = loadJson('notifications.json', initialNotifications)
@@ -397,8 +395,7 @@ app.post('/api/auth/register', (req, res) => {
   })
 })
 
-<<<<<<< HEAD
-=======
+
 // Secure OTP store for verified password reset (in-memory map with 10-minute expiry)
 const passwordResetOtps = new Map()
 
@@ -559,7 +556,7 @@ app.post('/api/auth/direct-reset-password', (req, res) => {
   })
 })
 
->>>>>>> pankaj
+
 // User Management Endpoints
 app.get('/api/users', (req, res) => {
   const usersWithStats = demoUsers.map((user) => {
@@ -601,15 +598,14 @@ app.post('/api/users', (req, res) => {
     return res.status(400).json({ message: 'Name, email, and department are required.' })
   }
 
-<<<<<<< HEAD
-=======
+
   if (!password || String(password).trim().length < 6) {
     return res.status(400).json({
       message: 'A secure password of at least 6 characters is required. Default or empty passwords are not permitted.',
     })
   }
 
->>>>>>> pankaj
+
   const normalizedEmail = String(email).trim().toLowerCase()
   if (demoUsers.some((u) => u.email.toLowerCase() === normalizedEmail)) {
     return res.status(409).json({ message: 'User with this email already exists.' })
@@ -625,11 +621,9 @@ app.post('/api/users', (req, res) => {
     batch: String(batch).trim(),
     hostel: String(hostel).trim() || 'Hostel Block A',
     phone: String(phone).trim(),
-<<<<<<< HEAD
-    password: password ? String(password) : 'welcome123',
-=======
+
     password: hashPassword(password),
->>>>>>> pankaj
+
     status: 'Active',
     createdAt: new Date().toISOString(),
   }
@@ -652,11 +646,9 @@ app.patch('/api/users/:id', (req, res) => {
     return res.status(404).json({ message: 'User not found' })
   }
 
-<<<<<<< HEAD
-  if (oldPassword && user.password && user.password !== oldPassword) {
-=======
+
   if (oldPassword && user.password && !verifyPassword(oldPassword, user.password)) {
->>>>>>> pankaj
+
     return res.status(400).json({ message: 'Current password does not match.' })
   }
 
@@ -666,11 +658,9 @@ app.patch('/api/users/:id', (req, res) => {
   if (department) user.department = department
   if (phone !== undefined) user.phone = phone
   if (role) user.role = role
-<<<<<<< HEAD
-  if (password) user.password = String(password)
-=======
+
   if (password) user.password = hashPassword(password)
->>>>>>> pankaj
+
 
   saveJson('users.json', demoUsers)
   res.json({ message: 'Profile updated successfully', user: getSafeUser(user) })
@@ -731,10 +721,8 @@ app.post('/api/users/:id/message', async (req, res) => {
 
   res.json({ message: `Message sent to ${targetUser.name} (${targetUser.email})` })
 })
-<<<<<<< HEAD
 
-=======
->>>>>>> pankaj
+
 app.get('/api/analytics', (req, res) => {
   const countBy = (key) => Object.entries(complaints.reduce((acc, item) => {
     const value = item[key] || 'Unspecified'

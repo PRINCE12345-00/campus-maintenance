@@ -1,7 +1,15 @@
 [
   {
-<<<<<<< HEAD
-=======
+    "id": "NOT-1794977940772",
+    "userEmail": "pankajsulekh255@gmail.com",
+    "title": "[Progress: 75% - In Progress] Broken fan in Lab.",
+    "message": "Dear Pankaj Kumar,\n\nThe physical repairs have been executed. The maintenance supervisor is now testing and verifying safety standards before sign-off.\n\nLocation: Academic Block A\nComplaint ID: CMP-1794917708929\nCampus Maintenance Cell",
+    "type": "complaint",
+    "complaintId": "CMP-1794917708929",
+    "isRead": true,
+    "createdAt": "2026-11-18T04:59:00.772Z"
+  },
+  {
     "id": "NOT-1794969873771",
     "userEmail": "pankajsulekh255@gmail.com",
     "title": "[Progress: 100% - Resolved] Fan not Working",
@@ -12,7 +20,6 @@
     "createdAt": "2026-11-18T02:44:33.771Z"
   },
   {
->>>>>>> pankaj
     "id": "NOT-1794936837290",
     "userEmail": "pankajsulekh255@gmail.com",
     "title": "[Progress: 50% - In Progress] Fan not Working",
