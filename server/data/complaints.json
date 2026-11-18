@@ -62,8 +62,8 @@
     "destination": "CSE Department",
     "title": "Fan not Working",
     "description": "The fan is not working in the computer lab.",
-    "status": "In Progress",
-    "progress": 50,
+    "status": "Resolved",
+    "progress": 100,
     "priority": "Medium",
     "submittedBy": "Pankaj Kumar",
     "submittedById": "23001001076",
@@ -71,7 +71,7 @@
     "department": "CSE",
     "assignedTo": "Maintenance Cell",
     "submissionDate": "2026-11-17",
-    "lastUpdated": "2026-11-17",
+    "lastUpdated": "2026-11-18",
     "attachments": [
       {
         "name": "live_photo_1794936677309.jpg",
@@ -100,9 +100,28 @@
         "date": "2026-11-17",
         "note": "Dear Pankaj Kumar,\n\nMaintenance team is on-site and actively fixing the issue. We are working to restore normal operation as quickly as possible.\n\nLocation: Computer Lab 3\nComplaint ID: CMP-1794936753571\nCampus Maintenance Cell",
         "emailSent": true
+      },
+      {
+        "status": "Resolved",
+        "progress": 100,
+        "date": "2026-11-18",
+        "note": "Dear Pankaj Kumar,\n\nGreat news! Your complaint has been completely resolved and tested. Please inspect the area and let us know if you need any further assistance.\n\nLocation: Computer Lab 3\nComplaint ID: CMP-1794936753571\nCampus Maintenance Cell",
+        "emailSent": true
       }
     ],
     "emailUpdates": [
+      {
+        "id": "EML-1794969873771-1ff6",
+        "date": "2026-11-18T02:44:33.771Z",
+        "sender": "student Office",
+        "recipient": "pankajsulekh255@gmail.com",
+        "subject": "[Progress: 100% - Resolved] Fan not Working",
+        "message": "Dear Pankaj Kumar,\n\nGreat news! Your complaint has been completely resolved and tested. Please inspect the area and let us know if you need any further assistance.\n\nLocation: Computer Lab 3\nComplaint ID: CMP-1794936753571\nCampus Maintenance Cell",
+        "status": "Resolved",
+        "progress": 100,
+        "delivered": false,
+        "mode": "email"
+      },
       {
         "id": "EML-1794936837290-a8f9",
         "date": "2026-11-17T17:33:57.290Z",
@@ -188,7 +207,7 @@
     "department": "CSE",
     "assignedTo": "Maintenance Cell",
     "submissionDate": "2026-11-17",
-    "lastUpdated": "2026-11-17",
+    "lastUpdated": "2026-11-18",
     "attachments": [],
     "timeline": [
       {
@@ -203,9 +222,28 @@
         "date": "2026-11-17",
         "note": "Dear Pankaj Kumar,\n\nThe physical repairs have been executed. The maintenance supervisor is now testing and verifying safety standards before sign-off.\n\nLocation: Academic Block A\nComplaint ID: CMP-1794917708929\nCampus Maintenance Cell",
         "emailSent": true
+      },
+      {
+        "status": "In Progress",
+        "progress": 75,
+        "date": "2026-11-18",
+        "note": "Dear Pankaj Kumar,\n\nThe physical repairs have been executed. The maintenance supervisor is now testing and verifying safety standards before sign-off.\n\nLocation: Academic Block A\nComplaint ID: CMP-1794917708929\nCampus Maintenance Cell",
+        "emailSent": true
       }
     ],
     "emailUpdates": [
+      {
+        "id": "EML-1794977940772-8af1",
+        "date": "2026-11-18T04:59:00.772Z",
+        "sender": "Campus Admin (Prince Chahal)",
+        "recipient": "pankajsulekh255@gmail.com",
+        "subject": "[Progress: 75% - In Progress] Broken fan in Lab.",
+        "message": "Dear Pankaj Kumar,\n\nThe physical repairs have been executed. The maintenance supervisor is now testing and verifying safety standards before sign-off.\n\nLocation: Academic Block A\nComplaint ID: CMP-1794917708929\nCampus Maintenance Cell",
+        "status": "In Progress",
+        "progress": 75,
+        "delivered": false,
+        "mode": "email"
+      },
       {
         "id": "EML-1794917749284-dbc6",
         "date": "2026-11-17T12:15:49.284Z",

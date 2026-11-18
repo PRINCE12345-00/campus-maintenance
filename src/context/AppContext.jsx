@@ -7,6 +7,7 @@ import {
   triggerMobileNotification,
 } from '../utils/mobileNotifications'
 import { complaintsApi, notificationsApi, permissionsApi } from '../services/api'
+import { getLocalRegisteredUsers } from '../utils/authStorage'
 
 const AppContext = createContext(null)
 
@@ -58,9 +59,10 @@ export function AppProvider({ children }) {
     refreshData()
   }, [refreshData, user?.id, user?.email])
 
-  // Initialize service worker on mount
+  // Initialize service worker and persistent registered user registry on mount
   useEffect(() => {
     initServiceWorker()
+    getLocalRegisteredUsers()
   }, [])
 
   // Listen for storage events (cross-tab / multi-window sync for notifications)
