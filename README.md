@@ -9,9 +9,9 @@ A responsive frontend demo for the final-year B.Tech CSE project titled Smart Ca
 - Complaint submission and tracking dashboard
 - Educational and cultural permission workflow
 - Admin review and status update controls
-- Analytics and demo ML prediction section
+- Analytics and ML-assisted complaint categorization
 - Notifications and profile management
-- LocalStorage-backed mock data for demonstration
+- PostgreSQL-backed complaints, permissions, notifications, and registered users when `DATABASE_URL` is configured
 
 ## Tech stack
 
@@ -22,18 +22,19 @@ A responsive frontend demo for the final-year B.Tech CSE project titled Smart Ca
 - Context API
 - Recharts
 - Lucide React
-- Axios-ready service layer
+- Axios API service layer
+- PostgreSQL persistence through the Node.js backend
 
 ## Getting started
 
 1. Install dependencies:
    npm install
 
-2. Copy `.env.example` to `.env`. SMTP is configured to send from the admin Gmail address `chahalprince0481@gmail.com`; set `SMTP_PASS` to an App Password generated for that account. For Gmail, 2-Step Verification must be enabled to create an App Password. Use the App Password, not the regular Gmail password. The example uses Gmail SMTP on port 465. Student notifications are addressed to the email on the submitting student's account.
+2. Copy `.env.example` to `.env`. Set `DATABASE_URL` to a PostgreSQL connection string from your provider. Use the provider's pooled connection string if offered. Set `DATABASE_SSL=true` if required by the provider. On deployment, set these as backend environment variables instead of putting them in frontend settings. SMTP is optional: configure it only if email notifications are needed.
 
    Keep `.env` private; it is excluded from Git. Do not paste SMTP credentials into chat or commit them.
 
-   To run without email for now, leave the SMTP values unset; email notifications will be logged as dry runs and will not be delivered.
+   To run locally without a database, leave `DATABASE_URL` unset; the backend will use temporary demo memory. In production, the backend refuses to start without `DATABASE_URL`. To run without email, leave SMTP variables unset; email notifications will be logged as dry runs.
 
 3. Run the app locally:
    npm run dev
@@ -58,13 +59,24 @@ Admin:
 # campus-maintenance
 
 
-## Data Science implementation (added)
+## Database setup
 
-- Admin Analytics now requests `/api/analytics` and renders descriptive statistics calculated from the live in-memory complaint collection.
+The API automatically creates a `campus_records` PostgreSQL table and seeds it with the existing demo records only when each entity has no database records yet. Complaints, permission workflows, notifications, and registered users are written to PostgreSQL and loaded at backend startup. Existing in-memory deployment records are not automatically recoverable; only records already in a running process or the browser's local storage can be exported before switching.
+
+After creating a PostgreSQL database with a provider such as Supabase or Neon:
+
+1. Copy its connection string into local `.env` as `DATABASE_URL` and configure `DATABASE_SSL` as required.
+2. Run `npm install` and `npm run dev`. The backend creates its table automatically.
+3. For deployment, add `DATABASE_URL` and (if required) `DATABASE_SSL` to the backend host's environment variables. Add `VITE_API_BASE_URL` pointing to the deployed backend API to the frontend host, then redeploy the frontend.
+4. Check the backend `/api/health` response; `databaseConfigured` should be `true`.
+
+Never expose the database URL in frontend variables or commit it to Git. The current demo authentication is not production-secure and should not be used for real personal data.
+
+## Data Science implementation
+
+- Admin Analytics now requests `/api/analytics` and renders descriptive statistics calculated from persisted complaints when PostgreSQL is configured.
 - The Node API exposes category, location, month, priority and status summaries plus average resolution time where dates are available.
 - `ml-service/` contains a separate FastAPI + scikit-learn training and prediction service for complaint category and priority classification.
 - The ML API intentionally does not return predictions until it has been trained on labelled data. See `ml-service/README.md`.
 
-### Important current limitation
-
-The existing Node backend stores users, complaints, permissions and notifications in process memory. Records reset when the server restarts. This change preserves that architecture and does not silently migrate or replace the database. For persistent analytics and reliable forecasting, a database and sufficient historical complaint records are future requirements.
+When no database is configured for local development, the API falls back to in-memory demo data, which resets when the server restarts.

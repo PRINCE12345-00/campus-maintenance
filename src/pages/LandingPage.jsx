@@ -48,9 +48,11 @@ export default function LandingPage() {
   const [activeBackground, setActiveBackground] = useState(0)
 
   useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined
+
     const backgroundTimer = window.setInterval(() => {
       setActiveBackground((index) => (index + 1) % heroBackgrounds.length)
-    }, 1000)
+    }, 8000)
     return () => window.clearInterval(backgroundTimer)
   }, [])
 

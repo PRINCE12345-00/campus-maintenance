@@ -5,6 +5,7 @@ import StatusBadge from '../../components/StatusBadge'
 import { useAppContext } from '../../context/AppContext'
 import { permissionsApi } from '../../services/api'
 import { getPermissionChain, getPermissionStageLabel } from '../../utils/approvalWorkflow'
+import { getEmailDeliveryMessage } from '../../utils/emailNotifications'
 
 const roleConfig = {
   cultural_coordinator: { title: 'Cultural Coordinator', stage: 'Cultural Coordinator', path: 'cultural-coordinator', description: 'Review cultural activities after department approval.' },
@@ -35,7 +36,8 @@ export default function AuthorityDashboard({ role }) {
     try {
       const { data } = await permissionsApi.review(id, decision, role, comment)
       setPermissions((items) => items.map((item) => item.id === id ? data : item))
-      setMessage(decision === 'approve' ? `Approved. The request advanced to ${getPermissionStageLabel(data.currentStage) || 'complete'}.` : decision === 'return' ? `Returned with feedback to ${returnTarget(item)}.` : 'Request rejected with your reason recorded.')
+      const decisionMessage = decision === 'approve' ? `Approved. The request advanced to ${getPermissionStageLabel(data.currentStage) || 'complete'}.` : decision === 'return' ? `Returned with feedback to ${returnTarget(item)}.` : 'Request rejected with your reason recorded.'
+      setMessage(`${decisionMessage} ${getEmailDeliveryMessage(data.notificationResults)}`)
     } catch (error) {
       setMessage(error?.response?.data?.message || 'Could not save your decision. Confirm the backend is running.')
     }

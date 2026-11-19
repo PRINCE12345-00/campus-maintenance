@@ -5,10 +5,12 @@ import { useAppContext } from '../../context/AppContext'
 import StatusBadge from '../../components/StatusBadge'
 import { permissionsApi } from '../../services/api'
 import { getPermissionChain, getPermissionStageLabel } from '../../utils/approvalWorkflow'
+import { getEmailDeliveryMessage } from '../../utils/emailNotifications'
 
 export default function AdminPermissionsPage() {
   const { permissions, setPermissions } = useAppContext()
   const [comments, setComments] = useState({})
+  const [message, setMessage] = useState('')
   const downstreamPermissions = permissions.filter((item) => item.currentStage === 'DSW')
 
   const updatePermission = async (id, decision) => {
@@ -20,8 +22,10 @@ export default function AdminPermissionsPage() {
     try {
       const { data } = await permissionsApi.review(id, decision, 'dsw', comment)
       setPermissions((prev) => prev.map((permission) => permission.id === id ? data : permission))
+      const decisionMessage = decision === 'approve' ? 'Decision recorded.' : decision === 'return' ? 'Request returned with feedback.' : 'Request rejected.'
+      setMessage(`${decisionMessage} ${getEmailDeliveryMessage(data.notificationResults)}`)
     } catch (error) {
-      window.alert(error?.response?.data?.message || 'Could not update this approval. Check that the backend is running.')
+      setMessage(error?.response?.data?.message || 'Could not update this approval. Check that the backend is running.')
     }
   }
 
@@ -31,6 +35,8 @@ export default function AdminPermissionsPage() {
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-600">Permission review</p>
         <h1 className="mt-2 text-3xl font-bold text-slate-900">Educational & Cultural approvals</h1>
       </div>
+
+      {message && <p role="status" className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">{message}</p>}
 
       <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-soft">
         <div className="space-y-4">

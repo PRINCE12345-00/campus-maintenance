@@ -5,6 +5,7 @@ import StatusBadge from '../../components/StatusBadge'
 import { useAppContext } from '../../context/AppContext'
 import { complaintsApi, permissionsApi } from '../../services/api'
 import { getPermissionChain, getPermissionStageLabel } from '../../utils/approvalWorkflow'
+import { getEmailDeliveryMessage } from '../../utils/emailNotifications'
 
 const normalizeDepartment = (value = '') => value.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim()
 
@@ -49,7 +50,8 @@ export default function DepartmentHeadDashboard() {
     try {
       const { data } = await permissionsApi.review(id, decision, 'department_head', comment)
       setPermissions((items) => items.map((item) => item.id === id ? data : item))
-      setMessage(decision === 'approve' ? 'Department approval recorded. The request is now with the next reviewer.' : decision === 'return' ? `Request returned to ${getPermissionStageLabel(data.currentStage) || 'the student'} with your feedback.` : 'Permission request rejected at department review.')
+      const decisionMessage = decision === 'approve' ? 'Department approval recorded. The request is now with the next reviewer.' : decision === 'return' ? `Request returned to ${getPermissionStageLabel(data.currentStage) || 'the student'} with your feedback.` : 'Permission request rejected at department review.'
+      setMessage(`${decisionMessage} ${getEmailDeliveryMessage(data.notificationResults)}`)
     } catch (error) {
       setMessage(error?.response?.data?.message || 'Could not record this decision. Make sure the backend is running.')
     }

@@ -2,6 +2,7 @@ import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import { isEmailConfigured, notifyStudent } from './notifications.js'
+import { initializeDatabase, isDatabaseConfigured, saveRecord } from './database.js'
 
 const app = express()
 const port = process.env.PORT || 5000
@@ -186,8 +187,35 @@ const getSafeUser = (user) => {
   return safeUser
 }
 
+const findStudentForRecord = (record) => {
+  const submittedByEmail = String(record.submittedByEmail || '').trim().toLowerCase()
+  const student = demoUsers.find((entry) => entry.id === record.submittedById)
+    || demoUsers.find((entry) => entry.email?.toLowerCase() === submittedByEmail)
+    || demoUsers.find((entry) => entry.name === record.submittedBy)
+
+  if (student || !submittedByEmail) return student || null
+  return {
+    id: record.submittedById,
+    name: record.submittedBy || 'Student',
+    email: submittedByEmail,
+    phone: record.submittedByPhone || '',
+  }
+}
+
+const storedData = await initializeDatabase({
+  complaints,
+  permissions,
+  notifications,
+  users: demoUsers,
+})
+complaints.splice(0, complaints.length, ...(storedData.complaints || complaints))
+permissions.splice(0, permissions.length, ...(storedData.permissions || permissions))
+notifications.splice(0, notifications.length, ...(storedData.notifications || notifications))
+demoUsers.splice(0, demoUsers.length, ...(storedData.users || demoUsers))
+permissions.forEach(ensureApprovalWorkflow)
+
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Smart Campus API is running', emailConfigured: isEmailConfigured })
+  res.json({ status: 'ok', message: 'Smart Campus API is running', emailConfigured: isEmailConfigured, databaseConfigured: isDatabaseConfigured })
 })
 
 app.post('/api/auth/login', (req, res) => {
@@ -212,7 +240,7 @@ app.post('/api/auth/login', (req, res) => {
   })
 })
 
-app.post('/api/auth/register', (req, res) => {
+app.post('/api/auth/register', async (req, res) => {
   const { name, rollNumber, email, department, password } = req.body || {}
 
   if (!name || !rollNumber || !email || !department || !password) {
@@ -237,6 +265,7 @@ app.post('/api/auth/register', (req, res) => {
   }
 
   demoUsers.push(newUser)
+  await saveRecord('users', newUser)
 
   return res.status(201).json({
     message: 'Registration successful.',
@@ -277,7 +306,7 @@ app.get('/api/analytics', (req, res) => {
   const recurringIssues = categoryDistribution.filter((item) => item.value > 1).map((item) => item.name)
 
   res.json({
-    source: 'live-in-memory-complaints',
+    source: isDatabaseConfigured ? 'database-backed-complaints' : 'live-in-memory-complaints',
     totalComplaints: complaints.length,
     openComplaints: complaints.filter((item) => ['Submitted', 'Assigned', 'In Progress'].includes(item.status)).length,
     resolvedComplaints: resolved.length,
@@ -288,7 +317,7 @@ app.get('/api/analytics', (req, res) => {
     statusSummary,
     averageResolutionTime,
     recurringIssues,
-    note: 'Analytics are calculated from the complaints currently held by the Node.js server. The current demo backend stores records in memory, so data resets when the server restarts.',
+    note: isDatabaseConfigured ? 'Analytics are calculated from complaints persisted in the configured database.' : 'Analytics are calculated from in-memory demo data. Configure DATABASE_URL to persist records across restarts.',
   })
 })
 
@@ -355,10 +384,10 @@ app.post('/api/complaints', async (req, res) => {
   }
 
   complaints.unshift(newComplaint)
+  await saveRecord('complaints', newComplaint)
 
   const submittedEmail = String(complaint.submittedByEmail || '').trim()
-  const student = demoUsers.find((entry) => entry.email?.toLowerCase() === submittedEmail.toLowerCase())
-    || demoUsers.find((entry) => entry.name === complaint.submittedBy)
+  const student = findStudentForRecord({ ...complaint, submittedByEmail: submittedEmail })
 
   const notificationResults = await notifyStudent({
       student: { ...student, name: student?.name || complaint.submittedBy || 'Student', email: submittedEmail || student?.email },
@@ -367,7 +396,9 @@ app.post('/api/complaints', async (req, res) => {
       message: `Your complaint "${newComplaint.title}" has been received and is now under review.`,
     })
   if (student || submittedEmail) {
-    notifications.unshift(createNotification('complaint', 'Complaint submitted', `Your complaint "${newComplaint.title}" has been received and is now under review.`))
+    const notification = { ...createNotification('complaint', 'Complaint submitted', `Your complaint "${newComplaint.title}" has been received and is now under review.`), userEmail: submittedEmail || student?.email }
+    notifications.unshift(notification)
+    await saveRecord('notifications', notification)
   }
 
   return res.status(201).json({ complaint: newComplaint, notifications: notificationResults })
@@ -392,12 +423,14 @@ app.patch('/api/complaints/:id/status', async (req, res) => {
     ...(complaint.timeline || []),
     { status: complaint.status, date: new Date().toISOString().slice(0, 10), note: String(comment).trim() || `Status updated to ${complaint.status}.` },
   ]
+  await saveRecord('complaints', complaint)
 
-  const student = demoUsers.find((entry) => entry.name === complaint.submittedBy)
-    || demoUsers.find((entry) => entry.email?.toLowerCase() === String(complaint.submittedByEmail || '').toLowerCase())
+  const student = findStudentForRecord(complaint)
 
   if (student) {
-    notifications.unshift(createNotification('complaint', `Complaint ${complaint.status}`, `Your complaint "${complaint.title}" is now marked as ${complaint.status}.`))
+    const notification = { ...createNotification('complaint', `Complaint ${complaint.status}`, `Your complaint "${complaint.title}" is now marked as ${complaint.status}.`), userEmail: student.email }
+    notifications.unshift(notification)
+    await saveRecord('notifications', notification)
     await notifyStudent({
       student,
       type: 'Complaint Update',
@@ -434,12 +467,14 @@ app.post('/api/permissions', async (req, res) => {
   }
 
   permissions.unshift(newPermission)
+  await saveRecord('permissions', newPermission)
 
-  const student = demoUsers.find((entry) => entry.email?.toLowerCase() === String(permission.submittedByEmail || '').toLowerCase())
-    || demoUsers.find((entry) => entry.name === permission.submittedBy)
+  const student = findStudentForRecord(permission)
 
   if (student) {
-    notifications.unshift(createNotification('permission', 'Permission request submitted', `Your permission request for "${newPermission.title}" has been submitted for review.`))
+    const notification = { ...createNotification('permission', 'Permission request submitted', `Your permission request for "${newPermission.title}" has been submitted for review.`), userEmail: student.email }
+    notifications.unshift(notification)
+    await saveRecord('notifications', notification)
     await notifyStudent({
       student,
       type: 'Permission',
@@ -534,15 +569,19 @@ app.patch('/api/permissions/:id/status', async (req, res) => {
     }
   }
 
-  const student = demoUsers.find((entry) => entry.name === permission.submittedBy)
-    || demoUsers.find((entry) => entry.email?.toLowerCase() === String(permission.submittedByEmail || '').toLowerCase())
+  await saveRecord('permissions', permission)
 
+  const student = findStudentForRecord(permission)
+
+  let notificationResults = { email: { sent: false, mode: 'skipped', reason: 'Student email was not found' }, sms: { sent: false, mode: 'skipped' } }
   if (student) {
     const statusMessage = reviewDecision === 'return'
       ? `Your permission request for "${permission.title}" needs changes. ${permission.currentStage ? `It has been returned to ${permission.currentStage}.` : 'Please revise it and contact your Department Head.'} Reviewer note: ${current.comment}`
       : `Your permission request for "${permission.title}" was ${current.status.toLowerCase()} at ${current.stage}.${permission.currentStage ? ` It is now with ${permission.currentStage}.` : ` Final status: ${permission.status}.`}${current.comment ? ` Reviewer note: ${current.comment}` : ''}`
-    notifications.unshift(createNotification('permission', `Permission update: ${reviewDecision === 'return' ? 'Changes requested' : current.status}`, statusMessage))
-    await notifyStudent({
+    const notification = { ...createNotification('permission', `Permission update: ${reviewDecision === 'return' ? 'Changes requested' : current.status}`, statusMessage), userEmail: student.email }
+    notifications.unshift(notification)
+    await saveRecord('notifications', notification)
+    notificationResults = await notifyStudent({
       student,
       type: 'Permission Update',
       title: `Permission update: ${reviewDecision === 'return' ? 'Changes requested' : current.status}`,
@@ -550,10 +589,10 @@ app.patch('/api/permissions/:id/status', async (req, res) => {
     })
   }
 
-  return res.json(permission)
+  return res.json({ ...permission, notificationResults })
 })
 
-app.patch('/api/permissions/:id/resubmit', (req, res) => {
+app.patch('/api/permissions/:id/resubmit', async (req, res) => {
   const permission = permissions.find((item) => item.id === req.params.id)
   if (!permission) return res.status(404).json({ message: 'Permission request not found.' })
   if (permission.status !== 'Changes Requested' || permission.currentStage !== null) {
@@ -573,6 +612,7 @@ app.patch('/api/permissions/:id/resubmit', (req, res) => {
     ...(permission.approvalHistory || []),
     { stage: 'Student', status: 'Resubmitted', date: now, note: studentResponse },
   ]
+  await saveRecord('permissions', permission)
   return res.json(permission)
 })
 
@@ -581,5 +621,5 @@ app.get('/api/notifications', (req, res) => {
 })
 
 app.listen(port, () => {
-  console.log(`Campus backend running on http://localhost:${port}`)
+  console.log(`Campus backend running on http://localhost:${port} (database: ${isDatabaseConfigured ? 'connected' : 'in-memory demo'})`)
 })
