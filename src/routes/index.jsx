@@ -1,4 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom'
+import RootLayout from '../layouts/RootLayout'
 import AppLayout from '../layouts/AppLayout'
 import LandingPage from '../pages/LandingPage'
 import LoginPage from '../pages/auth/LoginPage'
@@ -12,6 +13,7 @@ import StudentProfilePage from '../pages/student/StudentProfilePage'
 import AdminDashboard from '../pages/admin/AdminDashboard'
 import AdminComplaintsPage from '../pages/admin/AdminComplaintsPage'
 import AdminPermissionsPage from '../pages/admin/AdminPermissionsPage'
+import AdminUsersPage from '../pages/admin/AdminUsersPage'
 import AdminAnalyticsPage from '../pages/admin/AdminAnalyticsPage'
 import AdminProfilePage from '../pages/admin/AdminProfilePage'
 import ComplaintDetailPage from '../pages/ComplaintDetailPage'
@@ -20,84 +22,90 @@ import DepartmentHeadDashboard from '../pages/department/DepartmentHeadDashboard
 import AuthorityDashboard from '../pages/department/AuthorityDashboard'
 
 export const router = createBrowserRouter([
-  { path: '/', element: <LandingPage /> },
-  { path: '/login', element: <LoginPage /> },
-  { path: '/register', element: <RegisterPage /> },
-  { path: '/forgot-password', element: <ForgotPasswordPage /> },
   {
-    path: '/student',
-    element: <AppLayout role="student" />,
+    element: <RootLayout />,
     children: [
-      { index: true, element: <StudentDashboard /> },
-      { path: 'complaints', element: <StudentComplaintsPage /> },
-      { path: 'permissions', element: <StudentPermissionsPage /> },
-      { path: 'permission/:id', element: <PermissionReviewPage /> },
-      { path: 'notifications', element: <StudentNotificationsPage /> },
-      { path: 'profile', element: <StudentProfilePage /> },
-      { path: 'complaint/:id', element: <ComplaintDetailPage /> },
-    ],
-  },
-  {
-    path: '/department-head',
-    element: <AppLayout role="department_head" />,
-    children: [
-      { index: true, element: <DepartmentHeadDashboard /> },
-      { path: 'complaint/:id', element: <ComplaintDetailPage /> },
-      { path: 'permission/:id', element: <PermissionReviewPage /> },
-    ],
-  },
-  {
-    path: '/cultural-coordinator',
-    element: <AppLayout role="cultural_coordinator" />,
-    children: [
-      { index: true, element: <AuthorityDashboard role="cultural_coordinator" /> },
-      { path: 'permission/:id', element: <PermissionReviewPage /> },
-    ],
-  },
-  {
-    path: '/technical-coordinator',
-    element: <AppLayout role="technical_coordinator" />,
-    children: [
-      { index: true, element: <AuthorityDashboard role="technical_coordinator" /> },
-      { path: 'permission/:id', element: <PermissionReviewPage /> },
-    ],
-  },
-  {
-    path: '/dsw',
-    element: <AppLayout role="dsw" />,
-    children: [
-      { index: true, element: <AuthorityDashboard role="dsw" /> },
-      { path: 'permission/:id', element: <PermissionReviewPage /> },
-    ],
-  },
-  {
-    path: '/registrar',
-    element: <AppLayout role="registrar" />,
-    children: [
-      { index: true, element: <AuthorityDashboard role="registrar" /> },
-      { path: 'permission/:id', element: <PermissionReviewPage /> },
-    ],
-  },
-  {
-    path: '/vice-chancellor',
-    element: <AppLayout role="vice_chancellor" />,
-    children: [
-      { index: true, element: <AuthorityDashboard role="vice_chancellor" /> },
-      { path: 'permission/:id', element: <PermissionReviewPage /> },
-    ],
-  },
-  {
-    path: '/admin',
-    element: <AppLayout role="admin" />,
-    children: [
-      { index: true, element: <AdminDashboard /> },
-      { path: 'complaints', element: <AdminComplaintsPage /> },
-      { path: 'permissions', element: <AdminPermissionsPage /> },
-      { path: 'analytics', element: <AdminAnalyticsPage /> },
-      { path: 'profile', element: <AdminProfilePage /> },
-      { path: 'notifications', element: <StudentNotificationsPage /> },
-      { path: 'complaint/:id', element: <ComplaintDetailPage /> },
-      { path: 'permission/:id', element: <PermissionReviewPage /> },
+      { path: '/', element: <LandingPage /> },
+      { path: '/login', element: <LoginPage /> },
+      { path: '/register', element: <RegisterPage /> },
+      { path: '/forgot-password', element: <ForgotPasswordPage /> },
+      {
+        path: '/student',
+        element: <AppLayout role="student" />,
+        children: [
+          { index: true, element: <StudentDashboard /> },
+          { path: 'complaints', element: <StudentComplaintsPage /> },
+          { path: 'permissions', element: <StudentPermissionsPage /> },
+          { path: 'permission/:id', element: <PermissionReviewPage /> },
+          { path: 'notifications', element: <StudentNotificationsPage /> },
+          { path: 'profile', element: <StudentProfilePage /> },
+          { path: 'complaint/:id', element: <ComplaintDetailPage /> },
+        ],
+      },
+      {
+        path: '/department-head',
+        element: <AppLayout role="department_head" />,
+        children: [
+          { index: true, element: <DepartmentHeadDashboard /> },
+          { path: 'complaint/:id', element: <ComplaintDetailPage /> },
+          { path: 'permission/:id', element: <PermissionReviewPage /> },
+        ],
+      },
+      {
+        path: '/cultural-coordinator',
+        element: <AppLayout role="cultural_coordinator" />,
+        children: [
+          { index: true, element: <AuthorityDashboard role="cultural_coordinator" /> },
+          { path: 'permission/:id', element: <PermissionReviewPage /> },
+        ],
+      },
+      {
+        path: '/technical-coordinator',
+        element: <AppLayout role="technical_coordinator" />,
+        children: [
+          { index: true, element: <AuthorityDashboard role="technical_coordinator" /> },
+          { path: 'permission/:id', element: <PermissionReviewPage /> },
+        ],
+      },
+      {
+        path: '/dsw',
+        element: <AppLayout role="dsw" />,
+        children: [
+          { index: true, element: <AuthorityDashboard role="dsw" /> },
+          { path: 'permission/:id', element: <PermissionReviewPage /> },
+        ],
+      },
+      {
+        path: '/registrar',
+        element: <AppLayout role="registrar" />,
+        children: [
+          { index: true, element: <AuthorityDashboard role="registrar" /> },
+          { path: 'permission/:id', element: <PermissionReviewPage /> },
+        ],
+      },
+      {
+        path: '/vice-chancellor',
+        element: <AppLayout role="vice_chancellor" />,
+        children: [
+          { index: true, element: <AuthorityDashboard role="vice_chancellor" /> },
+          { path: 'permission/:id', element: <PermissionReviewPage /> },
+        ],
+      },
+      {
+        path: '/admin',
+        element: <AppLayout role="admin" />,
+        children: [
+          { index: true, element: <AdminDashboard /> },
+          { path: 'complaints', element: <AdminComplaintsPage /> },
+          { path: 'permissions', element: <AdminPermissionsPage /> },
+          { path: 'users', element: <AdminUsersPage /> },
+          { path: 'analytics', element: <AdminAnalyticsPage /> },
+          { path: 'profile', element: <AdminProfilePage /> },
+          { path: 'notifications', element: <StudentNotificationsPage /> },
+          { path: 'complaint/:id', element: <ComplaintDetailPage /> },
+          { path: 'permission/:id', element: <PermissionReviewPage /> },
+        ],
+      },
     ],
   },
 ])

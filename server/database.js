@@ -12,7 +12,7 @@ const pool = isDatabaseConfigured
     })
   : null
 
-const entityNames = ['complaints', 'permissions', 'notifications', 'users']
+const entityNames = ['complaints', 'permissions', 'notifications', 'users', 'subscribers']
 
 export async function initializeDatabase(seedData) {
   if (!pool) {

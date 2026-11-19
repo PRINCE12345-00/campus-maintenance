@@ -1,0 +1,42 @@
+{
+  "model_version": "2.0.0",
+  "last_trained": "2026-11-17T23:31:12Z",
+  "total_training_records": 5000,
+  "resolved_training_records": 3550,
+  "category_champion": "Calibrated Logistic Regression",
+  "category_accuracy": 100.0,
+  "category_f1": 100.0,
+  "priority_champion": "Calibrated Logistic Regression (Balanced)",
+  "priority_accuracy": 70.2,
+  "priority_f1": 64.54,
+  "resolution_champion": "Random Forest Regressor",
+  "resolution_mae_days": 3.84,
+  "resolution_rmse_days": 4.54,
+  "resolution_r2": -0.043,
+  "categories": [
+    "Cleaning",
+    "Damaged Furniture",
+    "Electrical",
+    "IT/Network",
+    "Other",
+    "Plumbing"
+  ],
+  "priorities": [
+    "High",
+    "Low",
+    "Medium"
+  ],
+  "locations": [
+    "Academic Block A",
+    "Academic Block B",
+    "Auditorium",
+    "Boys Hostel",
+    "Canteen",
+    "Computer Lab",
+    "Girls Hostel",
+    "Library",
+    "Main Gate",
+    "Science Laboratory",
+    "Sports Complex"
+  ]
+}

@@ -1,0 +1,506 @@
+[
+  {
+    "id": "PER-1795008502565",
+    "type": "Cultural",
+    "title": "Annual Cultural Fest 2026",
+    "purpose": "To organize and participate in cultural activities, including dance, music, singing, and other performances to encourage student creativity and teamwork.",
+    "date": "2026-11-28",
+    "location": "NCC Ground",
+    "status": "Pending Approval",
+    "currentStage": "Cultural Coordinator",
+    "approvalChain": [
+      {
+        "stage": "Department Head",
+        "status": "Approved",
+        "decidedAt": "2026-11-18T13:29:02.056Z",
+        "comment": "Stage (Department) approved by Administration. Advanced to next office."
+      },
+      {
+        "stage": "Cultural Coordinator",
+        "status": "Pending",
+        "decidedAt": null,
+        "comment": ""
+      },
+      {
+        "stage": "DSW",
+        "status": "Waiting",
+        "decidedAt": null,
+        "comment": ""
+      },
+      {
+        "stage": "Registrar",
+        "status": "Waiting",
+        "decidedAt": null,
+        "comment": ""
+      },
+      {
+        "stage": "Vice Chancellor",
+        "status": "Waiting",
+        "decidedAt": null,
+        "comment": ""
+      }
+    ],
+    "approvalHistory": [
+      {
+        "stage": "Submission",
+        "status": "Submitted",
+        "date": "2026-11-18T13:28:22.569Z",
+        "note": "Request submitted for approval."
+      },
+      {
+        "stage": "Department Head",
+        "status": "Approved",
+        "date": "2026-11-18T13:29:02.056Z",
+        "note": "Stage (Department) approved by Administration. Advanced to next office."
+      }
+    ],
+    "submittedBy": "RIshabh Gupta",
+    "submittedById": "23001001100",
+    "submittedByEmail": "rklife00143@gmail.com",
+    "department": "CSE",
+    "submittedByDepartment": "CSE",
+    "destination": "CSE",
+    "faculty": "Department Faculty",
+    "details": "Approximately 20 students will participate. A faculty coordinator will supervise the event. Required sound systems and stage arrangements will be managed by the organizing team.",
+    "emailUpdates": [
+      {
+        "id": "EML-PER-1795008548931",
+        "date": "2026-11-18T13:29:02.056Z",
+        "sender": "Campus Admin (Prince Chahal)",
+        "recipient": "rklife00143@gmail.com",
+        "subject": "Permission Update: Annual Cultural Fest 2026",
+        "message": "Your permission request for \"Annual Cultural Fest 2026\" was approved by University Administration. It is now awaiting review from: Cultural Coordinator. Note: Stage (Department) approved by Administration. Advanced to next office.",
+        "status": "Pending Approval",
+        "delivered": true
+      }
+    ]
+  },
+  {
+    "id": "PER-1795008499462",
+    "type": "Cultural",
+    "title": "Annual Cultural Fest 2026",
+    "purpose": "To organize and participate in cultural activities, including dance, music, singing, and other performances to encourage student creativity and teamwork.",
+    "date": "2026-11-28",
+    "location": "NCC Ground",
+    "status": "Pending Approval",
+    "currentStage": "Department Head",
+    "approvalChain": [
+      {
+        "stage": "Department Head",
+        "status": "Pending",
+        "decidedAt": null,
+        "comment": ""
+      },
+      {
+        "stage": "Cultural Coordinator",
+        "status": "Waiting",
+        "decidedAt": null,
+        "comment": ""
+      },
+      {
+        "stage": "DSW",
+        "status": "Waiting",
+        "decidedAt": null,
+        "comment": ""
+      },
+      {
+        "stage": "Registrar",
+        "status": "Waiting",
+        "decidedAt": null,
+        "comment": ""
+      },
+      {
+        "stage": "Vice Chancellor",
+        "status": "Waiting",
+        "decidedAt": null,
+        "comment": ""
+      }
+    ],
+    "approvalHistory": [
+      {
+        "stage": "Submission",
+        "status": "Submitted",
+        "date": "2026-11-18T13:28:19.469Z",
+        "note": "Request submitted for approval."
+      }
+    ],
+    "submittedBy": "RIshabh Gupta",
+    "submittedById": "23001001100",
+    "submittedByEmail": "rklife00143@gmail.com",
+    "department": "CSE",
+    "submittedByDepartment": "CSE",
+    "destination": "CSE",
+    "faculty": "Department Faculty",
+    "details": "Approximately 20 students will participate. A faculty coordinator will supervise the event. Required sound systems and stage arrangements will be managed by the organizing team."
+  },
+  {
+    "id": "PER-1795008438477",
+    "type": "Educational",
+    "title": "Innovation Expo 2026",
+    "purpose": "To participate in an innovation exhibition where students will showcase their technical projects, demonstrate new ideas, and interact with other participants.",
+    "date": "2026-11-25",
+    "location": "\tMain Auditorium",
+    "status": "Approved",
+    "currentStage": null,
+    "approvalChain": [
+      {
+        "stage": "Department Head",
+        "status": "Approved",
+        "decidedAt": "2026-11-18T13:29:47.904Z",
+        "comment": "Full final approval granted by University Administration"
+      },
+      {
+        "stage": "Technical Coordinator",
+        "status": "Approved",
+        "decidedAt": "2026-11-18T13:29:47.904Z",
+        "comment": "Full final approval granted by University Administration"
+      },
+      {
+        "stage": "DSW",
+        "status": "Approved",
+        "decidedAt": "2026-11-18T13:29:47.904Z",
+        "comment": "Full final approval granted by University Administration"
+      },
+      {
+        "stage": "Registrar",
+        "status": "Approved",
+        "decidedAt": "2026-11-18T13:29:47.904Z",
+        "comment": "Full final approval granted by University Administration"
+      },
+      {
+        "stage": "Vice Chancellor",
+        "status": "Approved",
+        "decidedAt": "2026-11-18T13:29:47.904Z",
+        "comment": "Full final approval granted by University Administration"
+      }
+    ],
+    "approvalHistory": [
+      {
+        "stage": "Submission",
+        "status": "Submitted",
+        "date": "2026-11-18T13:27:18.485Z",
+        "note": "Request submitted for approval."
+      },
+      {
+        "stage": "University Administration",
+        "status": "Approved",
+        "date": "2026-11-18T13:29:47.904Z",
+        "note": "Full final approval granted by University Administration"
+      }
+    ],
+    "submittedBy": "RIshabh Gupta",
+    "submittedById": "23001001100",
+    "submittedByEmail": "rklife00143@gmail.com",
+    "department": "CSE",
+    "submittedByDepartment": "CSE",
+    "destination": "CSE",
+    "faculty": "Department Faculty",
+    "details": "Approximately 5 students will participate. Faculty coordinator support is available. Students will carry their project models and laptops.",
+    "emailUpdates": [
+      {
+        "id": "EML-PER-1795008591468",
+        "date": "2026-11-18T13:29:47.904Z",
+        "sender": "Campus Admin (Prince Chahal)",
+        "recipient": "rklife00143@gmail.com",
+        "subject": "Permission Fully Approved: Innovation Expo 2026",
+        "message": "Great news! Your permission request for \"Innovation Expo 2026\" has been granted FULL & FINAL APPROVAL by the University Administration. You may proceed with the activity. Note: Full final approval granted by University Administration",
+        "status": "Approved",
+        "delivered": true
+      }
+    ]
+  },
+  {
+    "id": "PER-1794919546010",
+    "type": "Cultural",
+    "title": "Annual Cultural Fest",
+    "purpose": "To participate in the annual cultural fest and showcase students talents through dance, music and other cultural activities",
+    "date": "2026-11-26",
+    "location": "NCC Ground",
+    "status": "Pending Approval",
+    "currentStage": "Registrar",
+    "approvalChain": [
+      {
+        "stage": "Department Head",
+        "status": "Approved",
+        "decidedAt": "2026-11-17T13:52:45.730Z",
+        "comment": "Approved by University Administration"
+      },
+      {
+        "stage": "Cultural Coordinator",
+        "status": "Approved",
+        "decidedAt": "2026-11-17T15:30:11.475Z",
+        "comment": "Stage (Cultural Coordinator) approved by Administration. Advanced to next office."
+      },
+      {
+        "stage": "DSW",
+        "status": "Approved",
+        "decidedAt": "2026-11-17T20:50:39.444Z",
+        "comment": "Approved by University Administration"
+      },
+      {
+        "stage": "Registrar",
+        "status": "Pending",
+        "decidedAt": null,
+        "comment": ""
+      },
+      {
+        "stage": "Vice Chancellor",
+        "status": "Waiting",
+        "decidedAt": null,
+        "comment": ""
+      }
+    ],
+    "approvalHistory": [
+      {
+        "stage": "Submission",
+        "status": "Submitted",
+        "date": "2026-11-17T12:45:46.060Z",
+        "note": "Request submitted for approval."
+      },
+      {
+        "stage": "Department Head",
+        "status": "Approved",
+        "date": "2026-11-17T13:52:45.730Z",
+        "note": "Approved by University Administration"
+      },
+      {
+        "stage": "Cultural Coordinator",
+        "status": "Approved",
+        "date": "2026-11-17T15:30:11.475Z",
+        "note": "Stage (Cultural Coordinator) approved by Administration. Advanced to next office."
+      },
+      {
+        "stage": "DSW",
+        "status": "Approved",
+        "date": "2026-11-17T20:50:39.444Z",
+        "note": "Approved by University Administration"
+      }
+    ],
+    "submittedBy": "Pankaj Kumar",
+    "submittedById": "23001001076",
+    "submittedByEmail": "pankajsulekh255@gmail.com",
+    "department": "CSE",
+    "submittedByDepartment": "CSE",
+    "destination": "CSE",
+    "faculty": "Department Faculty",
+    "details": "Expected Participants: 30 Students\nFaculty coordinator will supervise the event. Sound System and stage arrangements will be required.",
+    "emailUpdates": [
+      {
+        "id": "EML-PER-1794948639445",
+        "date": "2026-11-17T20:50:39.444Z",
+        "sender": "Campus Admin (Prince Chahal)",
+        "recipient": "pankajsulekh255@gmail.com",
+        "subject": "Permission Update: Annual Cultural Fest",
+        "message": "Your permission request for \"Annual Cultural Fest\" was approved by University Administration. It is now awaiting review from: Registrar. Note: Approved by University Administration",
+        "status": "Pending Approval",
+        "delivered": true
+      },
+      {
+        "id": "EML-PER-1794929411477",
+        "date": "2026-11-17T15:30:11.475Z",
+        "sender": "Campus Admin (Prince Chahal)",
+        "recipient": "pankajsulekh255@gmail.com",
+        "subject": "Permission Update: Annual Cultural Fest",
+        "message": "Your permission request for \"Annual Cultural Fest\" was approved by University Administration. It is now awaiting review from: DSW. Note: Stage (Cultural Coordinator) approved by Administration. Advanced to next office.",
+        "status": "Pending Approval",
+        "delivered": true
+      },
+      {
+        "id": "EML-PER-1794923565732",
+        "date": "2026-11-17T13:52:45.730Z",
+        "sender": "Campus Admin (Prince Chahal)",
+        "recipient": "pankajsulekh255@gmail.com",
+        "subject": "Permission Approved: Annual Cultural Fest",
+        "message": "Your permission request for \"Annual Cultural Fest\" was approved by University Administration. It is now with Cultural Coordinator. Reviewer note: Approved by University Administration",
+        "status": "Pending Approval",
+        "delivered": true
+      }
+    ]
+  },
+  {
+    "id": "PER-1794919374203",
+    "type": "Educational",
+    "title": "Innovtaion Expo 2026",
+    "purpose": "To participate in an innovation exhibition where students will present their innovative projects, technical ideas and creative solutions. The event aims to encourage innovation, teamwork and practical learning. ",
+    "date": "2026-11-25",
+    "location": "Basement of Auditorium",
+    "status": "Pending Approval",
+    "currentStage": "Technical Coordinator",
+    "approvalChain": [
+      {
+        "stage": "Department Head",
+        "status": "Approved",
+        "decidedAt": "2026-11-17T15:57:27.792Z",
+        "comment": "Stage (Department) approved by Administration. Advanced to next office."
+      },
+      {
+        "stage": "Technical Coordinator",
+        "status": "Pending",
+        "decidedAt": null,
+        "comment": ""
+      },
+      {
+        "stage": "DSW",
+        "status": "Waiting",
+        "decidedAt": null,
+        "comment": ""
+      },
+      {
+        "stage": "Registrar",
+        "status": "Waiting",
+        "decidedAt": null,
+        "comment": ""
+      },
+      {
+        "stage": "Vice Chancellor",
+        "status": "Waiting",
+        "decidedAt": null,
+        "comment": ""
+      }
+    ],
+    "approvalHistory": [
+      {
+        "stage": "Submission",
+        "status": "Submitted",
+        "date": "2026-11-17T12:42:54.212Z",
+        "note": "Request submitted for approval."
+      },
+      {
+        "stage": "Department Head",
+        "status": "Approved",
+        "date": "2026-11-17T15:57:27.792Z",
+        "note": "Stage (Department) approved by Administration. Advanced to next office."
+      }
+    ],
+    "submittedBy": "Pankaj Kumar",
+    "submittedById": "23001001076",
+    "submittedByEmail": "pankajsulekh255@gmail.com",
+    "department": "CSE",
+    "submittedByDepartment": "CSE",
+    "destination": "CSE",
+    "faculty": "Department Faculty",
+    "details": "Expected Participants: 50 students.\nfaculty Coordinator: Dr. Amit Sharma\nTransportation will be arranged by the college. Necessary arrangements for project demonstration and seating will be required.",
+    "emailUpdates": [
+      {
+        "id": "EML-PER-1794931047794",
+        "date": "2026-11-17T15:57:27.792Z",
+        "sender": "Campus Admin (Prince Chahal)",
+        "recipient": "pankajsulekh255@gmail.com",
+        "subject": "Permission Update: Innovtaion Expo 2026",
+        "message": "Your permission request for \"Innovtaion Expo 2026\" was approved by University Administration. It is now awaiting review from: Technical Coordinator. Note: Stage (Department) approved by Administration. Advanced to next office.",
+        "status": "Pending Approval",
+        "delivered": true
+      }
+    ]
+  },
+  {
+    "id": "PER-2001",
+    "type": "Educational",
+    "title": "Industrial Visit to NHPC",
+    "purpose": "Field exposure and practical learning for renewable energy systems.",
+    "date": "2026-10-18",
+    "location": "NHPC, Yamuna Nagar",
+    "status": "Pending Approval",
+    "submittedBy": "Aarav Sharma",
+    "faculty": "Dr. R. Kapoor",
+    "details": "12 students from CSE 6th semester will participate in the visit with faculty escort.",
+    "approvalChain": [
+      {
+        "stage": "Department Head",
+        "status": "Approved",
+        "decidedAt": "2026-11-17T15:56:39.130Z",
+        "comment": "Stage (Department) approved by Administration. Advanced to next office."
+      },
+      {
+        "stage": "Technical Coordinator",
+        "status": "Pending",
+        "decidedAt": null,
+        "comment": ""
+      },
+      {
+        "stage": "DSW",
+        "status": "Waiting",
+        "decidedAt": null,
+        "comment": ""
+      },
+      {
+        "stage": "Registrar",
+        "status": "Waiting",
+        "decidedAt": null,
+        "comment": ""
+      },
+      {
+        "stage": "Vice Chancellor",
+        "status": "Waiting",
+        "decidedAt": null,
+        "comment": ""
+      }
+    ],
+    "currentStage": "Technical Coordinator",
+    "approvalHistory": [
+      {
+        "stage": "Department Head",
+        "status": "Approved",
+        "date": "2026-11-17T15:56:39.130Z",
+        "note": "Stage (Department) approved by Administration. Advanced to next office."
+      }
+    ],
+    "emailUpdates": [
+      {
+        "id": "EML-PER-1794930999132",
+        "date": "2026-11-17T15:56:39.130Z",
+        "sender": "Campus Admin (Prince Chahal)",
+        "recipient": "aarav@student.dcrust.in",
+        "subject": "Permission Update: Industrial Visit to NHPC",
+        "message": "Your permission request for \"Industrial Visit to NHPC\" was approved by University Administration. It is now awaiting review from: Technical Coordinator. Note: Stage (Department) approved by Administration. Advanced to next office.",
+        "status": "Pending Approval",
+        "delivered": true
+      }
+    ]
+  },
+  {
+    "id": "PER-2002",
+    "type": "Cultural",
+    "title": "Inter-College Dance Festival",
+    "purpose": "Participation in university cultural fest representing the department.",
+    "date": "2026-11-02",
+    "location": "Main Auditorium",
+    "status": "Approved",
+    "submittedBy": "Aarav Sharma",
+    "faculty": "Prof. S. Verma",
+    "details": "Department team of 8 students selected for performance and rehearsal.",
+    "approvalChain": [
+      {
+        "stage": "Department Head",
+        "status": "Approved",
+        "decidedAt": null,
+        "comment": ""
+      },
+      {
+        "stage": "Cultural Coordinator",
+        "status": "Approved",
+        "decidedAt": null,
+        "comment": ""
+      },
+      {
+        "stage": "DSW",
+        "status": "Approved",
+        "decidedAt": null,
+        "comment": ""
+      },
+      {
+        "stage": "Registrar",
+        "status": "Approved",
+        "decidedAt": null,
+        "comment": ""
+      },
+      {
+        "stage": "Vice Chancellor",
+        "status": "Approved",
+        "decidedAt": null,
+        "comment": ""
+      }
+    ],
+    "currentStage": null
+  }
+]

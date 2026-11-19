@@ -1,82 +1,44 @@
-# Smart Campus Management System
+# Smart Campus Maintenance and Predictive Analytics Platform
 
-A responsive frontend demo for the final-year B.Tech CSE project titled Smart Campus Management System for Deenbandhu Chhotu Ram University of Science and Technology (DCRUST), Murthal.
+A campus maintenance and complaint management platform for Deenbandhu Chhotu Ram University of Science and Technology (DCRUST), Murthal. It includes student and administration workflows, PostgreSQL-backed records when configured, and a separate AI/ML service for maintenance analytics.
 
 ## Features
 
-- Landing page with university branding
-- Student and admin demo authentication flows
-- Complaint submission and tracking dashboard
-- Educational and cultural permission workflow
-- Admin review and status update controls
-- Analytics and ML-assisted complaint categorization
-- Notifications and profile management
-- PostgreSQL-backed complaints, permissions, notifications, and registered users when `DATABASE_URL` is configured
+- Student and administration dashboards, authentication, and profiles
+- Complaint submission, tracking, evidence review, progress updates, and notifications
+- Educational and cultural permission approval workflows
+- Analytics and ML-assisted complaint categorization and priority prediction
+- Predictive maintenance insights, resolution-time estimates, and image inspection tools
+- PostgreSQL persistence for users, complaints, permissions, notifications, and newsletter subscribers when `DATABASE_URL` is configured
 
-## Tech stack
+## Technology stack
 
-- React + Vite
-- JavaScript
-- Tailwind CSS
-- React Router DOM
-- Context API
-- Recharts
-- Lucide React
-- Axios API service layer
-- PostgreSQL persistence through the Node.js backend
+- **Frontend:** React 19, Vite, Tailwind CSS, React Router, Recharts, Lucide, Axios
+- **Backend:** Node.js, Express, PostgreSQL (`pg`), Nodemailer, optional Twilio notifications
+- **AI/ML service:** Python, FastAPI, scikit-learn, pandas, NumPy; additional model dependencies are listed in `ml-service/requirements.txt`
 
 ## Getting started
 
-1. Install dependencies:
-   npm install
+1. Install the Node dependencies with `npm install`.
+2. Copy `.env.example` to `.env`. Set `DATABASE_URL` to a real PostgreSQL connection string and set `DATABASE_SSL=true` if required by the provider. Keep `.env` private and never expose the database URL in frontend settings.
+3. Run the application with `npm run dev`. This starts the Vite frontend and Node API. Without `DATABASE_URL`, local development uses temporary in-memory demo data, which is lost when the backend restarts. Production startup requires `DATABASE_URL`.
+4. Optionally start the Python ML service using the instructions in [ml-service/README.md](ml-service/README.md).
+5. Create a production frontend build with `npm run build`.
 
-2. Copy `.env.example` to `.env`. Set `DATABASE_URL` to a PostgreSQL connection string from your provider. Use the provider's pooled connection string if offered. Set `DATABASE_SSL=true` if required by the provider. On deployment, set these as backend environment variables instead of putting them in frontend settings. SMTP is optional: configure it only if email notifications are needed.
+The API automatically creates a PostgreSQL table named `campus_records`, then seeds demo records for any entity without existing rows. It stores records under `users`, `complaints`, `permissions`, `notifications`, and `subscribers` entity values. Check `/api/health` on the backend; `databaseConfigured` should be `true` when the environment includes `DATABASE_URL`.
 
-   Keep `.env` private; it is excluded from Git. Do not paste SMTP credentials into chat or commit them.
+For deployment, deploy the Node backend separately from the Vite frontend. Configure `DATABASE_URL` and (if needed) `DATABASE_SSL` on the backend host. Set `VITE_API_BASE_URL` to the deployed API base URL on the frontend host before building/deploying the frontend. The included Vercel rewrite serves the frontend SPA; it does not deploy or proxy the Express API.
 
-   To run locally without a database, leave `DATABASE_URL` unset; the backend will use temporary demo memory. In production, the backend refuses to start without `DATABASE_URL`. To run without email, leave SMTP variables unset; email notifications will be logged as dry runs.
-
-3. Run the app locally:
-   npm run dev
-
-4. Build for production:
-   npm run build
-
-After changing SMTP settings, restart the backend so it reloads the environment variables. Complaint emails are sent to the submitting student's email address.
+SMTP and Twilio configuration is optional. Configure those variables on the backend only when email/SMS delivery is required. Without SMTP, email notifications run in dry-run mode.
 
 ## Demo credentials
 
-Student:
-- Email: aarav@student.dcrust.in
-- Password: student123
+- Student: `aarav@student.dcrust.in` / `student123`
+- Admin: `chahalprince0481@gmail.com` / `prince@123`
+- CSE Department Head: `hod.cse@dcrust.in` / `hod12345`
 
-Admin:
-- Email: chahalprince0481@gmail.com
-- Password: prince@123
+These are demonstration credentials only. The authentication implementation is not suitable for real personal or production data without further security work.
 
-> This frontend is a demo-only interface designed for project presentation. Demo credentials are stored in client-side code and are not secure. Do not reuse this password or use this authentication for a real system; production authentication must be implemented on a backend.
+## Retraining ML models
 
-# campus-maintenance
-
-
-## Database setup
-
-The API automatically creates a `campus_records` PostgreSQL table and seeds it with the existing demo records only when each entity has no database records yet. Complaints, permission workflows, notifications, and registered users are written to PostgreSQL and loaded at backend startup. Existing in-memory deployment records are not automatically recoverable; only records already in a running process or the browser's local storage can be exported before switching.
-
-After creating a PostgreSQL database with a provider such as Supabase or Neon:
-
-1. Copy its connection string into local `.env` as `DATABASE_URL` and configure `DATABASE_SSL` as required.
-2. Run `npm install` and `npm run dev`. The backend creates its table automatically.
-3. For deployment, add `DATABASE_URL` and (if required) `DATABASE_SSL` to the backend host's environment variables. Add `VITE_API_BASE_URL` pointing to the deployed backend API to the frontend host, then redeploy the frontend.
-4. Check the backend `/api/health` response; `databaseConfigured` should be `true`.
-
-Never expose the database URL in frontend variables or commit it to Git. The current demo authentication is not production-secure and should not be used for real personal data.
-
-## Data Science implementation
-
-- Admin Analytics now requests `/api/analytics` and renders descriptive statistics calculated from persisted complaints when PostgreSQL is configured.
-- The Node API exposes category, location, month, priority and status summaries plus average resolution time where dates are available.
-- `ml-service/` contains a separate FastAPI + scikit-learn training and prediction service for complaint category and priority classification.
-- The ML API intentionally does not return predictions until it has been trained on labelled data. See `ml-service/README.md`.
-
-When no database is configured for local development, the API falls back to in-memory demo data, which resets when the server restarts.
+From `ml-service/`, run the data pipeline and production model trainer as described in [ml-service/README.md](ml-service/README.md). The ML API may not return predictions until labelled data has been prepared and models trained.

@@ -1,11 +1,11 @@
 import { motion } from 'framer-motion'
 import { useEffect, useMemo, useState } from 'react'
-import { AlertCircle, CheckCircle2, Download, Filter, Search, Send } from 'lucide-react'
+import { AlertCircle, Camera, CheckCircle2, Download, Filter, Mail, Search, Send, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import FileUpload from '../../components/FileUpload'
 import StatusBadge from '../../components/StatusBadge'
 import { useAppContext } from '../../context/AppContext'
-import { complaintsApi } from '../../services/api'
+import { complaintsApi, visionApi } from '../../services/api'
 import { campusLocations, categoryOptions, formatDate } from '../../utils/formatters'
 import { getStudentComplaints } from '../../utils/studentRecords'
 import { compressImageForStorage } from '../../utils/evidence'
@@ -20,6 +20,34 @@ export default function StudentComplaintsPage() {
   const [uploadResetKey, setUploadResetKey] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
+  const [visionCheck, setVisionCheck] = useState(null)
+  const [isCheckingVision, setIsCheckingVision] = useState(false)
+
+  const handleEvidenceChange = async (files) => {
+    setEvidenceFiles(files)
+    if (!files || files.length === 0) {
+      setVisionCheck(null)
+      return
+    }
+
+    const firstImage = files.find((f) => f.type?.startsWith('image/'))
+    if (!firstImage) return
+
+    setIsCheckingVision(true)
+    try {
+      const dataUrl = await compressImageForStorage(firstImage)
+      if (dataUrl) {
+        const res = await visionApi.analyzeImage(dataUrl, firstImage.name, form.category)
+        if (res.data?.success) {
+          setVisionCheck(res.data)
+        }
+      }
+    } catch (e) {
+      console.log('Instant vision check error:', e)
+    } finally {
+      setIsCheckingVision(false)
+    }
+  }
   const [form, setForm] = useState({
     category: 'Electrical',
     location: 'Academic Block A',
@@ -36,12 +64,22 @@ export default function StudentComplaintsPage() {
   }, [successMessage])
 
   const filteredComplaints = useMemo(() => {
-    return getStudentComplaints(complaints, user).filter((c) => {
-      const matchQuery = !query || [c.title, c.location, c.category].join(' ').toLowerCase().includes(query.toLowerCase())
-      const matchStatus = statusFilter === 'All' || c.status === statusFilter
-      const matchCategory = categoryFilter === 'All' || c.category === categoryFilter
-      return matchQuery && matchStatus && matchCategory
-    })
+    const priorityRank = { Emergency: 0, Critical: 0, High: 1, Medium: 2, Low: 3 }
+    return getStudentComplaints(complaints, user)
+      .filter((c) => {
+        const matchQuery = !query || [c.title, c.location, c.category].join(' ').toLowerCase().includes(query.toLowerCase())
+        const matchStatus = statusFilter === 'All' || c.status === statusFilter
+        const matchCategory = categoryFilter === 'All' || c.category === categoryFilter
+        return matchQuery && matchStatus && matchCategory
+      })
+      .sort((a, b) => {
+        const rA = priorityRank[a.priority] ?? 2
+        const rB = priorityRank[b.priority] ?? 2
+        if (rA !== rB) return rA - rB
+        const dateA = new Date(a.submissionDate || a.lastUpdated || a.createdAt || 0).getTime()
+        const dateB = new Date(b.submissionDate || b.lastUpdated || b.createdAt || 0).getTime()
+        return dateB - dateA
+      })
   }, [complaints, user, query, statusFilter, categoryFilter])
 
   const pageSize = 4
@@ -86,16 +124,19 @@ export default function StudentComplaintsPage() {
         title: form.title,
         description: form.description,
         status: 'Submitted',
+        progress: 10,
         priority: 'Medium',
         submittedBy: user?.name || 'Student',
-        submittedById: user?.id,
-        submittedByEmail: user?.email,
+        submittedById: user?.id || user?.rollNumber || '',
+        submittedByEmail: user?.email || '',
         department: user?.department || '',
         assignedTo: 'Maintenance Cell',
         submissionDate: today,
         lastUpdated: today,
         attachments,
-        timeline: [{ status: 'Submitted', date: today, note: 'Complaint filed by student.' }],
+        aiVisionResult: visionCheck,
+        timeline: [{ status: 'Submitted', progress: 10, date: today, note: 'Complaint filed by student.' }],
+        emailUpdates: [],
         rating: null,
         feedback: '',
       }
@@ -104,6 +145,7 @@ export default function StudentComplaintsPage() {
       setComplaints((prev) => [data.complaint, ...prev])
       setForm({ category: 'Electrical', location: 'Academic Block A', destination: 'Department', title: '', description: '' })
       setEvidenceFiles([])
+      setVisionCheck(null)
       setUploadResetKey((key) => key + 1)
       const emailResult = data.notifications?.email
       if (emailResult?.sent) {
@@ -121,7 +163,7 @@ export default function StudentComplaintsPage() {
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="space-y-6">
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="space-y-6 w-full min-w-0">
       {successMessage && (
         <div role="status" aria-live="polite" className="fixed right-4 top-4 z-50 flex items-center gap-3 rounded-2xl border border-emerald-500/30 bg-slate-900 px-5 py-4 text-emerald-300 shadow-xl">
           <CheckCircle2 size={22} className="shrink-0 text-emerald-400" />
@@ -136,9 +178,9 @@ export default function StudentComplaintsPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+      <div className="grid gap-6 xl:grid-cols-[380px_minmax(0,1fr)] 2xl:grid-cols-[440px_minmax(0,1fr)]">
         {/* Submit form */}
-        <div className="glass-panel rounded-3xl p-5 shadow-[0_24px_60px_rgba(2,6,23,0.38)]">
+        <div className="glass-panel min-w-0 rounded-3xl p-5 shadow-[0_24px_60px_rgba(2,6,23,0.38)]">
           <h2 className="text-xl font-bold text-white">Submit a complaint</h2>
           <form onSubmit={handleSubmit} className="mt-5 space-y-5">
             <div>
@@ -177,7 +219,45 @@ export default function StudentComplaintsPage() {
               {errors.description && <p className="mt-2 text-sm text-red-400">{errors.description}</p>}
             </div>
 
-            <FileUpload key={uploadResetKey} label="Upload evidence" onChange={setEvidenceFiles} />
+            <FileUpload key={uploadResetKey} label="Upload evidence" onChange={handleEvidenceChange} />
+
+            {/* Instant AI Computer Vision Verification Feedback */}
+            {isCheckingVision && (
+              <div className="flex items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-300 animate-pulse">
+                <Camera size={15} /> Scanning photo with AI Computer Vision for defect authenticity...
+              </div>
+            )}
+
+            {visionCheck && !isCheckingVision && (
+              <div className={`rounded-xl border p-3.5 text-xs transition-all ${
+                visionCheck.is_genuine
+                  ? 'border-emerald-500/30 bg-emerald-950/20 text-emerald-200'
+                  : visionCheck.authenticity_score < 45
+                  ? 'border-rose-500/30 bg-rose-950/20 text-rose-200'
+                  : 'border-amber-500/30 bg-amber-950/20 text-amber-200'
+              }`}>
+                <div className="flex items-center justify-between font-bold mb-1">
+                  <span className="flex items-center gap-1.5">
+                    <Camera size={14} /> AI Evidence Status: {visionCheck.authenticity_status}
+                  </span>
+                  <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase ${
+                    visionCheck.is_genuine
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                      : visionCheck.authenticity_score < 45
+                      ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                      : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                  }`}>
+                    {visionCheck.authenticity_score}% Authenticity
+                  </span>
+                </div>
+                <p className="text-[11px] leading-relaxed text-slate-200 mt-1">{visionCheck.admin_alert}</p>
+                {visionCheck.defect_class && (
+                  <p className="mt-1.5 text-[11px] text-slate-400">
+                    Detected Visual Pattern: <span className="font-semibold text-white">{visionCheck.defect_class}</span> ({visionCheck.quality?.status})
+                  </p>
+                )}
+              </div>
+            )}
 
             {errors.submit && <p role="alert" className="text-sm text-red-400">{errors.submit}</p>}
 
@@ -188,21 +268,21 @@ export default function StudentComplaintsPage() {
         </div>
 
         {/* Records */}
-        <div className="glass-panel rounded-3xl p-5 shadow-[0_24px_60px_rgba(2,6,23,0.38)]">
-          <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="glass-panel min-w-0 rounded-3xl p-5 shadow-[0_24px_60px_rgba(2,6,23,0.38)]">
+          <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-xl font-bold text-white">Complaint records</h2>
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-slate-900/50 px-3 py-2">
-                <Search size={16} className="text-slate-400" />
-                <input value={query} onChange={(e) => { setQuery(e.target.value); setPage(1) }} placeholder="Search" className="w-28 border-0 bg-transparent text-sm text-slate-100 outline-none placeholder:text-slate-500" />
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-slate-900/50 px-2.5 py-1.5 sm:px-3 sm:py-2">
+                <Search size={15} className="text-slate-400" />
+                <input value={query} onChange={(e) => { setQuery(e.target.value); setPage(1) }} placeholder="Search" className="w-24 sm:w-28 border-0 bg-transparent text-sm text-slate-100 outline-none placeholder:text-slate-500" />
               </div>
-              <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-slate-900/50 px-3 py-2">
-                <Filter size={16} className="text-slate-400" />
-                <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }} className="border-0 bg-transparent text-sm text-slate-100 outline-none">
+              <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-slate-900/50 px-2.5 py-1.5 sm:px-3 sm:py-2">
+                <Filter size={15} className="text-slate-400" />
+                <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }} className="border-0 bg-transparent text-xs sm:text-sm text-slate-100 outline-none">
                   {['All', 'Submitted', 'Assigned', 'In Progress', 'Resolved', 'Closed'].map((o) => <option key={o} className="bg-slate-900">{o}</option>)}
                 </select>
               </div>
-              <select value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); setPage(1) }} className="rounded-xl border border-white/10 bg-slate-900/50 px-3 py-2 text-sm text-slate-100 outline-none">
+              <select value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); setPage(1) }} className="rounded-xl border border-white/10 bg-slate-900/50 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm text-slate-100 outline-none">
                 <option className="bg-slate-900">All</option>
                 {categoryOptions.map((o) => <option key={o} className="bg-slate-900">{o}</option>)}
               </select>
@@ -215,23 +295,62 @@ export default function StudentComplaintsPage() {
                 <AlertCircle size={18} /> No complaints match your filters.
               </div>
             ) : (
-              paginatedComplaints.map((complaint) => (
-                <div key={complaint.id} className="flex flex-col gap-3 rounded-2xl border border-white/8 bg-slate-900/40 p-4 md:flex-row md:items-center md:justify-between">
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <p className="font-semibold text-slate-100">{complaint.title}</p>
-                      <StatusBadge status={complaint.status} />
+              paginatedComplaints.map((complaint) => {
+                const progressValue = complaint.progress !== undefined && complaint.progress !== null
+                  ? complaint.progress
+                  : (complaint.status === 'Resolved' || complaint.status === 'Closed' ? 100 : complaint.status === 'In Progress' ? 50 : 20)
+                const latestEmail = complaint.emailUpdates?.[0]
+
+                return (
+                  <div key={complaint.id} className="flex min-w-0 flex-col gap-3 rounded-2xl border border-white/8 bg-slate-900/40 p-4 transition hover:border-white/15">
+                    <div className="flex min-w-0 flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                          <p className="font-semibold text-slate-100">{complaint.title}</p>
+                          <StatusBadge status={complaint.status} />
+                          <span className="font-mono text-xs text-slate-400">({complaint.id})</span>
+                        </div>
+                        <p className="mt-1 text-sm text-slate-400 truncate">{complaint.category} • {complaint.location} • {formatDate(complaint.submissionDate)}</p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-slate-800 px-3 py-2 text-xs text-slate-300 hover:text-white">
+                          <Download size={14} /> Download
+                        </button>
+                        <Link to={`/student/complaint/${complaint.id}`} className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-500">
+                          <Mail size={13} /> View Updates
+                        </Link>
+                      </div>
                     </div>
-                    <p className="mt-2 text-sm text-slate-400">{complaint.category} • {complaint.location} • {formatDate(complaint.submissionDate)}</p>
+
+                    {/* Progress Bar & Percentage */}
+                    <div className="mt-1 min-w-0 rounded-xl bg-slate-800/40 p-3 border border-white/5">
+                      <div className="flex items-center justify-between text-xs mb-1.5 font-medium">
+                        <span className="text-slate-400">Resolution Progress</span>
+                        <span className={progressValue === 100 ? 'text-emerald-400 font-bold' : 'text-teal-400 font-bold'}>
+                          {progressValue}% Resolved
+                        </span>
+                      </div>
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-700/60">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-blue-500 to-teal-400 transition-all duration-500"
+                          style={{ width: `${Math.max(4, progressValue)}%` }}
+                        />
+                      </div>
+
+                      {/* Latest Email / Admin message preview */}
+                      {latestEmail && (
+                        <div className="mt-2.5 flex min-w-0 items-start gap-2 rounded-lg bg-blue-950/40 p-2.5 text-xs text-slate-300 border border-blue-500/20">
+                          <Mail size={14} className="mt-0.5 shrink-0 text-teal-400" />
+                          <div className="min-w-0 flex-1">
+                            <span className="font-semibold text-teal-300">Admin Email Update: </span>
+                            <span className="text-slate-300 break-words leading-relaxed">{latestEmail.message}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <button className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-slate-800 px-3 py-2 text-sm text-slate-300 hover:text-white">
-                      <Download size={16} /> Download
-                    </button>
-                    <Link to={`/student/complaint/${complaint.id}`} className="rounded-xl bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500">Details</Link>
-                  </div>
-                </div>
-              ))
+                )
+              })
             )}
           </div>
 

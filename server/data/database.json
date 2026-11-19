@@ -1,0 +1,232 @@
+{
+  "demoUsers": [
+    {
+      "id": "STU-202401",
+      "name": "Aarav Sharma",
+      "email": "aarav@student.dcrust.in",
+      "role": "student",
+      "department": "Computer Science & Engineering",
+      "batch": "2026",
+      "phone": "+91 98765 43210",
+      "hostel": "Boys Hostel Block A",
+      "password": "student123"
+    },
+    {
+      "id": "ADM-9001",
+      "name": "Prince Chahal",
+      "email": "chahalprince0481@gmail.com",
+      "role": "admin",
+      "department": "Administrative Office",
+      "phone": "",
+      "password": "prince@123"
+    },
+    {
+      "id": "HOD-CSE-01",
+      "name": "CSE Department Head",
+      "email": "hod.cse@dcrust.in",
+      "role": "department_head",
+      "department": "Computer Science & Engineering",
+      "password": "hod12345"
+    },
+    {
+      "id": "COORD-CULT-01",
+      "name": "Cultural Coordinator",
+      "email": "cultural.coordinator@dcrust.in",
+      "role": "cultural_coordinator",
+      "department": "Student Affairs",
+      "password": "culture123"
+    },
+    {
+      "id": "COORD-TECH-01",
+      "name": "Technical Coordinator",
+      "email": "technical.coordinator@dcrust.in",
+      "role": "technical_coordinator",
+      "department": "Student Affairs",
+      "password": "tech12345"
+    },
+    {
+      "id": "DSW-01",
+      "name": "Dean of Student Welfare",
+      "email": "dsw@dcrust.in",
+      "role": "dsw",
+      "department": "Student Welfare",
+      "password": "dsw12345"
+    },
+    {
+      "id": "REG-01",
+      "name": "Registrar",
+      "email": "registrar@dcrust.in",
+      "role": "registrar",
+      "department": "Registrar Office",
+      "password": "registrar123"
+    },
+    {
+      "id": "VC-01",
+      "name": "Vice Chancellor",
+      "email": "vc@dcrust.in",
+      "role": "vice_chancellor",
+      "department": "Vice Chancellor Office",
+      "password": "vc123456"
+    }
+  ],
+  "complaints": [
+    {
+      "id": "CMP-1001",
+      "category": "Electrical",
+      "location": "Academic Block A",
+      "title": "Street light flickering near main gate",
+      "description": "The lights near the main gate are flickering intermittently after 8 PM and create unsafe conditions for students returning late.",
+      "status": "Assigned",
+      "progress": 25,
+      "priority": "High",
+      "submittedBy": "Aarav Sharma",
+      "submittedByEmail": "aarav@student.dcrust.in",
+      "assignedTo": "Maintenance Team",
+      "submissionDate": "2026-10-02",
+      "lastUpdated": "2026-10-03",
+      "attachments": [
+        "gate-light.png"
+      ],
+      "timeline": [
+        {
+          "status": "Submitted",
+          "progress": 10,
+          "date": "2026-10-02",
+          "note": "Complaint filed by student."
+        },
+        {
+          "status": "Assigned",
+          "progress": 25,
+          "date": "2026-10-03",
+          "note": "Assigned to electrical team."
+        }
+      ],
+      "emailUpdates": [
+        {
+          "id": "EML-1001-1",
+          "date": "2026-10-03T09:30:00Z",
+          "sender": "Admin Office (Prince Chahal)",
+          "recipient": "aarav@student.dcrust.in",
+          "subject": "[Progress: 25% Assigned] Street light flickering near main gate",
+          "message": "Dear Aarav, your complaint has been reviewed and assigned to the campus Electrical Maintenance Unit. A technician will inspect the main gate light today.",
+          "status": "Assigned",
+          "progress": 25,
+          "delivered": true,
+          "mode": "email"
+        }
+      ],
+      "rating": 4,
+      "feedback": "Fast response and good repair."
+    },
+    {
+      "id": "CMP-1002",
+      "category": "Plumbing",
+      "location": "Girls Hostel",
+      "title": "Water supply issue in second floor washroom",
+      "description": "The tap pressure is weak and there is water leakage from the supply pipe during early morning hours.",
+      "status": "In Progress",
+      "progress": 60,
+      "priority": "Medium",
+      "submittedBy": "Aarav Sharma",
+      "submittedByEmail": "aarav@student.dcrust.in",
+      "assignedTo": "Plumbing Unit",
+      "submissionDate": "2026-09-28",
+      "lastUpdated": "2026-10-04",
+      "attachments": [
+        "washroom-leak.jpg"
+      ],
+      "timeline": [
+        {
+          "status": "Submitted",
+          "progress": 10,
+          "date": "2026-09-28",
+          "note": "Complaint filed."
+        },
+        {
+          "status": "Assigned",
+          "progress": 25,
+          "date": "2026-09-29",
+          "note": "Assigned to plumber."
+        },
+        {
+          "status": "In Progress",
+          "progress": 60,
+          "date": "2026-10-04",
+          "note": "Pipe replacement in progress."
+        }
+      ],
+      "emailUpdates": [
+        {
+          "id": "EML-1002-1",
+          "date": "2026-09-29T10:15:00Z",
+          "sender": "Admin Office",
+          "recipient": "aarav@student.dcrust.in",
+          "subject": "[Update: 25% Assigned] Water supply issue in second floor washroom",
+          "message": "Your complaint has been acknowledged and assigned to the plumbing team.",
+          "status": "Assigned",
+          "progress": 25,
+          "delivered": true,
+          "mode": "email"
+        },
+        {
+          "id": "EML-1002-2",
+          "date": "2026-10-04T11:40:00Z",
+          "sender": "Admin Office (Prince Chahal)",
+          "recipient": "aarav@student.dcrust.in",
+          "subject": "[Progress: 60% In Progress] Pipe replacement under way",
+          "message": "Dear Aarav, the plumber has replaced the damaged joint and is currently fixing the main valve. We expect full resolution by evening.",
+          "status": "In Progress",
+          "progress": 60,
+          "delivered": true,
+          "mode": "email"
+        }
+      ],
+      "rating": null,
+      "feedback": ""
+    }
+  ],
+  "permissions": [
+    {
+      "id": "PER-2001",
+      "type": "Educational",
+      "title": "Industrial Visit to NHPC",
+      "purpose": "Field exposure and practical learning for renewable energy systems.",
+      "date": "2026-10-18",
+      "location": "NHPC, Yamuna Nagar",
+      "status": "Under Review",
+      "submittedBy": "Aarav Sharma",
+      "faculty": "Dr. R. Kapoor",
+      "details": "12 students from CSE 6th semester will participate in the visit with faculty escort."
+    },
+    {
+      "id": "PER-2002",
+      "type": "Cultural",
+      "title": "Inter-College Dance Festival",
+      "purpose": "Participation in university cultural fest representing the department.",
+      "date": "2026-11-02",
+      "location": "Main Auditorium",
+      "status": "Approved",
+      "submittedBy": "Aarav Sharma",
+      "faculty": "Prof. S. Verma",
+      "details": "Department team of 8 students selected for performance and rehearsal."
+    }
+  ],
+  "notifications": [
+    {
+      "id": "NOT-1",
+      "title": "Complaint assigned",
+      "message": "Your electrical complaint at Academic Block A has been assigned to the maintenance team.",
+      "type": "complaint",
+      "isRead": false,
+      "createdAt": "2026-10-03T09:15:00"
+    },
+    {
+      "id": "NOT-2",
+      "title": "Permission approved",
+      "message": "Your cultural permission application has been approved by the administration.",
+      "type": "permission",
+      "isRead": true,
+      "createdAt": "2026-10-02T16:45:00"
+    }
+  ]
+}

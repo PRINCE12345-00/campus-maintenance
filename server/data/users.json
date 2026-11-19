@@ -1,0 +1,104 @@
+[
+  {
+    "id": "STU-202401",
+    "name": "Aarav Sharma",
+    "email": "aarav@student.dcrust.in",
+    "role": "student",
+    "department": "Computer Science & Engineering",
+    "batch": "2026",
+    "phone": "+91 98765 43210",
+    "hostel": "Boys Hostel Block A",
+    "password": "scrypt$2df838fe10ab4fe6dac140a4551edb69$3c31d5e2761631be95cc50bcbc7a6aa77b1e66f6d9ebf2f0e55e66bf3e31d2e23a9a00f28e7b1dd6fa244ffb0fbe248f097a2d1c9beb4307526d5468a279cfda"
+  },
+  {
+    "id": "ADM-9001",
+    "name": "Prince Chahal",
+    "email": "chahalprince0481@gmail.com",
+    "role": "admin",
+    "department": "Administrative Office",
+    "phone": "",
+    "password": "scrypt$303c2e37d4ac9693f5a8bd4dcd4ed5d6$07cfe515a3ba5bd04aae1a61046eed9d5ee440ce33ef53c03c1a078ef8132ec551c187c5099689f2932a8bbdadb320908cd118b007499d55a185f8391f4c10af"
+  },
+  {
+    "id": "HOD-CSE-01",
+    "name": "CSE Department Head",
+    "email": "hod.cse@dcrust.in",
+    "role": "department_head",
+    "department": "Computer Science & Engineering",
+    "password": "scrypt$421530bd53f4b4d9a8508bad9250a1df$46a6644175e03dd5aaf58e7265b40bf3bdb514ef2400d6401ef709b3a8da9a655e486e2e9abfe99a530a9330595f61a85e9b45b84cf985ae7cb81a9ee26ed0eb"
+  },
+  {
+    "id": "COORD-CULT-01",
+    "name": "Cultural Coordinator",
+    "email": "cultural.coordinator@dcrust.in",
+    "role": "cultural_coordinator",
+    "department": "Student Affairs",
+    "password": "scrypt$b5d24bcbb95f80d3d738f98592ed08ed$bb9857e9d2e11afac7269e1f39bf5f7e0009d1da14de8856733dc390964b7a769a447cdde7f95c4dede29b22d09288159e76db8f621ac336bce162e51538b779"
+  },
+  {
+    "id": "COORD-TECH-01",
+    "name": "Technical Coordinator",
+    "email": "technical.coordinator@dcrust.in",
+    "role": "technical_coordinator",
+    "department": "Student Affairs",
+    "password": "scrypt$5ea70b907e7f825bfe1efe7b222e9a87$9ee731545ec9240fb70adf0534d86a2609cb271dfd3be1945f0a9ab23a66e3ca46e7847f05e19a9ceef7a829b15e0ebe817c349fe37886d80c09aed94b16e19a"
+  },
+  {
+    "id": "DSW-01",
+    "name": "Dean of Student Welfare",
+    "email": "dsw@dcrust.in",
+    "role": "dsw",
+    "department": "Student Welfare",
+    "password": "scrypt$33030263409eb24b43a9ff48fac1f653$5bb6f07a653054ca39f000e30e11d330979db5353c6555cc81dc76fe962d320e94527a389418b08439bb799966331a24cc66d9c0c9e53a45eda31e7f1ec3c6ae"
+  },
+  {
+    "id": "REG-01",
+    "name": "Registrar",
+    "email": "registrar@dcrust.in",
+    "role": "registrar",
+    "department": "Registrar Office",
+    "password": "scrypt$2d188be2939c282135ce6f9950fb0077$882dff392bd1495292b7da9c75af92c439840a5a9a98cace8bf71b8186e21bc7ffa535105944050a8c2b7a5d2b4409a75a4f2608d6f5361cff725547229f5bce"
+  },
+  {
+    "id": "VC-01",
+    "name": "Vice Chancellor",
+    "email": "vc@dcrust.in",
+    "role": "vice_chancellor",
+    "department": "Vice Chancellor Office",
+    "password": "scrypt$82ec4110f6b3745503d53d986238a370$7ce9ee110866cc4a88345cb0d76ae001ee1b28c515e597b887d2abb30701b0ef3f862f86d21c8cf6241fa0b83128295c21d2d947d1c0fd77626cf7546bb266d0"
+  },
+  {
+    "id": "23001001076",
+    "rollNumber": "23001001076",
+    "name": "Pankaj Kumar",
+    "email": "pankajsulekh255@gmail.com",
+    "role": "student",
+    "department": "CSE",
+    "batch": "2026",
+    "password": "scrypt$89f75b06534f67175c50e1acddb00593$6c86e0ce6a50bac15a4842fceba73fdd89b6a6f1bdb8d01249b48a7ab0454996db807cde596f16f7b33936db588a035385be6c1cc3ab54eb0cb408cb126a7633",
+    "hostel": "BH-1 Room No. 366",
+    "phone": "+91 9306817255"
+  },
+  {
+    "id": "23001002075",
+    "rollNumber": "23001002075",
+    "name": "Pinku",
+    "email": "pinkusulekh@gmail.com",
+    "role": "student",
+    "department": "EE",
+    "batch": "2026",
+    "password": "scrypt$a68867770ab730308c5163a804d5a307$cdaea79b7d02c48795c8dbcf8b742b09319607ce8bfe54f15705d64986e27c85dabbbb161f3ece504d98cb7b58aaa6914dc48fc2f35d823c7d4cff6cb633ca54"
+  },
+  {
+    "id": "23001001100",
+    "rollNumber": "23001001100",
+    "name": "Rishabh Gupta",
+    "email": "rklife00143@gmail.com",
+    "role": "student",
+    "department": "CSE",
+    "batch": "2026",
+    "password": "scrypt$37b9b7220b1d0870ad74ddf546b24e72$8853bf696119158ef58c727fdf2f31744483a876e47e99733f59a7b0153ea01654c0f72430c7127b9a76391be1ffd50162e55bfc197aabfd3769cd449ca77350",
+    "hostel": "BH - 1 Room No. 365",
+    "phone": "+91 6200679148"
+  }
+]

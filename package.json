@@ -8,6 +8,8 @@
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "dev:frontend": "vite",
     "dev:backend": "nodemon server/server.js",
+    "dev:ml": "python ml-service/app.py",
+    "dev:all": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\" \"npm run dev:ml\"",
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview"

@@ -1,0 +1,16 @@
+{
+  "short_name": "Smart Campus",
+  "name": "DCRUST Smart Campus Portal",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#081426",
+  "theme_color": "#142B4A",
+  "display": "standalone",
+  "orientation": "portrait"
+}

@@ -1,0 +1,124 @@
+{
+  "timestamp": "2026-11-17T23:29:41.307906",
+  "total_records_analyzed": 5000,
+  "resolved_records_count": 3550,
+  "unresolved_records_count": 1450,
+  "duplicate_detection": {
+    "exact_duplicate_rows": 0,
+    "duplicate_descriptions": 3347,
+    "unique_titles": 48,
+    "unique_descriptions": 1653,
+    "repeated_templates_note": "Dataset contains synthetic repeating complaint templates. Grouped and time-split validation required to avoid optimistic evaluation."
+  },
+  "missing_value_analysis": {
+    "counts": {
+      "complaint_id": 0,
+      "student_id": 0,
+      "date_submitted": 0,
+      "submitted_hour": 0,
+      "title": 0,
+      "description": 0,
+      "category": 0,
+      "location": 0,
+      "has_media": 0,
+      "priority": 0,
+      "status": 0,
+      "assigned_to": 312,
+      "date_assigned": 312,
+      "date_resolved": 1450,
+      "resolution_days": 1450,
+      "feedback_rating": 2506
+    },
+    "percentages": {
+      "complaint_id": 0.0,
+      "student_id": 0.0,
+      "date_submitted": 0.0,
+      "submitted_hour": 0.0,
+      "title": 0.0,
+      "description": 0.0,
+      "category": 0.0,
+      "location": 0.0,
+      "has_media": 0.0,
+      "priority": 0.0,
+      "status": 0.0,
+      "assigned_to": 6.24,
+      "date_assigned": 6.24,
+      "date_resolved": 29.0,
+      "resolution_days": 29.0,
+      "feedback_rating": 50.12
+    },
+    "treatment": "Unresolved records (1,450 rows) cleanly isolated. Resolution duration not imputed to prevent artificial bias and target leakage."
+  },
+  "category_distribution": {
+    "Other": 885,
+    "Damaged Furniture": 878,
+    "Cleaning": 850,
+    "Electrical": 816,
+    "Plumbing": 804,
+    "IT/Network": 767
+  },
+  "priority_distribution": {
+    "Medium": 2475,
+    "High": 1842,
+    "Low": 683
+  },
+  "status_distribution": {
+    "Resolved": 2178,
+    "Closed": 1372,
+    "In Progress": 679,
+    "Assigned": 459,
+    "Submitted": 312
+  },
+  "location_distribution": {
+    "Academic Block A": 715,
+    "Library": 704,
+    "Boys Hostel": 657,
+    "Girls Hostel": 615,
+    "Academic Block B": 520,
+    "Computer Lab": 407,
+    "Canteen": 391,
+    "Auditorium": 372,
+    "Sports Complex": 260,
+    "Science Laboratory": 243,
+    "Main Gate": 116
+  },
+  "resolution_days_statistics": {
+    "mean": 9.57,
+    "std": 4.44,
+    "median": 10.0,
+    "min": 1.0,
+    "max": 18.0,
+    "q1": 6.0,
+    "q3": 13.0,
+    "iqr": 7.0,
+    "outlier_count": 0
+  },
+  "category_historical_average_resolution_days": {
+    "Cleaning": 9.58,
+    "Damaged Furniture": 9.59,
+    "Electrical": 9.65,
+    "IT/Network": 9.3,
+    "Other": 9.89,
+    "Plumbing": 9.42
+  },
+  "engineered_features": [
+    "clean_title",
+    "clean_description",
+    "full_text",
+    "text_length",
+    "word_count",
+    "is_safety_emergency",
+    "submission_day",
+    "submission_month",
+    "submission_weekday",
+    "is_weekend",
+    "cat_historical_avg_days",
+    "loc_complaint_frequency"
+  ],
+  "target_leakage_safeguards": [
+    "date_resolved excluded from regression input features",
+    "date_assigned excluded from initial complaint submission triage",
+    "feedback_rating excluded from all predictive models",
+    "unresolved tickets isolated from regression target y"
+  ]
+}
