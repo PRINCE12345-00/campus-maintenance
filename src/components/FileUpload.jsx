@@ -8,6 +8,8 @@ import {
   SwitchCamera,
   UploadCloud,
   X,
+  Zap,
+  ZapOff,
 } from 'lucide-react'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024
@@ -25,6 +27,9 @@ export default function FileUpload({ label = 'Upload evidence', onChange, multip
   const [cameraFacing, setCameraFacing] = useState('environment')
   const [cameraError, setCameraError] = useState('')
   const [capturedSnapshot, setCapturedSnapshot] = useState(null)
+  const [isTorchOn, setIsTorchOn] = useState(false)
+  const [hasHardwareTorch, setHasHardwareTorch] = useState(false)
+  const [isFlashing, setIsFlashing] = useState(false)
 
   useEffect(() => {
     const previewUrls = {}
@@ -58,6 +63,7 @@ export default function FileUpload({ label = 'Upload evidence', onChange, multip
     setCameraError('')
     setCapturedSnapshot(null)
     setIsCameraOpen(true)
+    setIsTorchOn(false)
 
     if (cameraStream) {
       cameraStream.getTracks().forEach((track) => track.stop())
@@ -73,6 +79,14 @@ export default function FileUpload({ label = 'Upload evidence', onChange, multip
         audio: false,
       })
       setCameraStream(stream)
+
+      // Detect hardware torch capability on mobile/back camera
+      const videoTrack = stream.getVideoTracks()?.[0]
+      if (videoTrack) {
+        const capabilities = videoTrack.getCapabilities?.() || {}
+        setHasHardwareTorch(Boolean(capabilities.torch))
+      }
+
       // Small timeout to allow video element to mount
       setTimeout(() => {
         if (videoRef.current) {
@@ -85,11 +99,35 @@ export default function FileUpload({ label = 'Upload evidence', onChange, multip
     }
   }
 
+  const toggleTorch = async () => {
+    if (!cameraStream) return
+    const track = cameraStream.getVideoTracks()?.[0]
+    const nextTorch = !isTorchOn
+
+    if (track) {
+      try {
+        await track.applyConstraints({
+          advanced: [{ torch: nextTorch }],
+        })
+      } catch (err) {
+        console.log('Hardware torch constraint not applied, screen illumination active:', err)
+      }
+    }
+    setIsTorchOn(nextTorch)
+  }
+
   const closeCamera = () => {
     if (cameraStream) {
+      const track = cameraStream.getVideoTracks()?.[0]
+      if (track && isTorchOn) {
+        try {
+          track.applyConstraints({ advanced: [{ torch: false }] })
+        } catch {}
+      }
       cameraStream.getTracks().forEach((track) => track.stop())
       setCameraStream(null)
     }
+    setIsTorchOn(false)
     setIsCameraOpen(false)
     setCapturedSnapshot(null)
     setCameraError('')
@@ -98,12 +136,18 @@ export default function FileUpload({ label = 'Upload evidence', onChange, multip
   const switchCameraFacing = () => {
     const nextFacing = cameraFacing === 'environment' ? 'user' : 'environment'
     setCameraFacing(nextFacing)
+    setIsTorchOn(false)
     openCamera(nextFacing)
   }
 
   const takeSnapshot = () => {
     if (!videoRef.current) return
     const video = videoRef.current
+
+    // Flash light screen flash pulse effect
+    setIsFlashing(true)
+    setTimeout(() => setIsFlashing(false), 220)
+
     const canvas = document.createElement('canvas')
     canvas.width = video.videoWidth || 1280
     canvas.height = video.videoHeight || 720
@@ -129,6 +173,15 @@ export default function FileUpload({ label = 'Upload evidence', onChange, multip
 
     const dataUrl = canvas.toDataURL('image/jpeg', 0.88)
     setCapturedSnapshot(dataUrl)
+
+    // Turn off hardware torch after snapshot taken
+    if (cameraStream && isTorchOn) {
+      const track = cameraStream.getVideoTracks()?.[0]
+      try {
+        track?.applyConstraints({ advanced: [{ torch: false }] })
+      } catch {}
+      setIsTorchOn(false)
+    }
   }
 
   const confirmSnapshot = () => {
@@ -308,7 +361,9 @@ export default function FileUpload({ label = 'Upload evidence', onChange, multip
             ) : (
               <div className="mt-4 flex flex-col items-center">
                 {/* Viewfinder Container */}
-                <div className="relative w-full aspect-[4/3] max-h-72 bg-black rounded-2xl overflow-hidden border border-white/10 shadow-inner flex items-center justify-center">
+                <div className={`relative w-full aspect-[4/3] max-h-72 bg-black rounded-2xl overflow-hidden border border-white/10 shadow-inner flex items-center justify-center transition-all ${
+                  isTorchOn ? 'ring-4 ring-amber-400/80 shadow-[0_0_35px_rgba(251,191,36,0.4)]' : ''
+                }`}>
                   {!capturedSnapshot ? (
                     <>
                       <video
@@ -318,6 +373,35 @@ export default function FileUpload({ label = 'Upload evidence', onChange, multip
                         muted
                         className="w-full h-full object-cover"
                       />
+
+                      {/* Screen Flash Pulse Animation */}
+                      {isFlashing && (
+                        <div className="absolute inset-0 bg-white z-30 pointer-events-none transition-opacity" />
+                      )}
+
+                      {/* Flashlight Status / Quick Toggle Button in Viewfinder */}
+                      <button
+                        type="button"
+                        onClick={toggleTorch}
+                        className={`absolute top-3 right-3 z-20 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-all shadow-lg backdrop-blur-md cursor-pointer ${
+                          isTorchOn
+                            ? 'bg-amber-400 text-slate-950 shadow-[0_0_15px_rgba(251,191,36,0.6)] ring-2 ring-amber-300'
+                            : 'bg-slate-950/70 text-slate-200 border border-white/20 hover:bg-slate-900'
+                        }`}
+                        title={isTorchOn ? 'Turn Flashlight Off' : 'Turn Flashlight On'}
+                      >
+                        {isTorchOn ? <Zap size={14} className="fill-slate-950" /> : <ZapOff size={14} />}
+                        <span>{isTorchOn ? 'Flash ON' : 'Flash OFF'}</span>
+                      </button>
+
+                      {/* Torch Active Illumination Indicator */}
+                      {isTorchOn && (
+                        <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 rounded-full bg-amber-500/20 border border-amber-400/40 px-2.5 py-1 text-[10px] font-bold text-amber-300 backdrop-blur-sm">
+                          <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-ping" />
+                          <span>Torch Active</span>
+                        </div>
+                      )}
+
                       {/* Target Reticle Overlay */}
                       <div className="pointer-events-none absolute inset-6 rounded-xl border-2 border-dashed border-cyan-400/60 flex items-center justify-center">
                         <span className="text-[11px] font-bold bg-slate-950/70 px-2.5 py-1 rounded-full text-cyan-300 backdrop-blur-xs">
@@ -335,22 +419,39 @@ export default function FileUpload({ label = 'Upload evidence', onChange, multip
                 </div>
 
                 {/* Viewfinder Controls */}
-                <div className="mt-4 flex w-full items-center justify-between gap-3">
+                <div className="mt-4 flex w-full items-center justify-between gap-2 sm:gap-3">
                   {!capturedSnapshot ? (
                     <>
-                      <button
-                        type="button"
-                        onClick={switchCameraFacing}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-slate-800 px-3 py-2 text-xs text-slate-300 hover:bg-slate-700"
-                      >
-                        <SwitchCamera size={15} /> Switch Lens
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={switchCameraFacing}
+                          className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-slate-800 px-2.5 sm:px-3 py-2 text-xs text-slate-300 hover:bg-slate-700 transition"
+                          title="Switch between front and back camera"
+                        >
+                          <SwitchCamera size={14} /> <span className="hidden sm:inline">Switch</span> Lens
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={toggleTorch}
+                          className={`inline-flex items-center gap-1.5 rounded-xl border px-2.5 sm:px-3 py-2 text-xs font-semibold transition ${
+                            isTorchOn
+                              ? 'border-amber-400/50 bg-amber-500/20 text-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.3)]'
+                              : 'border-white/10 bg-slate-800 text-slate-300 hover:bg-slate-700'
+                          }`}
+                          title="Toggle Flash / Torch Light"
+                        >
+                          {isTorchOn ? <Zap size={14} className="text-amber-400 fill-amber-400" /> : <ZapOff size={14} />}
+                          <span>{isTorchOn ? 'Flash ON' : 'Flash'}</span>
+                        </button>
+                      </div>
 
                       {/* Snap Button */}
                       <button
                         type="button"
                         onClick={takeSnapshot}
-                        className="flex h-14 w-14 items-center justify-center rounded-full bg-cyan-400 p-1 shadow-[0_0_20px_rgba(34,211,238,0.5)] transition hover:scale-105 active:scale-95 text-slate-950"
+                        className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-cyan-400 p-1 shadow-[0_0_20px_rgba(34,211,238,0.5)] transition hover:scale-105 active:scale-95 text-slate-950 cursor-pointer"
                         title="Take Photo"
                       >
                         <div className="h-11 w-11 rounded-full border-2 border-slate-950 flex items-center justify-center">
@@ -361,7 +462,7 @@ export default function FileUpload({ label = 'Upload evidence', onChange, multip
                       <button
                         type="button"
                         onClick={closeCamera}
-                        className="rounded-xl border border-white/10 bg-slate-800 px-3 py-2 text-xs text-slate-300 hover:bg-slate-700"
+                        className="rounded-xl border border-white/10 bg-slate-800 px-3 py-2 text-xs text-slate-300 hover:bg-slate-700 transition"
                       >
                         Cancel
                       </button>
