@@ -315,15 +315,18 @@ def analyze_complaint_image(image_bytes: bytes, filename: str = "upload.jpg", ca
         if authenticity_score >= 70:
             is_genuine = True
             authenticity_status = "Verified Genuine Maintenance Evidence"
-            admin_alert = f"✓ AI Verified: Clear visual evidence of a genuine maintenance defect ({detected_category}) was verified in the photo."
+            admin_alert = f"✓ AI Verified: Clear visual evidence of a genuine maintenance defect ({detected_category}) was verified in the photo. (Mandatory on-site physical inspection by technician is required)."
+            reasons.append("Mandatory on-site physical inspection required by maintenance technician before repair work.")
         elif authenticity_score >= 40:
             is_genuine = False
             authenticity_status = "Inconclusive / Surface Appears Normal"
-            admin_alert = "⚠️ AI Notice for Admin: Visual evidence is inconclusive. The visible surface appears intact without obvious physical damage. Manual physical verification recommended."
+            admin_alert = "⚠️ AI Notice for Admin: Visual evidence is inconclusive. The visible surface appears intact without obvious physical damage. Mandatory physical verification required."
+            reasons.append("Physical on-site inspection mandatory to verify reported defect.")
         else:
             is_genuine = False
             authenticity_status = "Rejected: Irrelevant / No Defect Detected"
-            admin_alert = f"🚨 AI Warning for Admin: No physical defect detected. Photo does not match the reported '{category_hint or 'maintenance'}' issue. Manual inspection required."
+            admin_alert = f"🚨 AI Warning for Admin: No physical defect detected. Photo does not match the reported '{category_hint or 'maintenance'}' issue. Mandatory physical inspection required."
+            reasons.append("Physical on-site inspection mandatory.")
 
         return {
             "success": True,
@@ -343,7 +346,8 @@ def analyze_complaint_image(image_bytes: bytes, filename: str = "upload.jpg", ca
                 "status": "Blurry" if is_blurry else "Clear & Sharp"
             },
             "reasons": reasons,
-            "manual_inspection_recommended": bool(not is_genuine or authenticity_score < 70)
+            "manual_inspection_recommended": True,
+            "physical_verification_mandatory": True,
         }
 
     except Exception as e:

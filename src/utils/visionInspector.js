@@ -198,7 +198,7 @@ export function inspectImageClientSide(dataUrl, category = 'General') {
               authenticity_score: 92,
               authenticity_status: 'Verified Genuine Maintenance Evidence',
               defect_class: 'Electrical Defect / Scorch Hazard',
-              admin_alert: '✓ AI Verified: Dark scorch marks and high-contrast electrical fixture edges detected.',
+              admin_alert: '✓ AI Verified: Dark scorch marks and high-contrast electrical fixture edges detected. (Mandatory on-site physical inspection by technician is required).',
               quality: {
                 status: 'Clear & Sharp',
                 sharpness_score: Math.round(edgeRatio * 600) / 10,
@@ -208,8 +208,10 @@ export function inspectImageClientSide(dataUrl, category = 'General') {
               reasons: [
                 'High dark pixel concentration and irregular high-contrast edges indicate burn/scorch or wiring hazard.',
                 `Visual evidence matches reported category '${category}'.`,
+                'Physical on-site inspection is strictly mandatory before starting repairs.',
               ],
-              manual_inspection_recommended: false,
+              manual_inspection_recommended: true,
+              physical_verification_mandatory: true,
             })
           }
 
@@ -221,7 +223,7 @@ export function inspectImageClientSide(dataUrl, category = 'General') {
               authenticity_score: 86,
               authenticity_status: 'Verified Genuine Maintenance Evidence',
               defect_class: 'Electrical Defect / Appliance Inspection',
-              admin_alert: '✓ AI Verified: Electrical fixture contours and mounting surface verified against campus maintenance baseline.',
+              admin_alert: '✓ AI Verified: Electrical fixture contours and mounting surface verified against campus maintenance baseline. (Mandatory on-site physical inspection by technician is required).',
               quality: {
                 status: 'Clear & Sharp',
                 sharpness_score: Math.round(edgeRatio * 500) / 10,
@@ -231,8 +233,10 @@ export function inspectImageClientSide(dataUrl, category = 'General') {
               reasons: [
                 'Geometric fixture contours (switchboard, fan, lighting) verified against mounting surface.',
                 `Visual features match reported category '${category}'.`,
+                'Physical on-site inspection is strictly mandatory before starting repairs.',
               ],
-              manual_inspection_recommended: false,
+              manual_inspection_recommended: true,
+              physical_verification_mandatory: true,
             })
           }
 
@@ -270,7 +274,7 @@ export function inspectImageClientSide(dataUrl, category = 'General') {
               authenticity_score: 88,
               authenticity_status: 'Verified Genuine Maintenance Evidence',
               defect_class: 'Water Leakage / Plumbing Defect',
-              admin_alert: `✓ AI Verified: Clear visual evidence of moisture pooling and plumbing defect detected matching category '${category}'.`,
+              admin_alert: `✓ AI Verified: Clear visual evidence of moisture pooling and plumbing defect detected matching category '${category}'. (Mandatory on-site physical inspection by technician is required).`,
               quality: {
                 status: 'Clear & Sharp',
                 sharpness_score: Math.round(edgeRatio * 600) / 10,
@@ -280,8 +284,10 @@ export function inspectImageClientSide(dataUrl, category = 'General') {
               reasons: [
                 'Moisture specular reflections and fluid pooling contrast match plumbing leak signatures.',
                 `Visual evidence verified under '${category}'.`,
+                'Physical on-site inspection is strictly mandatory before starting repairs.',
               ],
-              manual_inspection_recommended: false,
+              manual_inspection_recommended: true,
+              physical_verification_mandatory: true,
             })
           }
 
@@ -301,6 +307,7 @@ export function inspectImageClientSide(dataUrl, category = 'General') {
             },
             reasons: ['No water pooling, pipe fixtures, or moisture damage detected.'],
             manual_inspection_recommended: true,
+            physical_verification_mandatory: true,
           })
         }
 
@@ -314,15 +321,19 @@ export function inspectImageClientSide(dataUrl, category = 'General') {
               authenticity_score: 85,
               authenticity_status: 'Verified Genuine Maintenance Evidence',
               defect_class: 'Cleanliness / Clutter Hazard',
-              admin_alert: `✓ AI Verified: Debris, scatter, or cleanliness hazard detected matching '${category}'.`,
+              admin_alert: `✓ AI Verified: Debris, scatter, or cleanliness hazard detected matching '${category}'. (Mandatory on-site physical inspection by technician is required).`,
               quality: {
                 status: 'Clear & Sharp',
                 sharpness_score: Math.round(edgeRatio * 500) / 10,
                 is_blurry: false,
                 is_blank: false,
               },
-              reasons: ['Irregular surface clutter and scattered texture patterns confirm cleanliness issue.'],
-              manual_inspection_recommended: false,
+              reasons: [
+                'Irregular surface clutter and scattered texture patterns confirm cleanliness issue.',
+                'Physical on-site inspection is strictly mandatory before starting repairs.',
+              ],
+              manual_inspection_recommended: true,
+              physical_verification_mandatory: true,
             })
           }
 
@@ -337,6 +348,7 @@ export function inspectImageClientSide(dataUrl, category = 'General') {
             quality: { status: 'Clear & Intact', sharpness_score: Math.round(edgeRatio * 350) / 10, is_blurry: false, is_blank: false },
             reasons: ['Surface appears tidy without observable waste or debris.'],
             manual_inspection_recommended: true,
+            physical_verification_mandatory: true,
           })
         }
 
@@ -350,15 +362,19 @@ export function inspectImageClientSide(dataUrl, category = 'General') {
               authenticity_score: 86,
               authenticity_status: 'Verified Genuine Maintenance Evidence',
               defect_class: 'Furniture Damage / Structural Crack',
-              admin_alert: `✓ AI Verified: Structural fracture and furniture contours verified matching '${category}'.`,
+              admin_alert: `✓ AI Verified: Structural fracture and furniture contours verified matching '${category}'. (Mandatory on-site physical inspection by technician is required).`,
               quality: {
                 status: 'Clear & Sharp',
                 sharpness_score: Math.round(edgeRatio * 550) / 10,
                 is_blurry: false,
                 is_blank: false,
               },
-              reasons: ['Structural linear fractures and material edges confirmed.'],
-              manual_inspection_recommended: false,
+              reasons: [
+                'Structural linear fractures and material edges confirmed.',
+                'Physical on-site inspection is strictly mandatory before starting repairs.',
+              ],
+              manual_inspection_recommended: true,
+              physical_verification_mandatory: true,
             })
           }
 
@@ -373,6 +389,7 @@ export function inspectImageClientSide(dataUrl, category = 'General') {
             quality: { status: 'Clear (Unrelated)', sharpness_score: 15, is_blurry: false, is_blank: false },
             reasons: ['No broken wood/metal geometry or cracks detected.'],
             manual_inspection_recommended: true,
+            physical_verification_mandatory: true,
           })
         }
 
@@ -386,15 +403,19 @@ export function inspectImageClientSide(dataUrl, category = 'General') {
               authenticity_score: 85,
               authenticity_status: 'Verified Genuine Maintenance Evidence',
               defect_class: 'IT / Network Hardware Defect',
-              admin_alert: `✓ AI Verified: IT hardware/cabling patterns verified matching '${category}'.`,
+              admin_alert: `✓ AI Verified: IT hardware/cabling patterns verified matching '${category}'. (Mandatory on-site physical inspection by technician is required).`,
               quality: {
                 status: 'Clear & Sharp',
                 sharpness_score: Math.round(edgeRatio * 500) / 10,
                 is_blurry: false,
                 is_blank: false,
               },
-              reasons: ['Hardware, cabling, or equipment contours identified.'],
-              manual_inspection_recommended: false,
+              reasons: [
+                'Hardware, cabling, or equipment contours identified.',
+                'Physical on-site inspection is strictly mandatory before starting repairs.',
+              ],
+              manual_inspection_recommended: true,
+              physical_verification_mandatory: true,
             })
           }
 
@@ -409,6 +430,7 @@ export function inspectImageClientSide(dataUrl, category = 'General') {
             quality: { status: 'Clear (Unrelated)', sharpness_score: 15, is_blurry: false, is_blank: false },
             reasons: ['No IT/network hardware contours identified.'],
             manual_inspection_recommended: true,
+            physical_verification_mandatory: true,
           })
         }
 
@@ -421,7 +443,7 @@ export function inspectImageClientSide(dataUrl, category = 'General') {
             authenticity_score: 84,
             authenticity_status: 'Verified Genuine Maintenance Evidence',
             defect_class: `Verified Defect (${category})`,
-            admin_alert: `✓ AI Verified: Physical defect features verified under '${category}'.`,
+            admin_alert: `✓ AI Verified: Physical defect features verified under '${category}'. (Mandatory on-site physical inspection by technician is required).`,
             quality: {
               status: 'Clear & Sharp',
               sharpness_score: Math.round(edgeRatio * 550) / 10,
@@ -431,8 +453,10 @@ export function inspectImageClientSide(dataUrl, category = 'General') {
             reasons: [
               `Structural defect features match reported category '${category}'.`,
               'Valid camera perspective and physical contour distribution confirmed.',
+              'Physical on-site inspection is strictly mandatory before starting repairs.',
             ],
-            manual_inspection_recommended: false,
+            manual_inspection_recommended: true,
+            physical_verification_mandatory: true,
           })
         }
 

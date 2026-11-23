@@ -13,6 +13,7 @@ import {
   Cpu,
   Mail,
   Send,
+  ShieldAlert,
   ShieldCheck,
   Sparkles,
   Wrench,
@@ -1192,6 +1193,17 @@ export default function ComplaintDetailPage() {
                           ))}
                         </div>
                       )}
+                    </div>
+                  </div>
+
+                  {/* MANDATORY ON-SITE PHYSICAL INSPECTION REQUIREMENT */}
+                  <div className="rounded-xl border border-amber-500/30 bg-amber-950/30 p-3 text-xs text-amber-200 flex items-start gap-2.5">
+                    <ShieldAlert size={17} className="text-amber-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-bold text-amber-300">Mandatory On-Site Physical Inspection Required</p>
+                      <p className="text-[11px] text-slate-300 mt-0.5 leading-relaxed">
+                        Regardless of the AI authenticity score ({visionResult.authenticity_score}%), automated computer vision only verifies preliminary photographic baseline evidence. A certified campus technician or maintenance supervisor must physically visit <strong className="text-white">{complaint.location}</strong> to inspect the physical equipment, check internal wiring/mechanical safety, and diagnose the exact fault before approving repair work.
+                      </p>
                     </div>
                   </div>
                 </div>

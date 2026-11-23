@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useMemo, useState } from 'react'
-import { AlertCircle, AlertOctagon, Camera, CheckCircle2, Download, Filter, Mail, Search, Send, Sparkles } from 'lucide-react'
+import { AlertCircle, AlertOctagon, Camera, CheckCircle2, Download, Filter, Mail, Search, Send, ShieldAlert, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import FileUpload from '../../components/FileUpload'
 import StatusBadge from '../../components/StatusBadge'
@@ -324,6 +324,17 @@ export default function StudentComplaintsPage() {
                     ))}
                   </div>
                 )}
+
+                {/* Mandatory Physical On-Site Inspection Requirement Notice */}
+                <div className="mt-3 rounded-lg border border-amber-500/30 bg-amber-950/40 p-2.5 text-[11px] text-amber-200 flex items-start gap-2">
+                  <ShieldAlert size={15} className="text-amber-400 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold text-amber-300">Mandatory On-Site Physical Inspection Required: </span>
+                    <span className="text-slate-300">
+                      AI photo audit is preliminary screening only. A certified campus technician must conduct an in-person physical inspection at <strong className="text-white">{form.location}</strong> to verify operational safety and diagnose internal equipment faults before repair work begins.
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
 
