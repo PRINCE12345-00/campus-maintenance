@@ -20,6 +20,7 @@ import StatusBadge from '../components/StatusBadge'
 import { analyticsApi, complaintsApi, visionApi } from '../services/api'
 import { formatDate } from '../utils/formatters'
 import { triggerMobileNotification } from '../utils/mobileNotifications'
+import { inspectImageClientSide } from '../utils/visionInspector'
 
 const PROGRESS_STAGES = [
   { percent: 10, label: 'Submitted', desc: 'Complaint registered', icon: '📝' },
@@ -91,33 +92,25 @@ export default function ComplaintDetailPage() {
     setIsAnalyzingVision(true)
     setVisionError(null)
     try {
+      // 1. Fast browser-level skin/selfie & category consistency inspection
+      const clientInspection = await inspectImageClientSide(attachment.dataUrl, complaint?.category)
+      if (clientInspection.success && (!clientInspection.is_genuine || clientInspection.authenticity_score < 40)) {
+        // Human selfie or irrelevant image detected immediately!
+        setVisionResult(clientInspection)
+        return
+      }
+
+      // 2. Query Python ML service for deep numerical gradient analysis
       const res = await visionApi.analyzeImage(attachment.dataUrl, attachment.name, complaint?.category)
       if (res.data?.success) {
         setVisionResult(res.data)
       } else {
-        setVisionError(res.data?.error || 'AI Vision analysis could not process this image format.')
+        setVisionResult(clientInspection)
       }
     } catch {
       // Graceful Autonomous Client-side Vision Inspection Fallback
-      setVisionResult({
-        success: true,
-        authenticity_score: 84.0,
-        quality_grade: 'Clear & Sharp',
-        sharpness_score: 37.2,
-        confidence: 0.88,
-        is_likely_genuine: true,
-        detected_features: [
-          `Visual evidence verified under ${complaint?.category || 'Campus Facility'} category.`,
-          'Camera perspective and pixel entropy confirm realistic field capture.',
-          'No artificial tampering or stock image artifacts detected.'
-        ],
-        admin_alert: {
-          status: 'verified',
-          badge: 'Evidence Verified',
-          tone: 'emerald',
-          message: 'Visual evidence matches verified campus defect patterns. Authentic student submission confirmed.'
-        }
-      })
+      const fallback = await inspectImageClientSide(attachment.dataUrl, complaint?.category)
+      setVisionResult(fallback)
     } finally {
       setIsAnalyzingVision(false)
     }
