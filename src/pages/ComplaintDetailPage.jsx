@@ -102,7 +102,7 @@ export default function ComplaintDetailPage() {
 
       // 2. Query Python ML service for deep numerical gradient analysis
       const res = await visionApi.analyzeImage(attachment.dataUrl, attachment.name, complaint?.category)
-      if (res.data?.success) {
+      if (res.data?.success && !res.data?.offline) {
         setVisionResult(res.data)
       } else {
         setVisionResult(clientInspection)

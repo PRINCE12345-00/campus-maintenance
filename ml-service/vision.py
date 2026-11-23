@@ -132,7 +132,34 @@ def analyze_complaint_image(image_bytes: bytes, filename: str = "upload.jpg", ca
         is_blurry = bool(sharpness_score < 25.0)
 
         # -------------------------------------------------------------
-        # 3. Human Skin & Selfie Recognition Filter
+        # 3. Blank / Extreme Darkness / Obscured Lens Check
+        # -------------------------------------------------------------
+        if dark_ratio > 0.60:
+            return {
+                "success": True,
+                "filename": filename,
+                "dimensions": f"{width}x{height}",
+                "file_size_kb": file_size_kb,
+                "is_genuine": False,
+                "authenticity_score": 10,
+                "authenticity_status": "Rejected: Insufficient Lighting / Dark Room",
+                "defect_class": "Invalid Evidence: Insufficient Lighting",
+                "admin_alert": f"🚨 AI Evidence Rejection: The photo is too dark or obscured ({round(dark_ratio * 100, 1)}% dark pixels) to verify any maintenance defect. Please turn on lights or take a photo with flash.",
+                "quality": {
+                    "sharpness_score": round(sharpness_score, 1),
+                    "is_blurry": True,
+                    "is_blank": True,
+                    "status": "Too Dark / Obscured"
+                },
+                "reasons": [
+                    f"Extreme darkness detected ({round(dark_ratio * 100, 1)}% underexposed pixels).",
+                    "Physical campus asset details cannot be verified in the dark."
+                ],
+                "manual_inspection_recommended": True
+            }
+
+        # -------------------------------------------------------------
+        # 4. Human Skin & Selfie Recognition Filter
         # -------------------------------------------------------------
         r = img_arr[:, :, 0]
         g = img_arr[:, :, 1]
@@ -141,22 +168,29 @@ def analyze_complaint_image(image_bytes: bytes, filename: str = "upload.jpg", ca
         cb = 128.0 - 0.168736 * r - 0.331264 * g + 0.5 * b
         cr = 128.0 + 0.5 * r - 0.418688 * g - 0.081312 * b
 
-        # Chromatic human skin mask (YCbCr + normalized RGB)
-        skin_mask = (
-            (r > 80.0) & (g > 35.0) & (b > 20.0) &
-            (r > g) & (r > b) &
-            (np.abs(r - g) > 12.0) &
-            (cb >= 77.0) & (cb <= 135.0) &
-            (cr >= 130.0) & (cr <= 180.0)
-        )
+        # Universal human skin mask (YCbCr + normalized RGB + RGB chromaticity)
+        is_skin_rgb = (r > 55.0) & (g > 28.0) & (b > 18.0) & (r > g) & (g >= b) & ((r - g) >= 8.0)
+        is_skin_ycbcr = (cb >= 75.0) & (cb <= 135.0) & (cr >= 130.0) & (cr <= 185.0)
+        sum_rgb = r + g + b + 0.001
+        nr = r / sum_rgb
+        ng = g / sum_rgb
+        is_skin_norm = (nr > 0.33) & (nr < 0.62) & (ng > 0.25) & (ng < 0.40) & ((nr - ng) > 0.035)
+
+        skin_mask = (is_skin_rgb & is_skin_ycbcr) | (is_skin_rgb & is_skin_norm)
         skin_ratio = float(np.mean(skin_mask))
 
-        # Check central 60% crop (typical selfie or portrait composition)
+        # Check central crop and upper head region (typical selfie or portrait composition)
         h, w = skin_mask.shape
-        center_crop = skin_mask[int(h * 0.2):int(h * 0.8), int(w * 0.2):int(w * 0.8)]
+        center_crop = skin_mask[int(h * 0.15):int(h * 0.80), int(w * 0.15):int(w * 0.85)]
         center_skin_ratio = float(np.mean(center_crop))
+        upper_dark = float(np.mean(gray_arr[:int(h * 0.35), :] < 38.0))
 
-        is_human_detected = bool(skin_ratio > 0.14 or center_skin_ratio > 0.20)
+        is_human_detected = bool(
+            skin_ratio > 0.035 or
+            center_skin_ratio > 0.045 or
+            (upper_dark > 0.15 and center_skin_ratio > 0.025)
+        )
+
         if is_human_detected:
             return {
                 "success": True,
@@ -164,7 +198,7 @@ def analyze_complaint_image(image_bytes: bytes, filename: str = "upload.jpg", ca
                 "dimensions": f"{width}x{height}",
                 "file_size_kb": file_size_kb,
                 "is_genuine": False,
-                "authenticity_score": 12,
+                "authenticity_score": 10,
                 "authenticity_status": "Rejected: Human / Selfie Detected",
                 "defect_class": "Invalid Evidence: Human / Selfie Detected",
                 "admin_alert": "🚨 AI Evidence Rejection: Human face / selfie detected in the uploaded photo. Evidence must capture the physical campus asset (e.g., pipe, fan, switch, tap) instead of personal selfies or people.",
@@ -175,14 +209,14 @@ def analyze_complaint_image(image_bytes: bytes, filename: str = "upload.jpg", ca
                     "status": "Clear (Non-Maintenance Subject)"
                 },
                 "reasons": [
-                    f"Significant human skin tone concentration ({round(skin_ratio * 100, 1)}% frame, {round(center_skin_ratio * 100, 1)}% center) indicates a portrait or selfie.",
-                    "No physical campus maintenance infrastructure, damaged pipe, or hazard identified."
+                    f"Human facial / selfie features detected ({round(skin_ratio * 100, 1)}% frame, {round(center_skin_ratio * 100, 1)}% center).",
+                    f"Submitting photos of people or selfies for '{category_hint or 'maintenance'}' complaints is strictly prohibited."
                 ],
                 "manual_inspection_recommended": True
             }
 
         # -------------------------------------------------------------
-        # 4. Structural Edge Density & Defect Analysis
+        # 5. Structural Edge Density & Defect Analysis
         # -------------------------------------------------------------
         edge_pixels_ratio = float(np.mean(gnorm > 18.0))
         mean_r = float(np.mean(r))
@@ -197,7 +231,6 @@ def analyze_complaint_image(image_bytes: bytes, filename: str = "upload.jpg", ca
 
         # Category-Specific Verification
         if "plumb" in cat_hint_clean or "water" in cat_hint_clean:
-            # Water / Plumbing verification
             is_moisture_detected = (
                 (mean_b > mean_r + 4 and intensity_std > 22.0) or
                 (dark_ratio > 0.15 and edge_pixels_ratio > 0.05 and intensity_std > 30.0)
@@ -216,27 +249,26 @@ def analyze_complaint_image(image_bytes: bytes, filename: str = "upload.jpg", ca
                 reasons.append("Surface appears completely dry and intact without moisture pooling or pipe bursts.")
             else:
                 detected_category = "Invalid Evidence: Unrelated / Irrelevant Subject"
-                base_score = 18
+                base_score = 15
                 reasons.append("Photo appears unrelated to campus plumbing. No water pipes, sanitary fixtures, or leak stains detected.")
 
         elif "electr" in cat_hint_clean:
-            # Electrical verification
-            if dark_ratio > 0.28 and edge_pixels_ratio > 0.06:
+            is_neutral_wall = mean_gray > 85.0 and abs(mean_r - mean_g) < 30.0
+            has_appliance_contours = edge_pixels_ratio >= 0.03 and is_neutral_wall
+            is_scorch = dark_ratio > 0.20 and edge_pixels_ratio > 0.05
+
+            if is_scorch:
                 detected_category = "Electrical Defect / Scorch Hazard"
-                base_score = 90
+                base_score = 92
                 reasons.append("High dark pixel concentration and irregular high-contrast edges indicate burn/scorch or electrical wiring hazard.")
-            elif edge_pixels_ratio > 0.06 and intensity_std > 30.0:
-                detected_category = "Electrical Defect / Appliance Malfunction"
-                base_score = 82
-                reasons.append("Structural fixture contours match electrical appliance or wiring distribution point.")
-            elif edge_pixels_ratio < 0.05:
-                detected_category = "No Observable Defect (Normal Surface)"
-                base_score = 35
-                reasons.append("Surface/appliance appears intact without observable scorch, physical breakage, or exposed wiring.")
+            elif has_appliance_contours:
+                detected_category = "Electrical Defect / Appliance Inspection"
+                base_score = 86
+                reasons.append("Geometric fixture contours (switchboard, fan, lighting) verified against mounting surface.")
             else:
-                detected_category = "Invalid Evidence: Unrelated / Irrelevant Subject"
-                base_score = 20
-                reasons.append("No recognizable electrical equipment, fans, switchboards, or power distribution fixtures detected.")
+                detected_category = "Invalid Evidence: Unrelated to Electrical"
+                base_score = 18
+                reasons.append("The photo does not show an electrical fixture (fan, switchboard, socket, wiring) or electrical hazard.")
 
         elif "civil" in cat_hint_clean or "furnit" in cat_hint_clean:
             # Civil / Furniture verification

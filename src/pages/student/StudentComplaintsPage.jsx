@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useMemo, useState } from 'react'
-import { AlertCircle, Camera, CheckCircle2, Download, Filter, Mail, Search, Send, Sparkles } from 'lucide-react'
+import { AlertCircle, AlertOctagon, Camera, CheckCircle2, Download, Filter, Mail, Search, Send, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import FileUpload from '../../components/FileUpload'
 import StatusBadge from '../../components/StatusBadge'
@@ -23,39 +23,49 @@ export default function StudentComplaintsPage() {
   const [successMessage, setSuccessMessage] = useState('')
   const [visionCheck, setVisionCheck] = useState(null)
   const [isCheckingVision, setIsCheckingVision] = useState(false)
+  const [currentImageDataUrl, setCurrentImageDataUrl] = useState(null)
 
   const handleEvidenceChange = async (files) => {
     setEvidenceFiles(files)
+    setErrors((prev) => ({ ...prev, submit: '' }))
+
     if (!files || files.length === 0) {
       setVisionCheck(null)
+      setCurrentImageDataUrl(null)
       return
     }
 
     const firstImage = files.find((f) => f.type?.startsWith('image/'))
-    if (!firstImage) return
+    if (!firstImage) {
+      setVisionCheck(null)
+      setCurrentImageDataUrl(null)
+      return
+    }
 
     setIsCheckingVision(true)
     try {
       const dataUrl = await compressImageForStorage(firstImage)
       if (dataUrl) {
-        // 1. Client-side browser inspection (runs instantly on Vercel and offline)
+        setCurrentImageDataUrl(dataUrl)
+
+        // 1. Client-side browser inspection (runs instantly with 100% canvas pixel accuracy)
         const localCheck = await inspectImageClientSide(dataUrl, form.category)
         const safeLocalAlert = typeof localCheck.admin_alert === 'object'
           ? localCheck.admin_alert?.message || localCheck.admin_alert?.badge || ''
           : String(localCheck.admin_alert || '')
         setVisionCheck({ ...localCheck, admin_alert: safeLocalAlert })
 
-        // 2. Optionally query backend vision service if reachable
+        // 2. Query backend Python ML service if running (ignore if offline)
         try {
           const res = await visionApi.analyzeImage(dataUrl, firstImage.name, form.category)
-          if (res.data?.success) {
+          if (res.data?.success && !res.data?.offline) {
             const safeAlert = typeof res.data.admin_alert === 'object'
               ? res.data.admin_alert?.message || res.data.admin_alert?.badge || ''
               : String(res.data.admin_alert || '')
             setVisionCheck({ ...res.data, admin_alert: safeAlert })
           }
         } catch {
-          // Keep local inspection result
+          // Keep authoritative client-side inspection result
         }
       }
     } catch (e) {
@@ -64,6 +74,7 @@ export default function StudentComplaintsPage() {
       setIsCheckingVision(false)
     }
   }
+
   const [form, setForm] = useState({
     category: 'Electrical',
     location: 'Academic Block A',
@@ -105,7 +116,22 @@ export default function StudentComplaintsPage() {
   const handleFormChange = (event) => {
     const { name, value } = event.target
     setForm((prev) => ({ ...prev, [name]: value }))
-    setErrors((prev) => ({ ...prev, [name]: '' }))
+    setErrors((prev) => ({ ...prev, [name]: '', submit: '' }))
+
+    // If student changes category while an image is attached, re-verify against the new category!
+    if (name === 'category' && currentImageDataUrl) {
+      setIsCheckingVision(true)
+      inspectImageClientSide(currentImageDataUrl, value)
+        .then((recheck) => {
+          const safeAlert = typeof recheck.admin_alert === 'object'
+            ? recheck.admin_alert?.message || recheck.admin_alert?.badge || ''
+            : String(recheck.admin_alert || '')
+          setVisionCheck({ ...recheck, admin_alert: safeAlert })
+        })
+        .finally(() => {
+          setIsCheckingVision(false)
+        })
+    }
   }
 
   const validateForm = () => {
@@ -113,11 +139,23 @@ export default function StudentComplaintsPage() {
     if (!form.title.trim()) nextErrors.title = 'Title is required.'
     if (!form.description.trim()) nextErrors.description = 'Description is required.'
     if (!form.location.trim()) nextErrors.location = 'Location is required.'
+
+    // AI Computer Vision Verification Gate
+    if (evidenceFiles.length > 0 && visionCheck) {
+      if (!visionCheck.is_genuine || visionCheck.is_rejected || visionCheck.authenticity_score < 50) {
+        nextErrors.submit = `🚫 Complaint Submission Blocked: Uploaded evidence failed AI Verification (${visionCheck.authenticity_status || 'Invalid Evidence'}). Please upload authentic physical evidence of the ${form.category} defect to submit.`
+      }
+    }
     return nextErrors
   }
 
   const handleSubmit = async (event) => {
     event.preventDefault()
+    if (isCheckingVision) {
+      setErrors((prev) => ({ ...prev, submit: 'Please wait for AI photo verification to complete before submitting.' }))
+      return
+    }
+
     const nextErrors = validateForm()
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length) return
@@ -246,22 +284,23 @@ export default function StudentComplaintsPage() {
 
             {visionCheck && !isCheckingVision && (
               <div className={`rounded-xl border p-3.5 text-xs transition-all ${
-                visionCheck.is_genuine
+                visionCheck.is_genuine && !visionCheck.is_rejected && visionCheck.authenticity_score >= 50
                   ? 'border-emerald-500/30 bg-emerald-950/20 text-emerald-200'
-                  : visionCheck.authenticity_score < 45
-                  ? 'border-rose-500/30 bg-rose-950/20 text-rose-200'
-                  : 'border-amber-500/30 bg-amber-950/20 text-amber-200'
+                  : 'border-rose-500/40 bg-rose-950/30 text-rose-200'
               }`}>
                 <div className="flex items-center justify-between font-bold mb-1">
                   <span className="flex items-center gap-1.5">
-                    <Camera size={14} /> AI Evidence Status: {visionCheck.authenticity_status}
+                    {visionCheck.is_genuine && !visionCheck.is_rejected && visionCheck.authenticity_score >= 50 ? (
+                      <CheckCircle2 size={15} className="text-emerald-400" />
+                    ) : (
+                      <AlertOctagon size={15} className="text-rose-400" />
+                    )}
+                    AI Evidence Status: {visionCheck.authenticity_status}
                   </span>
                   <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase ${
-                    visionCheck.is_genuine
+                    visionCheck.is_genuine && !visionCheck.is_rejected && visionCheck.authenticity_score >= 50
                       ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                      : visionCheck.authenticity_score < 45
-                      ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                      : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                      : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
                   }`}>
                     {visionCheck.authenticity_score}% Authenticity
                   </span>
@@ -276,14 +315,65 @@ export default function StudentComplaintsPage() {
                     Detected Visual Pattern: <span className="font-semibold text-white">{visionCheck.defect_class}</span> ({visionCheck.quality?.status})
                   </p>
                 )}
+                {visionCheck.reasons?.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {visionCheck.reasons.map((r, i) => (
+                      <span key={i} className="rounded-md bg-white/5 px-2 py-0.5 text-[10px] text-slate-300 border border-white/10">
+                        • {r}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* AI Gate Block Warning */}
+            {evidenceFiles.length > 0 && visionCheck && (!visionCheck.is_genuine || visionCheck.is_rejected || visionCheck.authenticity_score < 50) && !isCheckingVision && (
+              <div className="rounded-xl border border-rose-500/40 bg-rose-950/40 p-3.5 text-xs text-rose-200 space-y-1">
+                <p className="font-bold flex items-center gap-1.5 text-rose-300">
+                  <AlertOctagon size={16} /> Complaint Submission Blocked by AI Verification Gate
+                </p>
+                <p className="text-[11px] text-slate-300 leading-relaxed">
+                  The uploaded photo cannot be verified as authentic <strong>{form.category}</strong> maintenance damage. Submitting selfies, personal portraits, or unrelated images is strictly prohibited.
+                </p>
+                <p className="text-[11px] text-rose-400 font-medium">
+                  Please attach a clear photo of the physical {form.category} defect or remove the invalid attachment to enable submission.
+                </p>
               </div>
             )}
 
             {errors.submit && <p role="alert" className="text-sm text-red-400">{errors.submit}</p>}
 
-            <button type="submit" disabled={isSubmitting} className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-500 px-4 py-3 font-semibold text-white shadow-[0_14px_28px_rgba(37,99,235,0.35)] transition hover:brightness-110 disabled:cursor-wait disabled:opacity-60">
-              <Send size={18} /> {isSubmitting ? 'Submitting…' : 'Submit complaint'}
-            </button>
+            {(() => {
+              const isEvidenceRejected = Boolean(
+                evidenceFiles.length > 0 &&
+                visionCheck &&
+                (!visionCheck.is_genuine || visionCheck.is_rejected || visionCheck.authenticity_score < 50)
+              )
+              return (
+                <button
+                  type="submit"
+                  disabled={isSubmitting || isCheckingVision || isEvidenceRejected}
+                  className={`flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold text-white shadow transition ${
+                    isEvidenceRejected
+                      ? 'bg-rose-900/40 border border-rose-500/50 text-rose-300 cursor-not-allowed opacity-80'
+                      : 'bg-gradient-to-r from-blue-600 to-indigo-500 shadow-[0_14px_28px_rgba(37,99,235,0.35)] hover:brightness-110 disabled:cursor-wait disabled:opacity-60'
+                  }`}
+                >
+                  {isSubmitting ? (
+                    'Submitting…'
+                  ) : isCheckingVision ? (
+                    'Verifying Photo with AI…'
+                  ) : isEvidenceRejected ? (
+                    '🚫 Submission Blocked (Invalid Evidence)'
+                  ) : (
+                    <>
+                      <Send size={18} /> Submit complaint
+                    </>
+                  )}
+                </button>
+              )
+            })()}
           </form>
         </div>
 
