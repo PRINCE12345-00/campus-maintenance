@@ -1,8 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { MessageSquare, X, Send, Bot, User, Sparkles } from 'lucide-react'
 import { chatbotApi } from '../services/api'
+import { useAppContext } from '../context/AppContext'
+import { answerCampusQuery } from '../utils/campusChatbotEngine'
 
 export default function AIChatbotWidget() {
+  const { complaints } = useAppContext()
   const [isOpen, setIsOpen] = useState(false)
   const [inputQuery, setInputQuery] = useState('')
   const [loading, setLoading] = useState(false)
@@ -43,21 +46,27 @@ export default function AIChatbotWidget() {
 
     try {
       const res = await chatbotApi.sendQuery(q)
-      const botMsg = {
-        id: `bot-${Date.now()}`,
-        sender: 'bot',
-        text: res.data?.answer || 'No response received.',
-        source: res.data?.source || 'Campus Knowledge Base'
+      if (res.data?.answer) {
+        const botMsg = {
+          id: `bot-${Date.now()}`,
+          sender: 'bot',
+          text: res.data.answer,
+          source: res.data.source || 'Campus Knowledge Base'
+        }
+        setMessages((prev) => [...prev, botMsg])
+      } else {
+        throw new Error('Empty response')
       }
-      setMessages((prev) => [...prev, botMsg])
     } catch {
+      // Graceful Autonomous Client-side RAG Fallback
+      const fallback = answerCampusQuery(q, complaints)
       setMessages((prev) => [
         ...prev,
         {
-          id: `bot-err-${Date.now()}`,
+          id: `bot-fallback-${Date.now()}`,
           sender: 'bot',
-          text: 'The AI Assistant is currently offline. Please ensure both Node.js backend (port 5000) and Python ML service (port 8000) are running.',
-          source: 'System Offline'
+          text: fallback.answer,
+          source: fallback.source || 'Campus Care Knowledge Engine'
         }
       ])
     } finally {

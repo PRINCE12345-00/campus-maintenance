@@ -100,5 +100,15 @@
     "password": "scrypt$37b9b7220b1d0870ad74ddf546b24e72$8853bf696119158ef58c727fdf2f31744483a876e47e99733f59a7b0153ea01654c0f72430c7127b9a76391be1ffd50162e55bfc197aabfd3769cd449ca77350",
     "hostel": "BH - 1 Room No. 365",
     "phone": "+91 6200679148"
+  },
+  {
+    "id": "24001001910",
+    "rollNumber": "24001001910",
+    "name": "Md Raza",
+    "email": "mdrazaali151@gmail.com",
+    "role": "student",
+    "department": "CSE",
+    "batch": "2026",
+    "password": "scrypt$3d98c32f85f78b9a412ca400124f3805$267796861a141f4ab4dc87a0eddff69af9393bc4aa77de3ddc439d5ff022f1e75a7bf342d1ccf380a05cd35924189305ec089fe4613ccb8c03fc5b21235778b0"
   }
 ]

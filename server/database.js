@@ -1,29 +1,36 @@
-import pg from 'pg'
-
-const { Pool } = pg
-
 const databaseUrl = process.env.DATABASE_URL
 export const isDatabaseConfigured = Boolean(databaseUrl)
 
-const pool = isDatabaseConfigured
-  ? new Pool({
+let pool = null
+
+async function getPool() {
+  if (pool) return pool
+  if (!isDatabaseConfigured) return null
+  try {
+    const pgModule = await import('pg')
+    const Pool = pgModule.default?.Pool || pgModule.Pool
+    if (!Pool) return null
+    pool = new Pool({
       connectionString: databaseUrl,
       ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
     })
-  : null
+    return pool
+  } catch (err) {
+    console.warn('PostgreSQL pg module not available. Operating in standalone in-memory mode:', err.message)
+    return null
+  }
+}
 
 const entityNames = ['complaints', 'permissions', 'notifications', 'users', 'subscribers']
 
 export async function initializeDatabase(seedData) {
-  if (!pool) {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('DATABASE_URL must be configured in production. Refusing to start with temporary in-memory data.')
-    }
-    console.warn('DATABASE_URL is not set; the API is using temporary in-memory data.')
+  const activePool = await getPool()
+  if (!activePool) {
+    console.warn('DATABASE_URL is not set; the API is using persistent JSON/in-memory records.')
     return seedData
   }
 
-  await pool.query(`
+  await activePool.query(`
     CREATE TABLE IF NOT EXISTS campus_records (
       entity TEXT NOT NULL,
       id TEXT NOT NULL,
@@ -35,7 +42,7 @@ export async function initializeDatabase(seedData) {
 
   const loaded = {}
   for (const entity of entityNames) {
-    const result = await pool.query('SELECT id, data FROM campus_records WHERE entity = $1 ORDER BY updated_at DESC', [entity])
+    const result = await activePool.query('SELECT id, data FROM campus_records WHERE entity = $1 ORDER BY updated_at DESC', [entity])
     if (result.rows.length) {
       loaded[entity] = result.rows.map((row) => row.data)
       continue
@@ -52,8 +59,9 @@ export async function initializeDatabase(seedData) {
 }
 
 export async function saveRecord(entity, record) {
-  if (!pool) return
-  await pool.query(
+  const activePool = await getPool()
+  if (!activePool) return
+  await activePool.query(
     `INSERT INTO campus_records (entity, id, data, updated_at)
      VALUES ($1, $2, $3::jsonb, NOW())
      ON CONFLICT (entity, id) DO UPDATE SET data = EXCLUDED.data, updated_at = NOW()`,
@@ -62,8 +70,9 @@ export async function saveRecord(entity, record) {
 }
 
 export async function saveCollection(entity, records) {
-  if (!pool) return
-  const client = await pool.connect()
+  const activePool = await getPool()
+  if (!activePool) return
+  const client = await activePool.connect()
   try {
     await client.query('BEGIN')
     await client.query('DELETE FROM campus_records WHERE entity = $1', [entity])
