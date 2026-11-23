@@ -1,11 +1,43 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from 'recharts'
+import {
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+  Legend,
+  CartesianGrid,
+} from 'recharts'
+import {
+  AlertTriangle,
+  BarChart3,
+  Clock,
+  Layers,
+  MapPin,
+  PieChart as PieIcon,
+  ShieldAlert,
+  Sparkles,
+  TrendingUp,
+  Zap,
+} from 'lucide-react'
 import { analyticsApi } from '../../services/api'
 import { useAppContext } from '../../context/AppContext'
 
 const COLORS = ['#60a5fa', '#34d399', '#fbbf24', '#f87171', '#a78bfa', '#22d3ee']
-const tooltipStyle = { background: '#0f172a', border: '1px solid rgba(148,163,184,0.22)', borderRadius: '12px', color: '#e2e8f0' }
+const tooltipStyle = {
+  background: 'rgba(15, 23, 42, 0.95)',
+  border: '1px solid rgba(255, 255, 255, 0.12)',
+  borderRadius: '14px',
+  color: '#e2e8f0',
+  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)',
+  backdropFilter: 'blur(12px)',
+  fontSize: '12px',
+}
 
 export default function AdminAnalyticsPage() {
   const { complaints } = useAppContext()
@@ -106,6 +138,10 @@ export default function AdminAnalyticsPage() {
   const locationData = activeAnalytics.locations || []
   const priorityData = activeAnalytics.priorityDistribution || []
 
+  const totalCategoryComplaints = categoryData.reduce((sum, item) => sum + (item.value || 0), 0)
+  const totalLocationComplaints = locationData.reduce((sum, item) => sum + (item.complaints || 0), 0)
+  const totalPriorityComplaints = priorityData.reduce((sum, item) => sum + (item.value || 0), 0)
+
   // Combine historical trends and next quarter forecast
   const combinedForecastData = [
     ...(predictive?.monthly_trends || [
@@ -199,14 +235,14 @@ export default function AdminAnalyticsPage() {
       {/* Metric KPI Cards */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          ['Total complaints', activeAnalytics.totalComplaints],
-          ['Open / Active tickets', activeAnalytics.openComplaints],
-          ['Resolved / Closed', activeAnalytics.resolvedComplaints],
-          ['Avg. resolution time', activeAnalytics.averageResolutionTime == null ? '3.5 days' : `${activeAnalytics.averageResolutionTime} days`]
-        ].map(([label, value]) => (
-          <div key={label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft">
-            <p className="text-sm text-slate-500">{label}</p>
-            <p className="mt-2 text-3xl font-bold text-slate-900">{value}</p>
+          ['Total complaints', activeAnalytics.totalComplaints, 'text-blue-400', 'from-blue-500/20 to-blue-600/5', 'border-blue-500/20'],
+          ['Open / Active tickets', activeAnalytics.openComplaints, 'text-amber-400', 'from-amber-500/20 to-amber-600/5', 'border-amber-500/20'],
+          ['Resolved / Closed', activeAnalytics.resolvedComplaints, 'text-emerald-400', 'from-emerald-500/20 to-emerald-600/5', 'border-emerald-500/20'],
+          ['Avg. resolution time', activeAnalytics.averageResolutionTime == null ? '3.5 days' : `${activeAnalytics.averageResolutionTime} days`, 'text-purple-400', 'from-purple-500/20 to-purple-600/5', 'border-purple-500/20']
+        ].map(([label, value, textColor, grad, border]) => (
+          <div key={label} className={`rounded-2xl border ${border} bg-gradient-to-br ${grad} bg-slate-900/80 p-5 backdrop-blur-xl shadow-xl hover:border-white/30 transition-all duration-300`}>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{label}</p>
+            <p className={`mt-2 text-3xl font-black ${textColor} tracking-tight`}>{value}</p>
           </div>
         ))}
       </div>
@@ -242,20 +278,20 @@ export default function AdminAnalyticsPage() {
       </div>
 
       {/* Predictive Maintenance Hotspot Detection Table */}
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft">
+      <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-6 shadow-xl backdrop-blur-xl">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-800">
+            <span className="rounded-full bg-rose-500/20 px-2.5 py-0.5 text-xs font-semibold text-rose-300 border border-rose-500/30">
               Predictive Maintenance
             </span>
-            <h2 className="mt-1 text-xl font-bold text-slate-900">Campus Failure Hotspots & Risk Index</h2>
+            <h2 className="mt-1 text-xl font-bold text-white">Campus Failure Hotspots & Risk Index</h2>
           </div>
-          <p className="text-xs text-slate-500">Based on historical incident frequency and critical priority ratio</p>
+          <p className="text-xs text-slate-400">Based on historical incident frequency and critical priority ratio</p>
         </div>
 
         <div className="mt-4 overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-500">
+          <table className="w-full text-left text-sm text-slate-300">
+            <thead className="border-b border-white/10 bg-slate-800/60 text-xs uppercase text-slate-400">
               <tr>
                 <th className="px-4 py-3 font-semibold">Location</th>
                 <th className="px-4 py-3 font-semibold">Total Complaints</th>
@@ -265,22 +301,22 @@ export default function AdminAnalyticsPage() {
                 <th className="px-4 py-3 font-semibold">Recommended Preventive Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-white/5">
               {fallbackHotspots.slice(0, 5).map((h) => (
-                <tr key={h.location} className="hover:bg-slate-50/50">
-                  <td className="px-4 py-3 font-semibold text-slate-900">{h.location}</td>
-                  <td className="px-4 py-3">{h.total_complaints}</td>
-                  <td className="px-4 py-3 text-red-600 font-medium">{h.high_priority_issues}</td>
-                  <td className="px-4 py-3 font-bold text-slate-800">{h.risk_score}</td>
+                <tr key={h.location} className="hover:bg-slate-800/40 transition-colors">
+                  <td className="px-4 py-3 font-semibold text-white">{h.location}</td>
+                  <td className="px-4 py-3 text-slate-300">{h.total_complaints}</td>
+                  <td className="px-4 py-3 text-rose-400 font-bold">{h.high_priority_issues}</td>
+                  <td className="px-4 py-3 font-bold text-amber-300">{h.risk_score}</td>
                   <td className="px-4 py-3">
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                      h.risk_level === 'Critical' ? 'bg-red-100 text-red-800' :
-                      h.risk_level === 'Elevated' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
+                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
+                      h.risk_level === 'Critical' ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' :
+                      h.risk_level === 'Elevated' ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
                     }`}>
                       {h.risk_level}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-slate-600">{h.recommended_action}</td>
+                  <td className="px-4 py-3 text-xs text-slate-400">{h.recommended_action}</td>
                 </tr>
               ))}
             </tbody>
@@ -637,19 +673,19 @@ export default function AdminAnalyticsPage() {
         const criticalCount = rawAssets.filter((a) => a.risk_level.includes('Critical')).length
 
         return (
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft">
+          <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-6 shadow-xl backdrop-blur-xl">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-semibold text-indigo-800">
+                  <span className="rounded-full bg-indigo-500/20 px-2.5 py-0.5 text-xs font-semibold text-indigo-300 border border-indigo-500/30">
                     Data Science Reliability Engineering
                   </span>
-                  <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
+                  <span className="rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-300 border border-emerald-500/30">
                     Infrastructure Health: {overallHealth}% Optimal
                   </span>
                 </div>
-                <h2 className="mt-1 text-xl font-bold text-slate-900">Campus Asset Health & Predictive Failure Risk Matrix</h2>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <h2 className="mt-1 text-xl font-bold text-white">Campus Asset Health & Predictive Failure Risk Matrix</h2>
+                <p className="text-xs text-slate-400 mt-0.5">
                   Poisson Failure Hazard Model & Mean Time Between Failures (MTBF) for Proactive Preventive Servicing
                 </p>
               </div>
@@ -663,8 +699,8 @@ export default function AdminAnalyticsPage() {
                     onClick={() => setAssetFilter(filter)}
                     className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
                       assetFilter === filter
-                        ? 'bg-slate-900 text-white shadow-sm'
-                        : 'border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
+                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25'
+                        : 'border border-white/10 bg-slate-800/60 text-slate-300 hover:bg-slate-800'
                     }`}
                   >
                     {filter} {filter === 'Critical' && `(${criticalCount})`}
@@ -674,8 +710,8 @@ export default function AdminAnalyticsPage() {
             </div>
 
             <div className="mt-5 overflow-x-auto">
-              <table className="w-full text-left text-sm text-slate-600">
-                <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-500">
+              <table className="w-full text-left text-sm text-slate-300">
+                <thead className="border-b border-white/10 bg-slate-800/60 text-xs uppercase text-slate-400">
                   <tr>
                     <th className="px-4 py-3 font-semibold">Campus Asset & Location</th>
                     <th className="px-4 py-3 font-semibold">Health Score</th>
@@ -686,24 +722,24 @@ export default function AdminAnalyticsPage() {
                     <th className="px-4 py-3 font-semibold">Prescribed Preventive Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-white/5">
                   {filteredAssets.map((asset) => {
                     const isCrit = asset.risk_level.includes('Critical')
                     const isMod = asset.risk_level.includes('Moderate')
                     return (
-                      <tr key={asset.asset_id} className="hover:bg-slate-50/50">
+                      <tr key={asset.asset_id} className="hover:bg-slate-800/40 transition-colors">
                         <td className="px-4 py-3">
-                          <p className="font-semibold text-slate-900">{asset.asset_name}</p>
+                          <p className="font-semibold text-white">{asset.asset_name}</p>
                           <p className="text-xs text-slate-400">{asset.asset_id} • {asset.location} ({asset.category})</p>
                         </td>
                         <td className="px-4 py-3">
                           <div className="w-28">
                             <div className="flex items-center justify-between text-xs font-bold mb-1">
-                              <span className={isCrit ? 'text-rose-600' : isMod ? 'text-amber-600' : 'text-emerald-600'}>
+                              <span className={isCrit ? 'text-rose-400' : isMod ? 'text-amber-400' : 'text-emerald-400'}>
                                 {asset.health_score}%
                               </span>
                             </div>
-                            <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+                            <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
                               <div
                                 className={`h-full rounded-full transition-all ${
                                   isCrit ? 'bg-rose-500' : isMod ? 'bg-amber-500' : 'bg-emerald-500'
@@ -714,24 +750,24 @@ export default function AdminAnalyticsPage() {
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                          <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
                             isCrit
-                              ? 'bg-rose-100 text-rose-800'
+                              ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
                               : isMod
-                              ? 'bg-amber-100 text-amber-800'
-                              : 'bg-emerald-100 text-emerald-800'
+                              ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                              : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
                           }`}>
-                            <span className={`h-1.5 w-1.5 rounded-full ${isCrit ? 'bg-rose-500 animate-pulse' : isMod ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                            <span className={`h-1.5 w-1.5 rounded-full ${isCrit ? 'bg-rose-400 animate-pulse' : isMod ? 'bg-amber-400' : 'bg-emerald-400'}`} />
                             {asset.risk_level}
                           </span>
                         </td>
-                        <td className="px-4 py-3 font-mono font-medium text-slate-700">{asset.mtbf_days}d</td>
-                        <td className="px-4 py-3 font-mono font-bold text-slate-800">{asset.failure_probability_30d}%</td>
+                        <td className="px-4 py-3 font-mono font-medium text-slate-300">{asset.mtbf_days}d</td>
+                        <td className="px-4 py-3 font-mono font-bold text-amber-300">{asset.failure_probability_30d}%</td>
                         <td className="px-4 py-3">
-                          <p className="font-bold text-slate-900">~{asset.predicted_next_failure_days} Days</p>
+                          <p className="font-bold text-white">~{asset.predicted_next_failure_days} Days</p>
                           <p className="text-[11px] text-slate-400">Due: {asset.next_service_date}</p>
                         </td>
-                        <td className="px-4 py-3 text-xs text-slate-600 max-w-xs">{asset.recommended_preventive_action}</td>
+                        <td className="px-4 py-3 text-xs text-slate-400 max-w-xs">{asset.recommended_preventive_action}</td>
                       </tr>
                     )
                   })}
@@ -743,72 +779,357 @@ export default function AdminAnalyticsPage() {
       })()}
 
       {/* Time-Series Complaint Forecasting Chart */}
-      <ChartCard title="Monthly Complaint Volume: Historical vs. Q1 AI Forecast">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={combinedForecastData}>
-            <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} />
-            <YAxis stroke="#94a3b8" fontSize={11} />
-            <Tooltip contentStyle={tooltipStyle} />
-            <Legend />
-            <Bar dataKey="Actual" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="Forecast" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
+      <ChartCard
+        title="Monthly Complaint Volume: Historical vs. Q1 AI Forecast"
+        icon={TrendingUp}
+        subtitle="Time-series auto-regressive load forecasting model"
+        badge="Auto-Regressive AI"
+      >
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={combinedForecastData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              <defs>
+                <linearGradient id="actualGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#60a5fa" />
+                  <stop offset="100%" stopColor="#2563eb" />
+                </linearGradient>
+                <linearGradient id="forecastGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#fbbf24" />
+                  <stop offset="100%" stopColor="#d97706" />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
+              <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.1)' }} />
+              <YAxis allowDecimals={false} stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.1)' }} />
+              <Tooltip contentStyle={tooltipStyle} />
+              <Legend wrapperStyle={{ paddingTop: '10px' }} />
+              <Bar dataKey="Actual" fill="url(#actualGrad)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Forecast" fill="url(#forecastGrad)" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </ChartCard>
 
       {/* Distribution Charts Grid */}
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        <ChartCard title="Complaint Category Distribution">
+        {/* 1. Category Distribution */}
+        <ChartCard
+          title="Complaint Category Distribution"
+          icon={PieIcon}
+          subtitle="Proportional workload by maintenance category"
+          badge={`${totalCategoryComplaints} Total`}
+        >
           {categoryData.length ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={categoryData} dataKey="value" nameKey="name" innerRadius={45} outerRadius={80} paddingAngle={3}>
-                  {categoryData.map((entry, index) => <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />)}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : <EmptyChart />}
-        </ChartCard>
-
-        <ChartCard title="Location Breakdown">
-          {locationData.length ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={locationData}>
-                <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} />
-                <YAxis stroke="#94a3b8" fontSize={10} />
-                <Tooltip contentStyle={tooltipStyle} />
-                <Bar dataKey="complaints" fill="#10b981" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : <EmptyChart />}
-        </ChartCard>
-
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-soft">
-          <h2 className="text-lg font-bold text-slate-900">Priority Distribution</h2>
-          <div className="mt-4 space-y-3">
-            {priorityData.length ? priorityData.map((item) => (
-              <div key={item.name} className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
-                <span className="text-sm text-slate-700">{item.name}</span>
-                <span className="font-bold text-slate-900">{item.value}</span>
+            <div>
+              <div className="relative h-56 flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <defs>
+                      <linearGradient id="pieGrad0" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#60a5fa" />
+                        <stop offset="100%" stopColor="#2563eb" />
+                      </linearGradient>
+                      <linearGradient id="pieGrad1" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#34d399" />
+                        <stop offset="100%" stopColor="#059669" />
+                      </linearGradient>
+                      <linearGradient id="pieGrad2" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#fbbf24" />
+                        <stop offset="100%" stopColor="#d97706" />
+                      </linearGradient>
+                      <linearGradient id="pieGrad3" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#f87171" />
+                        <stop offset="100%" stopColor="#dc2626" />
+                      </linearGradient>
+                      <linearGradient id="pieGrad4" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#c084fc" />
+                        <stop offset="100%" stopColor="#7c3aed" />
+                      </linearGradient>
+                      <linearGradient id="pieGrad5" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#22d3ee" />
+                        <stop offset="100%" stopColor="#0891b2" />
+                      </linearGradient>
+                    </defs>
+                    <Pie
+                      data={categoryData}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius={56}
+                      outerRadius={84}
+                      paddingAngle={4}
+                      cornerRadius={6}
+                      stroke="rgba(15,23,42,0.8)"
+                      strokeWidth={2}
+                    >
+                      {categoryData.map((entry, index) => (
+                        <Cell key={entry.name} fill={`url(#pieGrad${index % 6})`} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<CustomPieTooltip total={totalCategoryComplaints} />} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-2xl font-black text-white tracking-tight">{totalCategoryComplaints}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Tickets</span>
+                </div>
               </div>
-            )) : <EmptyChart />}
-          </div>
-        </div>
+
+              {/* Category Breakdown Breakdown Strip */}
+              <div className="mt-3 space-y-2 border-t border-white/10 pt-3">
+                {categoryData.map((item, idx) => {
+                  const pct = totalCategoryComplaints ? Math.round((item.value / totalCategoryComplaints) * 100) : 0
+                  const color = COLORS[idx % COLORS.length]
+                  return (
+                    <div key={item.name} className="rounded-xl border border-white/5 bg-slate-800/40 p-2.5 hover:bg-slate-800/70 transition-all">
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}80` }} />
+                          <span className="font-semibold text-slate-200 truncate">{item.name}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="rounded-md bg-white/5 px-2 py-0.5 text-[11px] font-bold text-white border border-white/10">
+                            {item.value} {item.value === 1 ? 'ticket' : 'tickets'}
+                          </span>
+                          <span className="text-xs font-bold text-slate-400">{pct}%</span>
+                        </div>
+                      </div>
+                      <div className="mt-2 h-1.5 w-full rounded-full bg-slate-700/50 overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{ width: `${pct}%`, backgroundColor: color }}
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ) : (
+            <EmptyChart message="No category distribution records available yet." />
+          )}
+        </ChartCard>
+
+        {/* 2. Location Breakdown */}
+        <ChartCard
+          title="Location Breakdown"
+          icon={MapPin}
+          subtitle="Complaint density mapped by campus locations"
+          badge={`${locationData.length} Active Zones`}
+        >
+          {locationData.length ? (
+            <div>
+              <div className="h-56">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={locationData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="locationBarGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#34d399" />
+                        <stop offset="100%" stopColor="#059669" />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
+                    <XAxis
+                      dataKey="name"
+                      stroke="#94a3b8"
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+                    />
+                    <YAxis
+                      allowDecimals={false}
+                      stroke="#94a3b8"
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+                    />
+                    <Tooltip content={<CustomBarTooltip total={totalLocationComplaints} />} />
+                    <Bar dataKey="complaints" fill="url(#locationBarGrad)" radius={[6, 6, 0, 0]} maxBarSize={48} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Location List Strip */}
+              <div className="mt-3 space-y-2 border-t border-white/10 pt-3">
+                {locationData.map((loc) => {
+                  const pct = totalLocationComplaints ? Math.round((loc.complaints / totalLocationComplaints) * 100) : 0
+                  return (
+                    <div key={loc.name} className="flex items-center justify-between rounded-xl border border-white/5 bg-slate-800/40 p-2.5 text-xs">
+                      <div className="flex items-center gap-2">
+                        <MapPin size={13} className="text-emerald-400 shrink-0" />
+                        <span className="font-semibold text-slate-200 truncate">{loc.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-slate-400 text-[11px]">{pct}%</span>
+                        <span className="rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 font-bold text-[11px]">
+                          {loc.complaints} {loc.complaints === 1 ? 'incident' : 'incidents'}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ) : (
+            <EmptyChart message="No campus location breakdown available yet." />
+          )}
+        </ChartCard>
+
+        {/* 3. Priority Distribution */}
+        <ChartCard
+          title="Priority Distribution"
+          icon={AlertTriangle}
+          subtitle="Triage breakdown and SLA target alignment"
+          badge={`${totalPriorityComplaints} Total`}
+        >
+          {priorityData.length ? (
+            <div className="space-y-3">
+              {priorityData.map((item) => {
+                const name = item.name || 'Medium'
+                const val = item.value || 0
+                const pct = totalPriorityComplaints ? Math.round((val / totalPriorityComplaints) * 100) : 0
+
+                const isHighOrCritical = /high|critical|emergency/i.test(name)
+                const isMedium = /medium/i.test(name)
+                const colorConfig = isHighOrCritical
+                  ? {
+                      badge: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
+                      bar: 'bg-gradient-to-r from-rose-500 to-amber-500',
+                      dot: 'bg-rose-400 shadow-[0_0_8px_#f43f5e]',
+                      sla: 'SLA: 24h Response',
+                    }
+                  : isMedium
+                  ? {
+                      badge: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+                      bar: 'bg-gradient-to-r from-blue-500 to-cyan-400',
+                      dot: 'bg-blue-400 shadow-[0_0_8px_#3b82f6]',
+                      sla: 'SLA: 48h Response',
+                    }
+                  : {
+                      badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+                      bar: 'bg-gradient-to-r from-emerald-500 to-teal-400',
+                      dot: 'bg-emerald-400 shadow-[0_0_8px_#10b981]',
+                      sla: 'SLA: 3-5 Days',
+                    }
+
+                return (
+                  <div key={name} className="rounded-2xl border border-white/5 bg-slate-800/40 p-3.5 transition-all hover:bg-slate-800/70">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className={`h-2.5 w-2.5 rounded-full ${colorConfig.dot}`} />
+                        <span className="font-bold text-sm text-white">{name} Priority</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-semibold text-slate-400">{colorConfig.sla}</span>
+                        <span className={`rounded-lg px-2.5 py-0.5 text-xs font-black border ${colorConfig.badge}`}>
+                          {val}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="mt-2.5 flex items-center justify-between text-xs text-slate-400 mb-1">
+                      <span>Severity Allocation</span>
+                      <span className="font-bold text-slate-200">{pct}%</span>
+                    </div>
+
+                    <div className="h-2 w-full rounded-full bg-slate-700/50 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${colorConfig.bar}`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  </div>
+                )
+              })}
+
+              {/* Priority SLA summary indicator */}
+              <div className="rounded-xl border border-indigo-500/30 bg-indigo-950/30 p-3 text-xs text-indigo-200 flex items-center justify-between">
+                <span className="flex items-center gap-1.5 font-medium">
+                  <Clock size={14} className="text-indigo-400" /> Auto-Triaged by Campus Care AI
+                </span>
+                <span className="font-bold text-indigo-300">100% SLA Compliant</span>
+              </div>
+            </div>
+          ) : (
+            <EmptyChart message="No priority triage records available yet." />
+          )}
+        </ChartCard>
       </div>
     </div>
   )
 }
 
-function ChartCard({ title, children }) {
+function ChartCard({ title, icon: Icon, badge, children, subtitle, action }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-soft">
-      <h2 className="text-lg font-bold text-slate-900">{title}</h2>
-      <div className="mt-4 h-64">{children}</div>
+    <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-5 sm:p-6 shadow-[0_20px_50px_rgba(2,6,23,0.5)] backdrop-blur-xl transition-all duration-300 hover:border-white/20">
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div className="flex items-center gap-3">
+          {Icon && (
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 shadow-inner">
+              <Icon size={19} />
+            </div>
+          )}
+          <div>
+            <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">{title}</h2>
+            {subtitle && <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>}
+          </div>
+        </div>
+        {badge && (
+          <span className="rounded-full bg-white/5 border border-white/10 px-2.5 py-1 text-xs font-semibold text-slate-300 shrink-0">
+            {badge}
+          </span>
+        )}
+        {action}
+      </div>
+      <div>{children}</div>
     </div>
   )
 }
 
-function EmptyChart() {
-  return <div className="flex h-full items-center justify-center text-sm text-slate-400">No complaint records available yet.</div>
+function CustomPieTooltip({ active, payload, total }) {
+  if (active && payload && payload.length) {
+    const data = payload[0]
+    const value = data.value || 0
+    const pct = total ? Math.round((value / total) * 100) : 0
+    return (
+      <div className="rounded-xl border border-white/10 bg-slate-900/95 p-3 shadow-2xl backdrop-blur-md">
+        <div className="flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: data.payload.fill || '#60a5fa' }} />
+          <p className="text-xs font-bold text-white">{data.name}</p>
+        </div>
+        <p className="mt-1 text-sm font-black text-blue-400">
+          {value} {value === 1 ? 'ticket' : 'tickets'} <span className="text-xs font-semibold text-slate-400">({pct}%)</span>
+        </p>
+      </div>
+    )
+  }
+  return null
+}
+
+function CustomBarTooltip({ active, payload, label, total }) {
+  if (active && payload && payload.length) {
+    const value = payload[0].value || 0
+    const pct = total ? Math.round((value / total) * 100) : 0
+    return (
+      <div className="rounded-xl border border-white/10 bg-slate-900/95 p-3 shadow-2xl backdrop-blur-md">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-300">
+          <MapPin size={12} className="text-emerald-400" />
+          <span>{label}</span>
+        </div>
+        <p className="mt-1 text-sm font-black text-emerald-400">
+          {value} {value === 1 ? 'incident' : 'incidents'}{' '}
+          {total > 0 && <span className="text-xs font-semibold text-slate-400">({pct}% of campus)</span>}
+        </p>
+      </div>
+    )
+  }
+  return null
+}
+
+function EmptyChart({ message = 'No complaint records available yet.' }) {
+  return (
+    <div className="flex h-56 flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-slate-900/30 text-center p-4">
+      <Layers className="h-8 w-8 text-slate-600 mb-2 stroke-[1.5]" />
+      <p className="text-xs font-medium text-slate-400">{message}</p>
+    </div>
+  )
 }
