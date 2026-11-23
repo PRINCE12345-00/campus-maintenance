@@ -1090,7 +1090,9 @@ export default function ComplaintDetailPage() {
                         {visionResult.is_genuine ? 'Genuine Defect Detected' : 'AI Evidence Authenticity Warning'}
                       </p>
                       <p className="text-xs leading-relaxed text-slate-200">
-                        {visionResult.admin_alert}
+                        {typeof visionResult.admin_alert === 'object'
+                          ? visionResult.admin_alert?.message || visionResult.admin_alert?.badge || ''
+                          : String(visionResult.admin_alert || '')}
                       </p>
                       {visionResult.reasons?.length > 0 && (
                         <div className="pt-1 flex flex-wrap gap-1.5">

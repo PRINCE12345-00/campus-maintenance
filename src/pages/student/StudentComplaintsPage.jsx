@@ -9,6 +9,7 @@ import { complaintsApi, visionApi } from '../../services/api'
 import { campusLocations, categoryOptions, formatDate } from '../../utils/formatters'
 import { getStudentComplaints } from '../../utils/studentRecords'
 import { compressImageForStorage } from '../../utils/evidence'
+import { inspectImageClientSide } from '../../utils/visionInspector'
 
 export default function StudentComplaintsPage() {
   const { complaints, setComplaints, user } = useAppContext()
@@ -37,9 +38,24 @@ export default function StudentComplaintsPage() {
     try {
       const dataUrl = await compressImageForStorage(firstImage)
       if (dataUrl) {
-        const res = await visionApi.analyzeImage(dataUrl, firstImage.name, form.category)
-        if (res.data?.success) {
-          setVisionCheck(res.data)
+        // 1. Client-side browser inspection (runs instantly on Vercel and offline)
+        const localCheck = await inspectImageClientSide(dataUrl, form.category)
+        const safeLocalAlert = typeof localCheck.admin_alert === 'object'
+          ? localCheck.admin_alert?.message || localCheck.admin_alert?.badge || ''
+          : String(localCheck.admin_alert || '')
+        setVisionCheck({ ...localCheck, admin_alert: safeLocalAlert })
+
+        // 2. Optionally query backend vision service if reachable
+        try {
+          const res = await visionApi.analyzeImage(dataUrl, firstImage.name, form.category)
+          if (res.data?.success) {
+            const safeAlert = typeof res.data.admin_alert === 'object'
+              ? res.data.admin_alert?.message || res.data.admin_alert?.badge || ''
+              : String(res.data.admin_alert || '')
+            setVisionCheck({ ...res.data, admin_alert: safeAlert })
+          }
+        } catch {
+          // Keep local inspection result
         }
       }
     } catch (e) {
@@ -250,7 +266,11 @@ export default function StudentComplaintsPage() {
                     {visionCheck.authenticity_score}% Authenticity
                   </span>
                 </div>
-                <p className="text-[11px] leading-relaxed text-slate-200 mt-1">{visionCheck.admin_alert}</p>
+                <p className="text-[11px] leading-relaxed text-slate-200 mt-1">
+                  {typeof visionCheck.admin_alert === 'object'
+                    ? visionCheck.admin_alert?.message || visionCheck.admin_alert?.badge || ''
+                    : String(visionCheck.admin_alert || '')}
+                </p>
                 {visionCheck.defect_class && (
                   <p className="mt-1.5 text-[11px] text-slate-400">
                     Detected Visual Pattern: <span className="font-semibold text-white">{visionCheck.defect_class}</span> ({visionCheck.quality?.status})
